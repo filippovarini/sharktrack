@@ -1,6 +1,6 @@
 #%% Cell1
 from ultralytics import YOLO
-from annotations.sharktrack import yolo2sharktrack, extract_track_max_conf_detection, build_detection_folder
+from compute_output.sharktrack_annotations import yolo2sharktrack, extract_track_max_conf_detection, build_detection_folder
 import cv2
 import os
 
@@ -45,11 +45,12 @@ class Model():
 
   
   def save(self, results, output_path='./output'):
+    os.makedirs(output_path, exist_ok=True)
+
     sharktrack_results = yolo2sharktrack(results, self.fps)
 
     # Construct Detections Folder
-    max_conf_detections = extract_track_max_conf_detection(sharktrack_results)
-    build_detection_folder(max_conf_detections, self.videos_folder, output_path, self.fps)
+    build_detection_folder(sharktrack_results, self.videos_folder, output_path, self.fps)
 
     # Save results to csv
     output_csv = os.path.join(output_path, 'output.csv')
@@ -84,7 +85,7 @@ class Model():
       if os.path.isdir(video_path):
         for chapter in os.listdir(video_path):
           stereo_filter = not stereo or 'LGX' in chapter # pick only left camera
-          custom_filter = 'easy1' in chapter #TODO: remove
+          custom_filter = 'easy1' in chapter or 'easy2' in chapter #TODO: remove
           if chapter.endswith('.mp4') and stereo_filter and custom_filter:
             chapter_id = os.path.join(video, chapter)
             chapter_path = os.path.join(videos_folder, chapter_id)
@@ -125,3 +126,5 @@ def main():
 if __name__ == '__main__':
   main()
 
+
+# %%
