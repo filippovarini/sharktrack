@@ -129,7 +129,7 @@ class Model():
       if os.path.isdir(video_path):
         for chapter in os.listdir(video_path):
           stereo_filter = not stereo or "LGX" in chapter # pick only left camera
-          if chapter.endswith(".mp4") and stereo_filter:
+          if chapter.endswith(".mp4") and stereo_filter: # and chapter in ['val1_easy1.mp4', 'val1_easy2.mp4']:
             chapter_id = os.path.join(video, chapter)
             chapter_path = os.path.join(videos_folder, chapter_id)
             chapter_results = self.track(chapter_path)

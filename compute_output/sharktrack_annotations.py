@@ -5,7 +5,7 @@ import os
 sys.path.append("compute_output")
 from utils import format_time, unformat_time
 from viame_annotations import max_conf2viame
-from image_processor import draw_bboxes
+from image_processor import draw_bboxes, annotate_image
 
 
 SHARKTRACK_COLUMNS = ["video", "chapter", "frame", "time", "track_metadata", "track_id", "xmin", "ymin", "xmax", "ymax", "confidence", "class"]
@@ -93,6 +93,7 @@ def save_track_max_conf_frame(sharktrack_output, max_conf_detections, video_base
 
     # Draw the rectangles
     img = draw_bboxes(img, read_bboxes(sharktrack_output, video, chapter, time), max_conf_bbox)
+    img = annotate_image(img, video, chapter, time)
 
     output_image_id = f"{unique_track_id}.jpg"
     output_path = os.path.join(det_folder, output_image_id)
