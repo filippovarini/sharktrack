@@ -1,9 +1,13 @@
+#%%
 from compute_output.sharktrack_annotations import yolo2sharktrack, extract_track_max_conf_detection, build_detection_folder
 from argparse import ArgumentParser
 from ultralytics import YOLO
+import pandas as pd
+import shutil
 import cv2
 import os
 
+#%%
 class Model():
   def __init__(self, mobile=False):
     """
@@ -18,7 +22,6 @@ class Model():
     """
     mobile_model = "/vol/biomedic3/bglocker/ugproj2324/fv220/dev/SharkTrack-Dev/models/yolov8_n_mvd2_50/best.pt"
     analyst_model = "/vol/biomedic3/bglocker/ugproj2324/fv220/dev/SharkTrack-Dev/models/p2v5_new/weights/best.pt"
-
     if mobile:
       self.model_path = mobile_model
       self.tracker_path = "botsort.yaml"
@@ -34,6 +37,9 @@ class Model():
     self.conf_threshold = 0.2
     self.iou_association_threshold = 0.5
     self.imgsz = 640
+
+    # config
+    self.sharktrack_results_name = 'output.csv'
 
   
   def _get_frame_skip(self, video_path):
@@ -59,23 +65,34 @@ class Model():
       filtered_df = results[results["track_id"].isin(valid_track_ids)]
 
       return filtered_df
-
   
-  def save(self, results, output_path="./output"):
-    os.makedirs(output_path, exist_ok=True)
+  def save_chapter_results(self, chapter_id, yolo_results, output_path="./output"):
+    output_csv_path = os.path.join(output_path, self.sharktrack_results_name)
 
-    sharktrack_results = yolo2sharktrack(results, self.fps)
+    if os.path.exists(output_csv_path):
+      current_results = pd.read_csv(output_csv_path)
+      unique_tracks_seen = current_results["track_id"].nunique()
+      sharktrack_results = yolo2sharktrack(chapter_id, yolo_results, self.fps, tracks_seen=unique_tracks_seen)
+      combined_results = pd.concat([current_results, sharktrack_results])
+    else:
+      combined_results = yolo2sharktrack(chapter_id, yolo_results, self.fps)
+    
+    print(f"Saving results to {output_csv_path}...")
+    combined_results.to_csv(output_csv_path, index=False)
+
+
+  def save(self, output_path="./output"):
+    assert os.path.exists(output_path), f"Output path {output_path} does not exist"
+    output_csv_path = os.path.join(output_path, self.sharktrack_results_name)
+    assert os.path.exists(output_csv_path), f"Output csv {output_csv_path} does not exist"
+
+    sharktrack_results = pd.read_csv(output_csv_path)
 
     print(f"Postprocessing results...")
     sharktrack_results = self._postprocess(sharktrack_results)
 
     # Construct Detections Folder
     build_detection_folder(sharktrack_results, self.videos_folder, output_path, self.fps)
-
-    # Save results to csv
-    output_csv = os.path.join(output_path, "output.csv")
-    print(f"Saving results to {output_csv}...")
-    sharktrack_results.to_csv(output_csv, index=False)
 
   
   def track(self, video_path):
@@ -96,9 +113,15 @@ class Model():
     return results
 
 
-  def run(self, videos_folder, stereo=False, save_results=True):
-    all_results = {}
+  def run(self, videos_folder, stereo=False, output_path="./output"):
+    # remove previous predictions first
+    if os.path.exists(output_path):
+      shutil.rmtree(output_path)
+
+    os.makedirs(output_path)
+
     self.videos_folder = videos_folder
+    processed_videos = []
 
     for video in os.listdir(videos_folder):
       video_path = os.path.join(videos_folder, video)
@@ -109,13 +132,10 @@ class Model():
             chapter_id = os.path.join(video, chapter)
             chapter_path = os.path.join(videos_folder, chapter_id)
             chapter_results = self.track(chapter_path)
-            all_results[chapter_id] = chapter_results
+            self.save_chapter_results(chapter_id, chapter_results)
+            processed_videos.append(chapter_path)
 
-    self.results = all_results
-    if save_results:
-      self.save(all_results)
-
-    if len(all_results) == 0:
+    if len(processed_videos) == 0:
       print("No chapters found in the given folder")
       print("Please ensure the folder structure resembles the following:")
       print("videos_folder")
@@ -126,7 +146,9 @@ class Model():
       print("    ├── chapter1.mp4")
       print("    ├── chapter2.mp4")
 
-    return all_results
+    self.save()
+
+    return processed_videos
 
   def get_results(self):
     # 2. From the results construct VIAME
@@ -139,10 +161,11 @@ def main(video_path, stereo):
   # 1. Run tracker with configs
   # 2. From the results construct VIAME
 
-
+#%%
 if __name__ == "__main__":
   parser = ArgumentParser()
   parser.add_argument("--video_path", type=str, required=True, help="Path to the video file")
-  parser.add_argument("--stereo", type=bool, required=True, help="Whether folder contains stereo BRUVS (LGX/RGX)")
+  parser.add_argument("--stereo", action='store_true', help="Whether folder contains stereo BRUVS (LGX/RGX)")
   args = parser.parse_args()
   main(args.video_path, args.stereo)
+# %%

@@ -19,41 +19,40 @@ def extract_frame_results(frame_results):
 
     return zip(boxes, track_ids, confidences, classes)
 
-def yolo2sharktrack(yolo_results, fps):
+def yolo2sharktrack(chapter_id, chapter_results, fps, tracks_seen=0):
   """
-  Given yolo_results in ultralytics.Results format, save the results to csv_file using the MOT format
+  Given  in ultralytics.Results format, save the results to csv_file using the MOT format
   """
   data = []
   track_metadata_to_id = {}
 
-  for chapter_id, chapter_results in yolo_results.items():
-      for frame_id, frame_results in enumerate(chapter_results):
-          video = chapter_id.split("/")[0]
-          chapter = chapter_id.split("/")[1]
-          time = format_time(frame_id / fps)
+  for frame_id, frame_results in enumerate(chapter_results):
+      video = chapter_id.split("/")[0]
+      chapter = chapter_id.split("/")[1]
+      time = format_time(frame_id / fps)
 
-          for box, chapter_track_id, confidence, cls in extract_frame_results(frame_results):
-              track_metadata = f"{video}/{chapter}/{chapter_track_id}"
-              if track_metadata not in track_metadata_to_id:
-                  track_metadata_to_id[track_metadata] = len(track_metadata_to_id)  
+      for box, chapter_track_id, confidence, cls in extract_frame_results(frame_results):
+          track_metadata = f"{video}/{chapter}/{chapter_track_id}"
+          if track_metadata not in track_metadata_to_id:
+              track_metadata_to_id[track_metadata] = len(track_metadata_to_id) + tracks_seen
 
-              unique_track_id = track_metadata_to_id[track_metadata]  
-              
-              row = {
-                  "video": video,
-                  "chapter": chapter,
-                  "frame": frame_id,
-                  "time": time,
-                  "track_metadata": track_metadata,
-                  "track_id": unique_track_id,
-                  "xmin": box[0],
-                  "ymin": box[1],
-                  "xmax": box[2],
-                  "ymax": box[3],
-                  "confidence": confidence,
-                  "class": cls,
-              }
-              data.append(row)
+          unique_track_id = track_metadata_to_id[track_metadata]  
+          
+          row = {
+              "video": video,
+              "chapter": chapter,
+              "frame": frame_id,
+              "time": time,
+              "track_metadata": track_metadata,
+              "track_id": unique_track_id,
+              "xmin": box[0],
+              "ymin": box[1],
+              "xmax": box[2],
+              "ymax": box[3],
+              "confidence": confidence,
+              "class": cls,
+          }
+          data.append(row)
 
   df = pd.DataFrame(data, columns=SHARKTRACK_COLUMNS)
   return df
