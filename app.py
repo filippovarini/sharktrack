@@ -105,8 +105,7 @@ class Model():
       if os.path.isdir(video_path):
         for chapter in os.listdir(video_path):
           stereo_filter = not stereo or "LGX" in chapter # pick only left camera
-          custom_filter = "easy1" in chapter or "easy2" in chapter #TODO: remove
-          if chapter.endswith(".mp4") and stereo_filter and custom_filter:
+          if chapter.endswith(".mp4") and stereo_filter:
             chapter_id = os.path.join(video, chapter)
             chapter_path = os.path.join(videos_folder, chapter_id)
             chapter_results = self.track(chapter_path)
@@ -144,6 +143,6 @@ def main(video_path, stereo):
 if __name__ == "__main__":
   parser = ArgumentParser()
   parser.add_argument("--video_path", type=str, required=True, help="Path to the video file")
-  parser.add_argument("--stereo", type=str, required=True, help="Whether folder contains stereo BRUVS (LGX/RGX)")
+  parser.add_argument("--stereo", type=bool, required=True, help="Whether folder contains stereo BRUVS (LGX/RGX)")
   args = parser.parse_args()
   main(args.video_path, args.stereo)
