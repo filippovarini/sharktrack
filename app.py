@@ -108,6 +108,7 @@ class Model():
       vid_stride=self._get_frame_skip(video_path),
       device=self.device,
       verbose=False,
+      stream=True,
     )
 
     return results
