@@ -1,6 +1,6 @@
 import pandas as pd
-from argparse import ArgumentParser
 import os
+from argparse import ArgumentParser
 
 def clean_annotations(output_path, viame_output_path):
     sharktrack_output_path = os.path.join(output_path, "output.csv")
@@ -40,6 +40,6 @@ def main(output_path, viame_output_path):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("-o", type=str, required=True, help="Path to the output folder of sharktrack")
-    parser.add_argument("-v", type=str, required=True, help="Path to the output folder of viame")
+    parser.add_argument("-v", type=str, required=True, help="Path to the output csv of viame")
     args = parser.parse_args()
     main(args.o, args.v)

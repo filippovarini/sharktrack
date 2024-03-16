@@ -1,1 +1,5 @@
 output/
+test*
+venv
+./*/__pycache__/*
+*.png
