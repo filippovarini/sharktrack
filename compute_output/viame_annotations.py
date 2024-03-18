@@ -15,7 +15,7 @@ def max_conf2viame(max_conf_detections, fps):
     # Add row
     new_row = {
       '# 1: Detection or Track-id': row['track_id'], 
-      '2: Video or Image Identifier': row['time'], 
+      '2: Video or Image Identifier': f"{row['track_id']}.jpg", 
       # instead of frame_id because VIAME maps annotation to image with the index in the imnage sequence 
       '3: Unique Frame Identifier': index,
       '4-7: Img-bbox(TL_x': row['xmin'], 
