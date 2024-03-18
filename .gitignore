@@ -1,4 +1,5 @@
 output/
 test*
 venv
-./*/__pycache__/*
+./__pycache__/*
+./compute_output/__pycache__/*
