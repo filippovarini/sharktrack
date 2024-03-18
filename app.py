@@ -48,6 +48,17 @@ class Model():
     frame_skip = round(actual_fps / self.fps)
     return frame_skip
 
+  def _assign_track_id(self, filtered_results):
+        """
+        Given the postprocessed results, assign a unique track_id
+        """
+        # To update the sliced dataset without copying (save up memory) and avoid
+        # causing SettingWithCopyWarning, deactivate it
+        pd.options.mode.chained_assignment = None
+        filtered_results['track_id'] = filtered_results.groupby('track_metadata').ngroup()
+        pd.options.mode.chained_assignment = 'warn'
+        return filtered_results
+
 
   def _postprocess(self, results):
       """
@@ -59,23 +70,20 @@ class Model():
       MAX_CONF_THRESHOLD = 0.8
       DURATION_THRESH = 5 if self.fps == 5 else 2
 
-      track_counts = results["track_id"].value_counts()
-      max_conf = results.groupby("track_id")["confidence"].max()
-      valid_track_ids = track_counts[(track_counts >= DURATION_THRESH) | (max_conf > MAX_CONF_THRESHOLD)].index
-      filtered_df = results[results["track_id"].isin(valid_track_ids)]
+      track_counts = results["track_metadata"].value_counts()
+      max_conf = results.groupby("track_metadata")["confidence"].max()
+      valid_tracks = track_counts[(track_counts >= DURATION_THRESH) | (max_conf > MAX_CONF_THRESHOLD)].index
+      filtered_df = results[results["track_metadata"].isin(valid_tracks)]
 
-      return filtered_df
+      return self._assign_track_id(filtered_df)
   
   def save_chapter_results(self, chapter_id, yolo_results, output_path="./output"):
     output_csv_path = os.path.join(output_path, self.sharktrack_results_name)
+    combined_results = yolo2sharktrack(chapter_id, yolo_results, self.fps)
 
     if os.path.exists(output_csv_path):
       current_results = pd.read_csv(output_csv_path)
-      unique_tracks_seen = current_results["track_id"].nunique()
-      sharktrack_results = yolo2sharktrack(chapter_id, yolo_results, self.fps, tracks_seen=unique_tracks_seen)
-      combined_results = pd.concat([current_results, sharktrack_results])
-    else:
-      combined_results = yolo2sharktrack(chapter_id, yolo_results, self.fps)
+      combined_results = pd.concat([current_results, combined_results])
     
     print(f"Saving results to {output_csv_path}...")
     combined_results.to_csv(output_csv_path, index=False)
@@ -87,9 +95,10 @@ class Model():
     assert os.path.exists(output_csv_path), f"Output csv {output_csv_path} does not exist"
 
     sharktrack_results = pd.read_csv(output_csv_path)
-
+    
     print(f"Postprocessing results...")
     sharktrack_results = self._postprocess(sharktrack_results)
+    sharktrack_results.to_csv(output_csv_path, index=False)
 
     # Construct Detections Folder
     build_detection_folder(sharktrack_results, self.videos_folder, output_path, self.fps)
@@ -126,8 +135,12 @@ class Model():
 
     for video in os.listdir(videos_folder):
       video_path = os.path.join(videos_folder, video)
+      if len(processed_videos) == 2: 
+        break
       if os.path.isdir(video_path):
         for chapter in os.listdir(video_path):
+          if len(processed_videos) == 2: 
+            break
           stereo_filter = not stereo or "LGX" in chapter # pick only left camera
           if chapter.endswith(".mp4") and stereo_filter: # and chapter in ['val1_easy1.mp4', 'val1_easy2.mp4']:
             chapter_id = os.path.join(video, chapter)
