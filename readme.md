@@ -5,6 +5,30 @@ This is a package to run a shark detector and tracker model and compute MaxN ann
 [![watrch video](static/video_screenshot.png)](https://drive.google.com/file/d/1b_74wdPXyJPe2P-m1c45jjsV2C5Itr-R/view?usp=sharing)
 Click on the image above to watch a demo
 
+## Running the SharkTrack Model
+
+### 1. Running the model on a single video
+
+### 2. Running the model on multiple videos
+To run the model on multiple videos, you just need to point the script to the root folder containing the videos in the following structure:
+```
+videos_root
+      ├── video1
+      │   ├── chapter1.mp4
+      │   ├── chapter2.mp4
+      └── video2
+          ├── chapter1.mp4
+          ├── chapter2.mp4
+
+```
+
+### 📹 GoPro Compatibility ⛔️
+GoPro videos are not compatible with the model. To make them compatible, you need to convert them to a format that the model can read. You can use the [script here](./scripts/process_gopro.py) to convert the videos, by running the following command:
+```bash
+python scripts/process_gopro.py --input_path path_to_gopro_videos --output_path path_to_output_folder
+```
+This script copies the videos to the output folder, with the cleaned format. You should use this script to copy the videos from an external drive to your local machine, before running the model. 
+
 ## Processing SharkTrack Annotations
 
 
