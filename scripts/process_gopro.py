@@ -31,7 +31,7 @@ def process_gopros(videos_root, output_root, stereo):
     if len(processed_videos) == 0:
       print("No chapters found in the given folder")
       print("Please ensure the folder structure resembles the following:")
-      print("videos_root")
+      print("video_path")
       print("├── video1")
       print("│   ├── chapter1.mp4")
       print("│   ├── chapter2.mp4")
@@ -42,8 +42,8 @@ def process_gopros(videos_root, output_root, stereo):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--videos_root", type=str, required=True, help="Path to the root directory of your video file")
+    parser.add_argument("--video_path", type=str, required=True, help="Path to the root directory of your video file")
     parser.add_argument("--output_root", type=str, required=True, help="Path to the output root directory of your video file")
     parser.add_argument("--stereo", action='store_true', help="Whether folder contains stereo BRUVS (LGX/RGX)")
     args = parser.parse_args()
-    process_gopros(args.videos_root, args.output_root, args.stereo)
+    process_gopros(args.video_path, args.output_root, args.stereo)
