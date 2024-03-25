@@ -5,6 +5,13 @@ This is a package to run a shark detector and tracker model and compute MaxN ann
 [![watrch video](static/video_screenshot.png)](https://drive.google.com/file/d/1b_74wdPXyJPe2P-m1c45jjsV2C5Itr-R/view?usp=sharing)
 Click on the image above to watch a demo
 
+## Installation
+1. ` git clone https://github.com/filippovarini/sharktrack.git`
+2. `python -m venv venv` can also use python3
+3. `source venv/bin/activate`
+4. `pip install -r requirements.txt`
+5. `python app.py --video_path <path_to_video>`
+
 ## Running the SharkTrack Model
 
 ### 1. Running the model on a single video
