@@ -10,6 +10,7 @@ Click on the image above to watch a demo
 2. `python -m venv venv` can also use python3
 3. `source venv/bin/activate`
 4. `pip install -r requirements.txt`
+5. Download the models from [here](https://drive.google.com/drive/folders/1KE5ko9XaSc6q1dDtWrB1gB8RKWjJKkcx?usp=sharing) and place them in the `models` folder
 5. `python app.py --video_path <path_to_video>`
 
 ## Running the SharkTrack Model
