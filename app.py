@@ -21,7 +21,7 @@ class Model():
     | analyst | Yolov8s | 5fps |
     """
     mobile_model = "/vol/biomedic3/bglocker/ugproj2324/fv220/dev/SharkTrack-Dev/models/yolov8_n_mvd2_50/best.pt"
-    analyst_model = "/vol/biomedic3/bglocker/ugproj2324/fv220/dev/SharkTrack-Dev/models/p2v5_new/weights/best.pt"
+    analyst_model = "models/analyst.pt"
     if mobile:
       self.model_path = mobile_model
       self.tracker_path = "botsort.yaml"
