@@ -17,13 +17,9 @@ def process_gopros(videos_root, output_root, stereo):
     processed_videos = []
     for video in os.listdir(videos_root):
         video_path = os.path.join(videos_root, video)
-        if len(processed_videos) == 2: 
-            break
         os.makedirs(os.path.join(output_root, video), exist_ok=True)
         if os.path.isdir(video_path):
             for chapter in os.listdir(video_path):
-                if len(processed_videos) == 2: 
-                    break
                 stereo_filter = not stereo or "LGX" in chapter # pick only left camera
                 if valid_video(chapter) and stereo_filter:
                     chapter_id = os.path.join(video, chapter)
