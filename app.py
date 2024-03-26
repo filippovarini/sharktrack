@@ -1,5 +1,5 @@
 #%%
-from compute_output.sharktrack_annotations import yolo2sharktrack
+from compute_output.sharktrack_annotations import build_chapter_output
 from scripts.reformat_gopro import valid_video
 from argparse import ArgumentParser
 from ultralytics import YOLO
@@ -38,9 +38,7 @@ class Model():
     self.imgsz = 640
 
     # config
-    self.sharktrack_results_name = 'output.csv'
     self.track_count = 0
-
   
   def _get_frame_skip(self, video_path):
     cap = cv2.VideoCapture(video_path)  
@@ -48,10 +46,8 @@ class Model():
     frame_skip = round(actual_fps / self.fps)
     return frame_skip
 
-  
   def save_chapter_results(self, chapter_id, yolo_results, output_path="./output"):
-    output_csv_path = os.path.join(output_path, self.sharktrack_results_name)
-    max_track_id = yolo2sharktrack(chapter_id, yolo_results, self.fps, output_path, self.track_count)
+    max_track_id = build_chapter_output(chapter_id, yolo_results, self.fps, output_path, self.track_count)
     self.track_count = max_track_id + 1
 
 

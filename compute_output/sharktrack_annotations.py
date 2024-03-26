@@ -21,13 +21,15 @@ def extract_frame_results(frame_results):
 
     return zip(boxes, track_ids, confidences, classes)
 
-def yolo2sharktrack(chapter_id, chapter_results, fps, out_folder, track_count):
+def build_chapter_output(chapter_id, chapter_results, fps, out_folder, track_count):
   """
-  Given  in ultralytics.Results format, save the results to csv_file using the MOT format
+  Turns ultralytics.Results into MOT format
+  Postprocesses the results
+  Saves Maximum Detection Confidence images
+  Saves VIAME-annotations for cleaning
   """
   data = []
-
-  max_conf_image = {}
+  max_conf_images = {}
 
   for frame_id, frame_results in enumerate(chapter_results):
       time = format_time(frame_id / fps)
@@ -47,20 +49,27 @@ def yolo2sharktrack(chapter_id, chapter_results, fps, out_folder, track_count):
               "class": classes_mapping[int(cls)],
           }
           data.append(row)
-          if track_metadata not in max_conf_image or max_conf_image[track_metadata]["confidence"] < confidence:
-              max_conf_image[track_metadata] = {
+          if track_metadata not in max_conf_images or max_conf_images[track_metadata]["confidence"] < confidence:
+              max_conf_images[track_metadata] = {
                   "confidence": confidence,
                   "image": frame_results.plot()
               }
 
   df = pd.DataFrame(data, columns=SHARKTRACK_COLUMNS)
-
   postprocessed_results = postprocess(df, fps, track_count)
-  postprocessed_results.to_csv(os.path.join(out_folder, "output.csv"), index=False)
+  store_results(postprocessed_results, out_folder)
 
-  write_max_conf(postprocessed_results, max_conf_image, out_folder)
+  write_max_conf(postprocessed_results, max_conf_images, out_folder)
+  # compute viame
 
   return postprocessed_results["track_id"].max()
+
+def store_results(chapter_sharktrack_df, out_folder):
+    output_path = os.path.join(out_folder, "output.csv")
+    if os.path.exists(output_path):
+        existing_df = pd.read_csv(output_path)
+        chapter_sharktrack_df = pd.concat([existing_df, chapter_sharktrack_df], ignore_index=True)
+    chapter_sharktrack_df.to_csv(output_path, index=False)
 
 def postprocess(chapter_sharktrack_df, fps, track_count):
     """
