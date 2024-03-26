@@ -1,5 +1,5 @@
 #%%
-from compute_output.sharktrack_annotations import yolo2sharktrack, extract_track_max_conf_detection, build_detection_folder
+from compute_output.sharktrack_annotations import yolo2sharktrack
 from scripts.reformat_gopro import valid_video
 from argparse import ArgumentParser
 from ultralytics import YOLO
@@ -39,6 +39,7 @@ class Model():
 
     # config
     self.sharktrack_results_name = 'output.csv'
+    self.track_count = 0
 
   
   def _get_frame_skip(self, video_path):
@@ -47,45 +48,11 @@ class Model():
     frame_skip = round(actual_fps / self.fps)
     return frame_skip
 
-  def _assign_track_id(self, filtered_results):
-        """
-        Given the postprocessed results, assign a unique track_id
-        """
-        # To update the sliced dataset without copying (save up memory) and avoid
-        # causing SettingWithCopyWarning, deactivate it
-        pd.options.mode.chained_assignment = None
-        filtered_results['track_id'] = filtered_results.groupby('track_metadata').ngroup()
-        pd.options.mode.chained_assignment = 'warn'
-        return filtered_results
-
-
-  def _postprocess(self, results):
-      """
-      Implements the following postprocessing steps:
-      5fps:
-          1. Extracts tracks that last for less than 1s (5frames)
-          2. Removes the track if the max confidence is less than MAX_CONF_THRESHOLD
-      """
-      MAX_CONF_THRESHOLD = 0.8
-      DURATION_THRESH = 5 if self.fps == 5 else 2
-
-      track_counts = results["track_metadata"].value_counts()
-      max_conf = results.groupby("track_metadata")["confidence"].max()
-      valid_tracks = track_counts[(track_counts >= DURATION_THRESH) | (max_conf > MAX_CONF_THRESHOLD)].index
-      filtered_df = results[results["track_metadata"].isin(valid_tracks)]
-
-      return self._assign_track_id(filtered_df)
   
   def save_chapter_results(self, chapter_id, yolo_results, output_path="./output"):
     output_csv_path = os.path.join(output_path, self.sharktrack_results_name)
-    combined_results = yolo2sharktrack(chapter_id, yolo_results, self.fps)
-
-    if os.path.exists(output_csv_path):
-      current_results = pd.read_csv(output_csv_path)
-      combined_results = pd.concat([current_results, combined_results])
-    
-    print(f"Saving results for {chapter_id}...")
-    combined_results.to_csv(output_csv_path, index=False)
+    max_track_id = yolo2sharktrack(chapter_id, yolo_results, self.fps, output_path, self.track_count)
+    self.track_count = max_track_id + 1
 
 
   def save(self, output_path="./output"):
@@ -121,7 +88,7 @@ class Model():
 
     return results
 
-  def run(self, videos_folder, stereo_prefix, output_path="./output", max_video_cnt=1000):
+  def run(self, videos_folder, stereo_prefix, max_video_cnt=1000, output_path="./output"):
     # remove previous predictions first
     if os.path.exists(output_path):
       shutil.rmtree(output_path)
@@ -155,7 +122,7 @@ class Model():
       print("    ├── chapter1.mp4")
       print("    ├── chapter2.mp4")
 
-    self.save()
+    # self.save()
 
     return processed_videos
 
@@ -165,7 +132,7 @@ class Model():
 
 def main(video_path, stereo_prefix=None, max_video_cnt=1000):
   model = Model()
-  results = model.run(video_path, stereo_prefix)
+  results = model.run(video_path, stereo_prefix, max_video_cnt)
   
   # 1. Run tracker with configs
   # 2. From the results construct VIAME
