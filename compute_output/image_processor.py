@@ -23,7 +23,7 @@ def draw_bboxes(image, bboxes, max_conf_bbox):
         img = cv2.rectangle(img, pt1, pt2, color, thickness)
     return img
 
-def annotate_image(img, chapter_path, time):
+def annotate_image(img, chapter_path, time, conf):
     padding_height = 100  # You can adjust the height as needed
     new_width = img.shape[1]
     new_height = img.shape[0] + padding_height
@@ -38,6 +38,7 @@ def annotate_image(img, chapter_path, time):
 
     # Position the text on the white padding
     cv2.putText(new_image, f"Video: {chapter_path}", (10, img.shape[0] + 30), font, font_scale, font_color, line_type)
+    cv2.putText(new_image, f"Confidence: {round(conf, 2)}", (10, img.shape[0] + 60), font, font_scale, font_color, line_type)
     cv2.putText(new_image, f"Time: {time}", (10, img.shape[0] + 90), font, font_scale, font_color, line_type)
 
     return new_image
