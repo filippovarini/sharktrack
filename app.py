@@ -93,6 +93,9 @@ class Model():
     assert os.path.exists(output_csv_path), f"Output csv {output_csv_path} does not exist"
 
     sharktrack_results = pd.read_csv(output_csv_path)
+    if sharktrack_results.empty:
+      print("No detections found in the given folder")
+      return
     
     print(f"Postprocessing results...")
     sharktrack_results = self._postprocess(sharktrack_results)
