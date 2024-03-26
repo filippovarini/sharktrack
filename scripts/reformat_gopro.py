@@ -17,8 +17,6 @@ def main(videos_root, output_root, stereo_prefix):
     for (root, _, files) in os.walk(videos_root):
         output_dir = root.replace(videos_root, output_root)
         for file in files:
-            if len(processed_videos) == 2:
-                return
             stereo_filter = stereo_prefix is None or file.startswith(stereo_prefix)
             if valid_video(file) and stereo_filter:
                 os.makedirs(output_dir, exist_ok=True)
@@ -44,6 +42,6 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--input_root", type=str, required=True, help="Path to the root directory of your video file")
     parser.add_argument("--output_root", type=str, required=True, help="Path to the output root directory of your video file")
-    parser.add_argument("--stereo_prefix", type=str)
+    parser.add_argument("--stereo_prefix", type=str, help="Prefix of the stereo video file")
     args = parser.parse_args()
     main(args.input_root, args.output_root, args.stereo_prefix)

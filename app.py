@@ -1,5 +1,6 @@
 #%%
 from compute_output.sharktrack_annotations import yolo2sharktrack, extract_track_max_conf_detection, build_detection_folder
+from scripts.reformat_gopro import valid_video
 from argparse import ArgumentParser
 from ultralytics import YOLO
 import pandas as pd
@@ -83,7 +84,7 @@ class Model():
       current_results = pd.read_csv(output_csv_path)
       combined_results = pd.concat([current_results, combined_results])
     
-    print(f"Saving results to {output_csv_path}...")
+    print(f"Saving results for {chapter_id}...")
     combined_results.to_csv(output_csv_path, index=False)
 
 
@@ -120,8 +121,7 @@ class Model():
 
     return results
 
-
-  def run(self, videos_folder, stereo=False, output_path="./output"):
+  def run(self, videos_folder, stereo_prefix, output_path="./output", max_video_cnt=1000):
     # remove previous predictions first
     if os.path.exists(output_path):
       shutil.rmtree(output_path)
@@ -131,17 +131,18 @@ class Model():
     self.videos_folder = videos_folder
     processed_videos = []
 
-    for video in os.listdir(videos_folder):
-      video_path = os.path.join(videos_folder, video)
-      if os.path.isdir(video_path):
-        for chapter in os.listdir(video_path):
-          stereo_filter = not stereo or "LGX" in chapter # pick only left camera
-          if chapter.endswith(".mp4") and stereo_filter: 
-            chapter_id = os.path.join(video, chapter)
-            chapter_path = os.path.join(videos_folder, chapter_id)
-            chapter_results = self.track(chapter_path)
-            self.save_chapter_results(chapter_id, chapter_results)
-            processed_videos.append(chapter_path)
+    for (root, _, files) in os.walk(videos_folder):
+      for file in files:
+        if len(processed_videos) == max_video_cnt:
+          break
+        stereo_filter = stereo_prefix is None or file.startswith(stereo_prefix)
+        if valid_video(file) and stereo_filter:
+          chapter_path = os.path.join(root, file)
+          chapter_id = chapter_path.replace(f"{videos_folder}/"
+                                            , "")
+          chapter_results = self.track(chapter_path)
+          self.save_chapter_results(chapter_id, chapter_results)
+          processed_videos.append(chapter_path)
 
     if len(processed_videos) == 0:
       print("No chapters found in the given folder")
@@ -162,9 +163,9 @@ class Model():
     # 2. From the results construct VIAME
     return self.results
 
-def main(video_path, stereo):
+def main(video_path, stereo_prefix=None, max_video_cnt=1000):
   model = Model()
-  results = model.run(video_path, stereo=stereo)
+  results = model.run(video_path, stereo_prefix)
   
   # 1. Run tracker with configs
   # 2. From the results construct VIAME
@@ -172,8 +173,8 @@ def main(video_path, stereo):
 #%%
 if __name__ == "__main__":
   parser = ArgumentParser()
-  parser.add_argument("--video_path", type=str, required=True, help="Path to the video file")
-  parser.add_argument("--stereo", action='store_true', help="Whether folder contains stereo BRUVS (LGX/RGX)")
+  parser.add_argument("--input_root", type=str, required=True, help="Path to the video file")
+  parser.add_argument("--stereo_prefix", type=str, help="Prefix to filter stereo videos")
   args = parser.parse_args()
-  main(args.video_path, args.stereo)
+  main(args.input_root, args.stereo_prefix)
 # %%
