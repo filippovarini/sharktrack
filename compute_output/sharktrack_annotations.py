@@ -8,7 +8,7 @@ from viame_annotations import max_conf2viame
 from image_processor import draw_bboxes, annotate_image
 
 
-SHARKTRACK_COLUMNS = ["video", "chapter", "frame", "time", "track_metadata", "track_id", "xmin", "ymin", "xmax", "ymax", "confidence", "class"]
+SHARKTRACK_COLUMNS = ["chapter_path", "frame", "time", "track_metadata", "track_id", "xmin", "ymin", "xmax", "ymax", "confidence", "class"]
 
 classes_mapping = ['shark', 'ray']
 
@@ -28,15 +28,12 @@ def yolo2sharktrack(chapter_id, chapter_results, fps):
   data = []
 
   for frame_id, frame_results in enumerate(chapter_results):
-      video = chapter_id.split("/")[0]
-      chapter = chapter_id.split("/")[1]
       time = format_time(frame_id / fps)
 
       for box, chapter_track_id, confidence, cls in extract_frame_results(frame_results):
-          track_metadata = f"{video}/{chapter}/{chapter_track_id}"
+          track_metadata = f"{chapter_id}/{chapter_track_id}"
           row = {
-              "video": video,
-              "chapter": chapter,
+              "chapter_path": chapter_id,
               "frame": frame_id,
               "time": time,
               "track_metadata": track_metadata,
@@ -59,7 +56,7 @@ def extract_track_max_conf_detection(sharktrack_df):
   """
   max_conf_detection = (
      sharktrack_df
-      .groupby(["video", "chapter", "track_id"], as_index = False)
+      .groupby(["track_metadata"], as_index = False)
       .apply(lambda x: x.loc[x["confidence"].idxmax()])
       .sort_values('track_id')
       .reset_index(drop=True)
@@ -67,33 +64,34 @@ def extract_track_max_conf_detection(sharktrack_df):
   return max_conf_detection
 
 
-def read_bboxes(sharktrack_output, video, chapter, time):
+def read_bboxes(sharktrack_output, chapter_path, time):
   """
   Given the sharktrack_output in dataframe format, return the bounding boxes for a given video, chapter, and time
   """
-  rows = sharktrack_output[(sharktrack_output["video"] == video) & (sharktrack_output["chapter"] == chapter) & (sharktrack_output["time"] == time)]
+  rows = sharktrack_output[(sharktrack_output["chapter_path"] == chapter_path) & (sharktrack_output["time"] == time)]
   return rows[["xmin", "ymin", "xmax", "ymax"]].values
 
 
 def save_track_max_conf_frame(sharktrack_output, max_conf_detections, video_base_folder, det_folder):
   # For each detection, save the image to the detection folder
   for index, row in max_conf_detections.iterrows():
-    video = row["video"]
-    chapter = row["chapter"]
+    chapter_path = row["chapter_path"]
     time = row["time"]
     unique_track_id = row["track_id"]
     max_conf_bbox = row[["xmin", "ymin", "xmax", "ymax"]].values
 
     # Get original image
-    video_path = os.path.join(video_base_folder, video, chapter)
+    video_path = os.path.join(video_base_folder, chapter_path)
     cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        raise ValueError(f"Could not open video file {video_path}")
     cap.set(cv2.CAP_PROP_POS_MSEC, unformat_time(time))
     _, img = cap.read()
     cap.release()
 
     # Draw the rectangles
-    img = draw_bboxes(img, read_bboxes(sharktrack_output, video, chapter, time), max_conf_bbox)
-    img = annotate_image(img, video, chapter, time)
+    img = draw_bboxes(img, read_bboxes(sharktrack_output, chapter_path, time), max_conf_bbox)
+    img = annotate_image(img, chapter_path, time)
 
     output_image_id = f"{unique_track_id}.jpg"
     output_path = os.path.join(det_folder, output_image_id)
