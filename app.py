@@ -3,9 +3,12 @@ from compute_output.sharktrack_annotations import yolo2sharktrack, extract_track
 from argparse import ArgumentParser
 from ultralytics import YOLO
 import pandas as pd
+import av.datasets
 import shutil
 import cv2
 import os
+import av
+import torch
 
 #%%
 class Model():
@@ -39,13 +42,12 @@ class Model():
     # config
     self.sharktrack_results_name = 'output.csv'
 
-  
   def _get_frame_skip(self, video_path):
     cap = cv2.VideoCapture(video_path)  
     actual_fps = cap.get(cv2.CAP_PROP_FPS)
     frame_skip = round(actual_fps / self.fps)
     return frame_skip
-
+  
   def _assign_track_id(self, filtered_results):
         """
         Given the postprocessed results, assign a unique track_id
@@ -56,7 +58,6 @@ class Model():
         filtered_results['track_id'] = filtered_results.groupby('track_metadata').ngroup()
         pd.options.mode.chained_assignment = 'warn'
         return filtered_results
-
 
   def _postprocess(self, results):
       """
@@ -83,9 +84,8 @@ class Model():
       current_results = pd.read_csv(output_csv_path)
       combined_results = pd.concat([current_results, combined_results])
     
-    print(f"Saving results to {output_csv_path}...")
+    print(f"Saving results for {chapter_id}...")
     combined_results.to_csv(output_csv_path, index=False)
-
 
   def save(self, output_path="./output"):
     assert os.path.exists(output_path), f"Output path {output_path} does not exist"
@@ -93,19 +93,50 @@ class Model():
     assert os.path.exists(output_csv_path), f"Output csv {output_csv_path} does not exist"
 
     sharktrack_results = pd.read_csv(output_csv_path)
-    if sharktrack_results.empty:
-      print("No detections found in the given folder")
-      return
     
     print(f"Postprocessing results...")
     sharktrack_results = self._postprocess(sharktrack_results)
+    if sharktrack_results.empty:
+      print("No detections found in the given folder")
+      return
     sharktrack_results.to_csv(output_csv_path, index=False)
 
     # Construct Detections Folder
     build_detection_folder(sharktrack_results, self.videos_folder, output_path, self.fps)
-
   
   def track(self, video_path):
+    print(f"Processing video: {video_path}...")
+    model = YOLO(self.model_path)
+
+    results = []
+
+    content = av.datasets.curated(video_path)
+    self.fps=1
+
+    with av.open(content) as container:
+      video_stream = container.streams.video[0]
+      video_stream.codec_context.skip_frame = 'NONKEY'
+      # video_fps = video_stream.average_rate
+      # frame_skip = round(video_fps / desired_fps)
+      # i = 0
+      for frame in container.decode(video_stream):
+        # if i % frame_skip == 0:
+          frame_results = model.track(
+            source=frame.to_image(),
+            conf=self.conf_threshold,
+            iou=self.iou_association_threshold,
+            imgsz=self.imgsz,
+            tracker=self.tracker_path,
+            verbose=False,
+            persist=True,
+            # stream=True,
+          )
+          results.append(frame_results[0])
+        # i += 1
+
+    return results
+
+  def track_(self, video_path):
     print(f"Processing video: {video_path}...")
     model = YOLO(self.model_path)
 
@@ -117,6 +148,7 @@ class Model():
       tracker=self.tracker_path,
       vid_stride=self._get_frame_skip(video_path),
       verbose=False,
+      device='0',
       stream=True,
     )
 
@@ -155,6 +187,7 @@ class Model():
       print("└── video2")
       print("    ├── chapter1.mp4")
       print("    ├── chapter2.mp4")
+      return
 
     self.save()
 
