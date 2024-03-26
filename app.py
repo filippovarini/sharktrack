@@ -93,17 +93,15 @@ class Model():
     assert os.path.exists(output_csv_path), f"Output csv {output_csv_path} does not exist"
 
     sharktrack_results = pd.read_csv(output_csv_path)
+    
+    print(f"Postprocessing results...")
+
+    sharktrack_results = self._postprocess(sharktrack_results)
     if sharktrack_results.empty:
       print("No detections found in the given folder")
       return
-    
-    print(f"Postprocessing results...")
-    sharktrack_results = self._postprocess(sharktrack_results)
-    sharktrack_results.to_csv(output_csv_path, index=False)
-
-    # Construct Detections Folder
     build_detection_folder(sharktrack_results, self.videos_folder, output_path, self.fps)
-
+    sharktrack_results.to_csv(output_csv_path, index=False)
   
   def track(self, video_path):
     print(f"Processing video: {video_path}...")
