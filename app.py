@@ -126,7 +126,7 @@ class Model():
     # 2. From the results construct VIAME
     return self.results
 
-def main(video_path, stereo_prefix=None, max_video_cnt=1000):
+def main(video_path, max_video_cnt, stereo_prefix):
   model = Model()
   results = model.run(video_path, stereo_prefix, max_video_cnt)
   
@@ -138,6 +138,7 @@ if __name__ == "__main__":
   parser = ArgumentParser()
   parser.add_argument("--input_root", type=str, required=True, help="Path to the video file")
   parser.add_argument("--stereo_prefix", type=str, help="Prefix to filter stereo videos")
+  parser.add_argument("--max_videos", type=int, default=1000, help="Maximum videos to process")
   args = parser.parse_args()
-  main(args.input_root, args.stereo_prefix)
+  main(args.input_root, args.max_videos, args.stereo_prefix)
 # %%
