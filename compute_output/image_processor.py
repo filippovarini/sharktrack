@@ -13,7 +13,7 @@ def draw_bboxes(image, bboxes, max_conf_bbox):
     """
     img = image.copy()
     for bbox in bboxes:
-        color= (0, 255, 255)
+        color= (255, 255, 255)
         thickness = 1
         if (bbox == max_conf_bbox).all():
             color = (0, 0, 255)
