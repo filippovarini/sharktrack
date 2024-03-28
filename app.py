@@ -5,12 +5,13 @@ from argparse import ArgumentParser
 from ultralytics import YOLO
 import pandas as pd
 import shutil
+import torch
 import cv2
 import os
 
 #%%
 class Model():
-  def __init__(self, mobile=False):
+  def __init__(self, videos_folder, max_video_cnt, stereo_prefix, output_path, mobile=False):
     """
     Args:
       mobile (bool): Whether to use lightweight model developed to run quickly on CPU
@@ -21,8 +22,14 @@ class Model():
     | mobile  | Yolov8n | 2fps |
     | analyst | Yolov8s | 5fps |
     """
+    self.videos_folder = videos_folder
+    self.max_video_cnt = max_video_cnt
+    self.stereo_prefix = stereo_prefix
+    self.output_path = output_path
+
     mobile_model = "/vol/biomedic3/bglocker/ugproj2324/fv220/dev/SharkTrack-Dev/models/yolov8_n_mvd2_50/best.pt"
     analyst_model = "models/analyst.pt"
+    assert not mobile
     if mobile:
       self.model_path = mobile_model
       self.tracker_path = "botsort.yaml"
@@ -36,72 +43,58 @@ class Model():
     self.conf_threshold = 0.2
     self.iou_association_threshold = 0.5
     self.imgsz = 640
+    self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     # config
-    self.track_count = 0
+    self.next_track_index = 0
   
-  def _get_frame_skip(self, video_path):
-    cap = cv2.VideoCapture(video_path)  
+  def _get_frame_skip(self, chapter_path):
+    cap = cv2.VideoCapture(chapter_path)  
     actual_fps = cap.get(cv2.CAP_PROP_FPS)
     frame_skip = round(actual_fps / self.fps)
     return frame_skip
 
-  def save_chapter_results(self, chapter_id, yolo_results, output_path="./output"):
-    max_track_id = build_chapter_output(chapter_id, yolo_results, self.fps, output_path, self.track_count)
-    self.track_count = max_track_id + 1
-
-
-  def save(self, output_path="./output"):
-    assert os.path.exists(output_path), f"Output path {output_path} does not exist"
-    output_csv_path = os.path.join(output_path, self.sharktrack_results_name)
-    assert os.path.exists(output_csv_path), f"Output csv {output_csv_path} does not exist"
-
-    sharktrack_results = pd.read_csv(output_csv_path)
-    
-    print(f"Postprocessing results...")
-
-    sharktrack_results = self._postprocess(sharktrack_results)
-    if sharktrack_results.empty:
-      print("No detections found in the given folder")
-      return
-    build_detection_folder(sharktrack_results, self.videos_folder, output_path, self.fps)
-    sharktrack_results.to_csv(output_csv_path, index=False)
+  def save_chapter_results(self, chapter_id, yolo_results):
+    print(f"Saving results for {chapter_id}...")
+    next_track_index = build_chapter_output(chapter_id, yolo_results, self.fps, self.output_path, self.next_track_index)
+    self.next_track_index = next_track_index
   
-  def track(self, video_path):
-    print(f"Processing video: {video_path}...")
+  def track(self, chapter_path):
+    print(f"Processing video: {chapter_path}... on device {self.device}")
     model = YOLO(self.model_path)
 
     results = model.track(
-      video_path,
+      chapter_path,
       conf=self.conf_threshold,
       iou=self.iou_association_threshold,
       imgsz=self.imgsz,
       tracker=self.tracker_path,
-      vid_stride=self._get_frame_skip(video_path),
+      vid_stride=self._get_frame_skip(chapter_path),
       verbose=False,
       stream=True,
+      device=self.device
     )
 
     return results
 
-  def run(self, videos_folder, stereo_prefix, max_video_cnt=1000, output_path="./output"):
+  def run(self):
     # remove previous predictions first
-    if os.path.exists(output_path):
-      shutil.rmtree(output_path)
+    if os.path.exists(self.output_path):
+      shutil.rmtree(self.output_path)
 
-    os.makedirs(output_path)
+    os.makedirs(self.output_path)
 
-    self.videos_folder = videos_folder
+    self.videos_folder = self.videos_folder
     processed_videos = []
 
-    for (root, _, files) in os.walk(videos_folder):
+    for (root, _, files) in os.walk(self.videos_folder):
       for file in files:
-        if len(processed_videos) == max_video_cnt:
+        if len(processed_videos) == self.max_video_cnt:
           break
-        stereo_filter = stereo_prefix is None or file.startswith(stereo_prefix)
-        if valid_video(file) and stereo_filter:
+        stereo_filter = self.stereo_prefix is None or file.startswith(self.stereo_prefix)
+        if valid_video(file) and stereo_filter and 'AXA_2023-0452204/LGX050008.mp4' in os.path.join(root, file):
           chapter_path = os.path.join(root, file)
-          chapter_id = chapter_path.replace(f"{videos_folder}/"
+          chapter_id = chapter_path.replace(f"{self.videos_folder}/"
                                             , "")
           chapter_results = self.track(chapter_path)
           self.save_chapter_results(chapter_id, chapter_results)
@@ -118,17 +111,20 @@ class Model():
       print("    ├── chapter1.mp4")
       print("    ├── chapter2.mp4")
 
-    # self.save()
-
     return processed_videos
 
   def get_results(self):
     # 2. From the results construct VIAME
     return self.results
 
-def main(video_path, max_video_cnt, stereo_prefix):
-  model = Model()
-  results = model.run(video_path, stereo_prefix, max_video_cnt)
+def main(video_path, max_video_cnt, stereo_prefix, output_path='./output'):
+  model = Model(
+    video_path,
+    max_video_cnt,
+    stereo_prefix,
+    output_path
+  )
+  results = model.run()
   
   # 1. Run tracker with configs
   # 2. From the results construct VIAME
@@ -139,6 +135,7 @@ if __name__ == "__main__":
   parser.add_argument("--input_root", type=str, required=True, help="Path to the video file")
   parser.add_argument("--stereo_prefix", type=str, help="Prefix to filter stereo videos")
   parser.add_argument("--max_videos", type=int, default=1000, help="Maximum videos to process")
+  parser.add_argument("--output_dir", type=str, default="./output", help="Output directory for the results")
   args = parser.parse_args()
-  main(args.input_root, args.max_videos, args.stereo_prefix)
+  main(args.input_root, args.max_videos, args.stereo_prefix, args.output_dir)
 # %%

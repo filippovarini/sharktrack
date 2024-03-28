@@ -21,7 +21,7 @@ def extract_frame_results(frame_results):
 
     return zip(boxes, track_ids, confidences, classes)
 
-def build_chapter_output(chapter_id, chapter_results, fps, out_folder, track_count):
+def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_track_index):
   """
   Turns ultralytics.Results into MOT format
   Postprocesses the results
@@ -57,14 +57,18 @@ def build_chapter_output(chapter_id, chapter_results, fps, out_folder, track_cou
                   "video": chapter_id
               }
 
+  print(f"df created")
+
   df = pd.DataFrame(data, columns=SHARKTRACK_COLUMNS)
-  postprocessed_results = postprocess(df, fps, track_count)
-  concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
+  postprocessed_results = postprocess(df, fps, next_track_index)
 
-  write_max_conf(postprocessed_results, max_conf_images, out_folder)
-  build_annotation_cleaning_structure(postprocessed_results, out_folder, fps, track_count)
+  if not postprocessed_results.empty:
+    concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
+    write_max_conf(postprocessed_results, max_conf_images, out_folder)
+    build_annotation_cleaning_structure(postprocessed_results, out_folder, fps, next_track_index)
+    next_track_index = postprocessed_results["track_id"].max() + 1
 
-  return postprocessed_results["track_id"].max()
+  return next_track_index
 
 def concat_df(df, output_path):
     if os.path.exists(output_path):
@@ -72,7 +76,7 @@ def concat_df(df, output_path):
         df = pd.concat([existing_df, df], ignore_index=True)
     df.to_csv(output_path, index=False)
 
-def postprocess(chapter_sharktrack_df, fps, track_count):
+def postprocess(chapter_sharktrack_df, fps, next_track_index):
     """
         1. Extracts tracks that last for less than 1s (5frames)
         2. Removes the track if the max confidence is less than MAX_CONF_THRESHOLD
@@ -89,7 +93,7 @@ def postprocess(chapter_sharktrack_df, fps, track_count):
     # To update the sliced dataset without copying (save up memory) and avoid
     # causing SettingWithCopyWarning, deactivate it
     pd.options.mode.chained_assignment = None
-    filtered_df['track_id'] = filtered_df.groupby('track_metadata').ngroup() + track_count
+    filtered_df['track_id'] = filtered_df.groupby('track_metadata').ngroup() + next_track_index
     pd.options.mode.chained_assignment = 'warn'
 
     return filtered_df
@@ -128,14 +132,14 @@ def extract_track_max_conf_detection(sharktrack_df):
     )
   return max_conf_detection
 
-def build_annotation_cleaning_structure(sharktrack_output, out_folder, fps, track_count):
+def build_annotation_cleaning_structure(sharktrack_output, out_folder, fps, next_track_index):
   max_conf_detections = extract_track_max_conf_detection(sharktrack_output)
   # add bounding boxes to detections
   detections_path = os.path.join(out_folder, "detections")
   save_track_max_conf_frame(sharktrack_output, max_conf_detections, detections_path)
   
   # construct viame df
-  viame_df = max_conf2viame(max_conf_detections, fps, track_count)
+  viame_df = max_conf2viame(max_conf_detections, fps, next_track_index)
   viame_path = os.path.join(out_folder, "viame.csv")
   if not os.path.exists(viame_path):
     viame_df = add_metadata_row(viame_df, fps)
