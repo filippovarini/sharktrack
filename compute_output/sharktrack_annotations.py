@@ -57,8 +57,6 @@ def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_trac
                   "video": chapter_id
               }
 
-  print(f"df created")
-
   df = pd.DataFrame(data, columns=SHARKTRACK_COLUMNS)
   postprocessed_results = postprocess(df, fps, next_track_index)
 
