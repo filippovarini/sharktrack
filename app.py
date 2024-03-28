@@ -57,6 +57,7 @@ class Model():
   def save_chapter_results(self, chapter_id, yolo_results):
     print(f"Saving results for {chapter_id}...")
     next_track_index = build_chapter_output(chapter_id, yolo_results, self.fps, self.output_path, self.next_track_index)
+    assert next_track_index is not None, f"Error saving results for {chapter_id}"
     self.next_track_index = next_track_index
   
   def track(self, chapter_path):
@@ -92,10 +93,9 @@ class Model():
         if len(processed_videos) == self.max_video_cnt:
           break
         stereo_filter = self.stereo_prefix is None or file.startswith(self.stereo_prefix)
-        if valid_video(file) and stereo_filter and 'AXA_2023-0452204/LGX050008.mp4' in os.path.join(root, file):
+        if valid_video(file) and stereo_filter:
           chapter_path = os.path.join(root, file)
-          chapter_id = chapter_path.replace(f"{self.videos_folder}/"
-                                            , "")
+          chapter_id = chapter_path.replace(f"{self.videos_folder}/", "")
           chapter_results = self.track(chapter_path)
           self.save_chapter_results(chapter_id, chapter_results)
           processed_videos.append(chapter_path)
