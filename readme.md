@@ -1,5 +1,5 @@
 # SharkTrack
-*Speeding up Elasmobranch BRUVS processing by 20x*
+*Speeding up Elasmobranch BRUVS processing by 20x...*
 
 ## Contents
 
