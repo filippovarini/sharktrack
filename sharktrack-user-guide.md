@@ -113,8 +113,15 @@ On the other hand, this script is an alternative command to copy data. Therefore
 
 #### So what should I do if I am doing GoPro BRUVS survey?
 1. Collect BRUVS videos
-2. When you get onshore, run the script to tranfer the data from the SD to the laptop/drive
-3. Overnight run the model on the copied data.
+2. When you get home, for each GoPro, connect the SD and run 
+    ```bash
+    python scripts/reformat_gopro.py --input_root PATH_TO_SD --output_root COPY_DESTINATION
+    ```
+    Ideally, use the same destination
+3. Overnight run the model on the copied data 
+    ```bash
+    python app.py --input_root COPY_DESTINATION
+    ```
 
 ## Can I trust it's accuracy?
 
