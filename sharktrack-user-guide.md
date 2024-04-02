@@ -126,7 +126,11 @@ The good news is that this script is an alternative command to copy data. Theref
 If you know of a better solution, please [email us](mailto:fppvrn@gmail.com?subject=SharkTrackSuggestion)!
 
 ## Can I trust it's accuracy?
+The `analyst` model outperforms human accuracy, which is at the level of the `mobile`, according to [Ditria et al 2020](https://www.frontiersin.org/articles/10.3389/fmars.2020.00429/full).
 
+Additionally, the pipeline is designed to minimise False Positives and leverage human knowledge. That is, it has a very low confidence threshold. This ensures close to all sharks are detected, but causes 5x "garbage detections", which the user manually rejects. We found that researchers are happier to have control over the rejection of the detections, knowing that everything was captured.
+
+That being said, sometimes SharkTrack doesn't detect an elasmobranch. In this case, the shark will be lost by the pipeline, causing unaccurate MaxN. However, our validation tests prove that the frequency is smaller than human error.
 
 ## Next steps
 After following the steps you will have an output folder with detections. It is now time to remove the incorrect annotations and assign Species ID.

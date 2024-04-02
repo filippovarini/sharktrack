@@ -12,7 +12,7 @@ def main(videos_root, output_root, stereo_prefix):
     processed_videos = []
 
     print('Reformatting GoPro videos')
-    os.makedirs(output_root)
+    os.makedirs(output_root, exist_ok=True)
 
     for (root, _, files) in os.walk(videos_root):
         output_dir = root.replace(videos_root, output_root)
@@ -22,11 +22,14 @@ def main(videos_root, output_root, stereo_prefix):
                 os.makedirs(output_dir, exist_ok=True)
                 input_path = os.path.join(root, file)
                 output_path = os.path.join(output_dir, file)
-                os.system(f"ffmpeg -i {input_path} -y -map 0:v -c copy {output_path}")
+                if os.path.exists(output_path):
+                    print(f"Skipping {input_path} as it already exists")
+                    continue
+                os.system(f"ffmpeg -i '{input_path}' -y -map 0:v -c copy '{output_path}'")
                 processed_videos.append(input_path)
 
     if len(processed_videos) == 0:
-      print("No chapters found in the given folder")
+      print("No new chapters found in the given folder")
       print("Please ensure the folder structure resembles the following:")
       print("video_path")
       print("├── video1")
