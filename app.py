@@ -16,10 +16,10 @@ class Model():
       mobile (bool): Whether to use lightweight model developed to run quickly on CPU
     
     Model types:
-    | Type    |  Model  | Fps  | Performance |
-    |---------|---------|------|-------------|
-    | mobile  | Yolov8n | 1fps | |
-    | analyst | Yolov8s | 5fps | |
+    | Type    |  Model  | Fps  | F1   |
+    |---------|---------|------|------|
+    | mobile  | Yolov8n | 1fps | 0.83 |
+    | analyst | Yolov8s | 5fps | 0.85 |
     """
     self.videos_folder = videos_folder
     self.max_video_cnt = max_video_cnt
