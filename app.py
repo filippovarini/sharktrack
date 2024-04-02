@@ -8,6 +8,7 @@ import cv2
 import os
 import av
 import torch
+import sys
 
 class Model():
   def __init__(self, videos_folder, max_video_cnt, stereo_prefix, output_path, mobile=False):
@@ -159,8 +160,8 @@ def main(video_path, max_video_cnt, stereo_prefix, output_path='./output', mobil
 
 if __name__ == "__main__":
   parser = ArgumentParser()
-  parser.add_argument("--input_root", type=str, required=True, help="Path to the video file")
-  parser.add_argument("--stereo_prefix", type=str, help="Prefix to filter stereo videos")
+  parser.add_argument("--input_root", type=str, required=True, help="Path to the video folder")
+  parser.add_argument("--stereo_prefix", type=str, help="Prefix to filter stereo BRUVS")
   parser.add_argument("--max_videos", type=int, default=1000, help="Maximum videos to process")
   parser.add_argument("--output_dir", type=str, default="./output", help="Output directory for the results")
   parser.add_argument("--mobile", action="store_true", help="Use mobile model: 50% faster, slightly less accurate than humans")
