@@ -27,7 +27,7 @@ You can also follow this documentation using the following video tutorials:
 We provide a simple step-by-step pipeline to clean the SharkTrack detections using the [VIAME](https://viame.kitware.com/) annotation tool:
 
 ### 1. View the Output:
-Locate the output directory. It should be `./output`, unless you have provided a custom `--output_root` argument. The folder will look something [like this](./static/test-output/) and it contains :
+Locate the output directory. It should be `./output`, unless you have provided a custom `--output_dir` argument. The folder will look something [like this](./static/test-output/) and it contains :
 - `output.csv` lists each detection at each timeframe for each video
 - `viame.csv` for each tracked shark, records the detection which achieved the highest confidence (`max-conf-detection`)
 - `detections/` for each tracked shark, saves the `.jpg` frame in which the shark track achieved highest confidence.

@@ -8,7 +8,7 @@ import cv2
 import os
 import av
 import torch
-import sys
+import av.datasets
 
 class Model():
   def __init__(self, videos_folder, max_video_cnt, stereo_prefix, output_path, mobile=False):
@@ -17,25 +17,26 @@ class Model():
       mobile (bool): Whether to use lightweight model developed to run quickly on CPU
     
     Model types:
-    | Type    |  Model  | Fps  | F1   |
-    |---------|---------|------|------|
-    | mobile  | Yolov8n | 1fps | 0.83 |
-    | analyst | Yolov8s | 5fps | 0.85 |
+    | Type    |  Model  | Fps  | F1   | MOTA |
+    |---------|---------|------|------|------|
+    | mobile  | Yolov8n | 1fps | 0.83 | 0.39 |
+    | analyst | Yolov8s | 5fps | 0.85 | 0.74 |
     """
     self.videos_folder = videos_folder
     self.max_video_cnt = max_video_cnt
     self.stereo_prefix = stereo_prefix
     self.output_path = output_path
 
-    mobile_model = "/models/mobile.pt"
+    mobile_model = "models/mobile.pt"
     analyst_model = "models/analyst.pt"
-    assert not mobile
     if mobile:
+      print("Using mobile model...")
       self.model_path = mobile_model
       self.tracker_path = "trackers/tracker_1fps.yaml"
       self.run_tracker = self.track_frames
       self.fps = 1
     else:
+      print("Using analyst model...")
       self.model_path = analyst_model
       self.tracker_path = "trackers/tracker_5fps.yaml"
       self.run_tracker = self.track_video
@@ -153,7 +154,8 @@ def main(video_path, max_video_cnt, stereo_prefix, output_path='./output', mobil
     video_path,
     max_video_cnt,
     stereo_prefix,
-    output_path
+    output_path,
+    mobile
   )
   model.run()
   
@@ -166,5 +168,4 @@ if __name__ == "__main__":
   parser.add_argument("--output_dir", type=str, default="./output", help="Output directory for the results")
   parser.add_argument("--mobile", action="store_true", help="Use mobile model: 50% faster, slightly less accurate than humans")
   args = parser.parse_args()
-  print(args)
   main(args.input_root, args.max_videos, args.stereo_prefix, args.output_dir, args.mobile)
