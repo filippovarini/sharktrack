@@ -131,3 +131,4 @@ If this is of interest for your organisation, please reach out via email by answ
 12. About how many images do you have that you've already annotated, from roughly the same environments? What annotations?
 
 ## Next Stpes
+Run the model on your BRUVS by following [this guide](./sharktrack-user-guide.md)
