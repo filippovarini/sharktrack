@@ -109,7 +109,7 @@ If the videos are Stereo-BRUVS, you can use the `--stereo_prefix` to only reform
 
 This script takes approximately 6x the video speed. This is a time delay that we aim to remove in the future. 
 
-On the other hand, this script is an alternative command to copy data. Therefore, researchers can use it to transfer data from GoPro SD cards to the laptop/drive. In this case, the time delay will be the same as currently experienced doing data transfer.
+The good news is that this script is an alternative command to copy data. Therefore, researchers can use it to transfer data from GoPro SD cards to the laptop/drive. In this case, the time delay will be the same as currently experienced doing data transfer.
 
 #### So what should I do if I am doing GoPro BRUVS survey?
 1. Collect BRUVS videos
@@ -122,6 +122,8 @@ On the other hand, this script is an alternative command to copy data. Therefore
     ```bash
     python app.py --input_root COPY_DESTINATION
     ```
+
+If you know of a better solution, please [email us](mailto:fppvrn@gmail.com?subject=SharkTrackSuggestion)!
 
 ## Can I trust it's accuracy?
 
