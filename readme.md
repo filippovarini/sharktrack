@@ -4,11 +4,11 @@
 ## Contents
 
 * <a href="#overview">Overview</a>
-* <a href="#quick-tutorial">Quick Tutorial</a>
-* <a href="#workflow">End-to-End BRUVS workflow</a>
-* <a href="#collaboration">Contact</a>
-* <a href="#collaboration">License</a>
-* <a href="#collaboration">Contributing</a>
+* <a href="#what-does-sharktrack-do">What does SharkTrack do?</a>
+* <a href="#how-people-use-sharktrack-pipeline">How do people use SharkTrack?</a>
+* <a href="#how-people-run-sharktrack">How do people run SharkTrack?</a>
+* <a href="#list-of-people-using-it">List of people using it</a>
+* <a href="#collaborations">Collaborations</a>
 
 ## Overview
 Elasmobranch researchers monitor their populations using Baited Remote Underwater Video Systems (BRUVS). This is a time-consuming process, as each video needs to be manually annotated. 
