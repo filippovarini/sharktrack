@@ -147,7 +147,7 @@ class Model():
 
     return processed_videos
 
-def main(video_path, max_video_cnt, stereo_prefix, output_path='./output'):
+def main(video_path, max_video_cnt, stereo_prefix, output_path='./output', mobile=False):
   model = Model(
     video_path,
     max_video_cnt,
@@ -163,5 +163,7 @@ if __name__ == "__main__":
   parser.add_argument("--stereo_prefix", type=str, help="Prefix to filter stereo videos")
   parser.add_argument("--max_videos", type=int, default=1000, help="Maximum videos to process")
   parser.add_argument("--output_dir", type=str, default="./output", help="Output directory for the results")
+  parser.add_argument("--mobile", action="store_true", help="Use mobile model: 50% faster, slightly less accurate than humans")
   args = parser.parse_args()
-  main(args.input_root, args.max_videos, args.stereo_prefix, args.output_dir)
+  print(args)
+  main(args.input_root, args.max_videos, args.stereo_prefix, args.output_dir, args.mobile)
