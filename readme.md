@@ -74,7 +74,7 @@ This software was written and supported by the efforts of
 - [Dr Joel Gayford](https://www.sharkmeasurements.com/)
 - [Prof Ben Glocker](https://www.imperial.ac.uk/people/b.glocker)
 - [Prof Francesco Ferretti](https://ferrettigs.github.io/)
-- 
+
 ## Collaborations
 ### License & Citation
 This repository is licensed with the [MIT license](https://opensource.org/license/mit). If you use MegaDetector in a publication, please cite:
