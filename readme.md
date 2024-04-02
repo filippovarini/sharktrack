@@ -8,6 +8,7 @@
 * <a href="#how-people-use-sharktrack-pipeline">How do people use SharkTrack?</a>
 * <a href="#how-people-run-sharktrack">How do people run SharkTrack?</a>
 * <a href="#list-of-people-using-it">List of people using it</a>
+* <a href="#contributors">Contributors</a>
 * <a href="#collaborations">Collaborations</a>
 
 ## Overview
@@ -64,6 +65,15 @@ Whether you're going to run SharkTrack on your own or work with us, usually the 
 
 ## List of people using it
 - [University of Exeter and Government of Anguilla](https://www.linkedin.com/posts/filippo-varini_we-are-back-from-university-of-exeter-activity-7167899292593065985-dZLo?utm_source=share&utm_medium=member_desktop)
+
+## Contributors
+This software was written and supported by the efforts of
+- [Filippo Varini](https://www.linkedin.com/in/filippo-varini/)
+- [Sophie Wilday](https://www.linkedin.com/in/sophie-wilday-889663b9/)
+- [Jeremy Jenrette](https://jeremyjenrette.weebly.com/)
+- [Dr Joel Gayford](https://www.sharkmeasurements.com/)
+- [Prof Ben Glocker](https://www.imperial.ac.uk/people/b.glocker)
+- [Prof Francesco Ferretti](https://ferrettigs.github.io/)
 
 ## Collaborations
 ### License & Citation
