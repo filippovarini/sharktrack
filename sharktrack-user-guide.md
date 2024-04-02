@@ -4,11 +4,13 @@
 ## Contents
 
 * <a href="#overview">Overview</a>
-* <a href="#what-does-sharktrack-do">What does SharkTrack do?</a>
-* <a href="#how-people-use-sharktrack-pipeline">How do people use SharkTrack?</a>
-* <a href="#how-people-run-sharktrack">How do people run SharkTrack?</a>
-* <a href="#list-of-people-using-it">List of people using it</a>
-* <a href="#collaborations">Collaborations</a>
+* <a href="#our-ask-to-sharktrack-user">Our Ask to SharkTrack user</a>
+* <a href="#quick-tutorial">Quick Tutorial</a>
+* <a href="#how-fast-is-sharktrack-can-i-use-it-on-my-laptop">How fast is SharkTrack Can I use it on my laptop?</a>
+* <a href="#how-to-run-sharktrack">How to run SharkTrack</a>
+* <a href="#model-types-mobile-vs-analyst">Model Types: Mobile vs Analyst</a>
+* <a href="#can-i-trust-its-accuracy">Can I trust it's accuracy?</a>
+* <a href="#next-steps">Next steps</a>
 
 ## Overview
 The first step to process your BRUVS videos is running the model on them. This page explains how to go from raw videos to a detection output [like this](./static/test-output/). You can learn the output structure [here](./readme.md#what-does-sharktrack-do).
@@ -40,7 +42,7 @@ SharkTrack is free, and it makes us super-happy when people use it, so we put it
 
 ## How fast is SharkTrack? Can I use it on my laptop?
 We have provided 2 SharkTrack models, the mobile and analyst models. Both models are able to run on the CPU. The analyst model is more accurate, but takes more. 
-You can find a more thorough comparison [here](#mobile-vs-analyst).
+You can find a more thorough comparison [here](#model-types-mobile-vs-analyst).
 
 As a rule of thumb, we suggest running the more accurate model first. If that is too slow, you can switch to the mobile model by simply passing the `--mobile` in the [run script](#2-running-the-model).
 
@@ -87,15 +89,37 @@ python app.py --input_root <path_to_video_folder> --mobile
 - `--mobile` Whether to run the mobile version of the model. More info [here](#mobile-vs-analyst).
 
 ## Model Types: Mobile vs Analyst
-|Model|Accuracy (F1)| Processed video-hours overnight on CPU| Limitations | Good for
+|Model|Accuracy (F1)| CPU Inference Time | Limitations | Good for
 |--|--|--| --| --|
-|`analyst`| 0.85 | 15 | Can't process GoPro | Above-human-level detection accuracy
-|`mobile`|0.83 | 25 | Unstable tracking | Quick overview of daily BRUVS deployment
+|`analyst`| 0.85 | 1.5x video speed | Can't process GoPro | Above-human-level detection accuracy
+|`mobile`|0.83 | 3.5x video speed | Unstable tracking | Quick overview of daily BRUVS deployment
 
-### Challenges
+### GoPro Limitation 📹⛔️
+The `analyst` model uses `OpenCV` speed-up the video read and achieve creditable speed for its size. Unfortunately, OpenCV fails with the GoPro audio encoding (GoPro AAC), as documented [here](https://stackoverflow.com/questions/78039408/cv2-ffmpeg-grabframe-packet-read-max-attempts-exceeded-error-after-exactly-rea).
 
-####
+> Therefore, the `analyst` model can't process GoPro videos
+
+To solve this issue, we have provided a [script](./scripts/reformat_gopro.py) to reformat the videos by removing the audio stream. 
+
+You can run it with the following command:
+```bash
+python scripts/reformat_gopro.py --input_root <Original video folder path> --output_root <New video folder path>
+```
+If the videos are Stereo-BRUVS, you can use the `--stereo_prefix` to only reformat left/right videos, as described [here](#arguments).
+
+This script takes approximately 6x the video speed. This is a time delay that we aim to remove in the future. 
+
+On the other hand, this script is an alternative command to copy data. Therefore, researchers can use it to transfer data from GoPro SD cards to the laptop/drive. In this case, the time delay will be the same as currently experienced doing data transfer.
+
+#### So what should I do if I am doing GoPro BRUVS survey?
+1. Collect BRUVS videos
+2. When you get onshore, run the script to tranfer the data from the SD to the laptop/drive
+3. Overnight run the model on the copied data.
 
 ## Can I trust it's accuracy?
 
-## Next step
+
+## Next steps
+After following the steps you will have an output folder with detections. It is now time to remove the incorrect annotations and assign Species ID.
+
+Please follow the documentations on [the next step](./annotation-pipelines.md).
