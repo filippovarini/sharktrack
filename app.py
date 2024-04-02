@@ -18,7 +18,7 @@ class Model():
     Model types:
     | Type    |  Model  | Fps  | Performance |
     |---------|---------|------|-------------|
-    | mobile  | Yolov8n | 2fps | |
+    | mobile  | Yolov8n | 1fps | |
     | analyst | Yolov8s | 5fps | |
     """
     self.videos_folder = videos_folder
@@ -26,16 +26,18 @@ class Model():
     self.stereo_prefix = stereo_prefix
     self.output_path = output_path
 
-    mobile_model = "/vol/biomedic3/bglocker/ugproj2324/fv220/dev/SharkTrack-Dev/models/yolov8_n_mvd2_50/best.pt"
+    mobile_model = "/models/mobile.pt"
     analyst_model = "models/analyst.pt"
     assert not mobile
     if mobile:
       self.model_path = mobile_model
-      self.tracker_path = "botsort.yaml"
-      self.fps = 2
+      self.tracker_path = "trackers/tracker_1fps.yaml"
+      self.run_tracker = self.track_frames
+      self.fps = 1
     else:
       self.model_path = analyst_model
-      self.tracker_path = "./trackers/tracker_5fps.yaml"
+      self.tracker_path = "trackers/tracker_5fps.yaml"
+      self.run_tracker = self.track_video
       self.fps = 5
     
     # Static Hyperparameters
@@ -59,40 +61,40 @@ class Model():
     assert next_track_index is not None, f"Error saving results for {chapter_id}"
     self.next_track_index = next_track_index
   
-  def track(self, chapter_path):
+  def track_frames(self, chapter_path):
+    """
+    Tracks keyframes using PyAv to overcome the GoPro audio format issue.
+    """
     print(f"Processing video: {chapter_path}... on device {self.device}")
     model = YOLO(self.model_path)
-
     results = []
 
-    content = av.datasets.curated(video_path)
-    self.fps=1
-
+    content = av.datasets.curated(chapter_path)
+    
     with av.open(content) as container:
-      video_stream = container.streams.video[0]
-      video_stream.codec_context.skip_frame = 'NONKEY'
-      # video_fps = video_stream.average_rate
-      # frame_skip = round(video_fps / desired_fps)
-      # i = 0
+      video_stream = container.streams.video[0]         # take only video stream
+      video_stream.codec_context.skip_frame = 'NONKEY'  # and only keyframes (1fps)
+
       for frame in container.decode(video_stream):
-        # if i % frame_skip == 0:
-          frame_results = model.track(
-            source=frame.to_image(),
-            conf=self.conf_threshold,
-            iou=self.iou_association_threshold,
-            imgsz=self.imgsz,
-            tracker=self.tracker_path,
-            verbose=False,
-            persist=True,
-            # stream=True,
-          )
-          results.append(frame_results[0])
-        # i += 1
+        frame_results = model.track(
+          source=frame.to_image(),
+          conf=self.conf_threshold,
+          iou=self.iou_association_threshold,
+          imgsz=self.imgsz,
+          tracker=self.tracker_path,
+          verbose=False,
+          persist=True,
+        )
+        results.append(frame_results[0])
 
     return results
 
-  def track_(self, video_path):
-    print(f"Processing video: {video_path}...")
+  def track_video(self, chapter_path):
+    """
+    Uses ultralytics built-in tracker to automatically track a video with OpenCV.
+    This is faster but it fails with GoPro Audio format, requiring reformatting.
+    """
+    print(f"Processing video: {chapter_path}... on device {self.device}")
     model = YOLO(self.model_path)
 
     results = model.track(
@@ -103,7 +105,6 @@ class Model():
       tracker=self.tracker_path,
       vid_stride=self._get_frame_skip(chapter_path),
       verbose=False,
-      device='0',
       stream=True,
       device=self.device
     )
@@ -128,7 +129,7 @@ class Model():
         if valid_video(file) and stereo_filter:
           chapter_path = os.path.join(root, file)
           chapter_id = chapter_path.replace(f"{self.videos_folder}/", "")
-          chapter_results = self.track(chapter_path)
+          chapter_results = self.run_tracker(chapter_path)
           self.save_chapter_results(chapter_id, chapter_results)
           processed_videos.append(chapter_path)
 
@@ -155,8 +156,6 @@ def main(video_path, max_video_cnt, stereo_prefix, output_path='./output'):
   )
   model.run()
   
-  # 1. Run tracker with configs
-  # 2. From the results construct VIAME
 
 if __name__ == "__main__":
   parser = ArgumentParser()
