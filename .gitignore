@@ -2,5 +2,5 @@ output/
 test*
 venv
 ./__pycache__/*
-./compute_output/__pycache__/*
+compute_output/__pycache__/*
 models/*
