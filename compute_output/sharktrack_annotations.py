@@ -10,7 +10,7 @@ from image_processor import draw_bboxes, annotate_image
 
 SHARKTRACK_COLUMNS = ["chapter_path", "frame", "time", "track_metadata", "track_id", "xmin", "ymin", "xmax", "ymax", "confidence", "class"]
 
-classes_mapping = ['elasmobranch', 'ray']
+classes_mapping = ['elasmobranch']
 
 def extract_frame_results(frame_results):
     boxes = frame_results.boxes.xyxy.cpu().tolist()

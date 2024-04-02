@@ -1,106 +1,106 @@
 # SharkTrack
-This is a package to run a shark detector and tracker model and compute MaxN annotations from it.
+*Speeding up Elasmobranch BRUVS processing by 20x*
 
+## Contents
+
+* <a href="#overview">Overview</a>
+* <a href="#quick-tutorial">Quick Tutorial</a>
+* <a href="#workflow">End-to-End BRUVS workflow</a>
+* <a href="#collaboration">Contact</a>
+* <a href="#collaboration">License</a>
+* <a href="#collaboration">Contributing</a>
+
+## Overview
+Elasmobranch researchers monitor their populations using Baited Remote Underwater Video Stations (BRUVS). This is a time-consuming process, as each video needs to be manually annotated. 
+
+SharkTrack is a Machine Learning model that uses computer vision to detect and track Elasmobranchii in BRUVS videos. The tool is designed to allow researchers to focus only on interesting video frames, removing the need of watching hour-long empty videos.
+
+It integrates with commonly-used annotation tools to convert raw videos to detection and MaxN 20x faster than current workflows.
+
+This page is for users who are just considering the use of AI in their workflow, and aren't even sure yet whether SharkTrack would be useful. It summarizes what we do with the model to help our collaborators who are overwhelmed by BRUVS videos to annotate. This page also includes some questions and information for new collaborators. 
+
+If you're already familiar with SharkTrack and you're ready to run it on your data (and you have some familiarity with running Python code), see the [SharkTrack User Guide](./sharktrack-user-guide.md) for instructions on downloading and running SharkTrack.
 
 [![watrch video](static/video_screenshot.png)](https://drive.google.com/file/d/1b_74wdPXyJPe2P-m1c45jjsV2C5Itr-R/view?usp=sharing)
-Click on the image above to watch a demo
+*Click on the image above to watch a demo*
 
-## Installation
-1. ` git clone https://github.com/filippovarini/sharktrack.git`
-2. `python -m venv venv` can also use python3
-3. `source venv/bin/activate`
-4. `pip install -r requirements.txt`
-5. Download the models from [here](https://drive.google.com/drive/folders/1KE5ko9XaSc6q1dDtWrB1gB8RKWjJKkcx?usp=sharing) and place them in the `models` folder
-5. `python app.py --video_path <path_to_video>`
+## What does SharkTrack do?
+SharkTrack takes a folder with BRUVS and outputs something [like this](./static/test-output/). The output folder contains:
+- `output.csv` lists each detection at each timeframe for each video
+- `viame.csv` for each tracked shark, the detection which achieved the highest confidence (`max-conf-detection`)
+- `detections/` for each tracked shark, the frame in which the shark track achieved highest confidence.
+    ![detection example](./static/test-output/detections/5.jpg)
+    *The image shows the shark (red box) whose track achieved the higest confidence here, over all other frames in which it was detected. It also shows other detections (white boxes) and the video, time and confidence of the red detection*
 
-## Running the SharkTrack Model
+Using this folder and the workflow described [here](./annotation-pipelines.md), the user will manually remove false detections and assign Species ID. The `max-conf-detection` extracted in `viame.csv` and `detections/` allows the user to classify each shark only once per track and have the MaxN automatically computed from it.
 
-### 1. Running the model on a single video
+## How people use SharkTrack? (Pipeline)
 
-### 2. Running the model on multiple videos
-To run the model on multiple videos, you just need to point the script to the root folder containing the videos in the following structure:
+Users of SharkTrack do so by:
+1. Running the model over a batch of BRUVS videos
+2. Uploading the detections to the [VIAME](https://viame.kitware.com/) annotation software
+3. Assigning Species ID to each detected shark (once only)
+4. Computing MaxN metrics with provided scripts
+
+We have two main types of users
+### Field Researcher
+They are currently doing BRUVS deployment. They want their daily videos to be processed overnight to share detections with the team and externally and have a precise idea of which sampling site records more sharks.
+
+> SharkTrack helps these users with the `mobile` model, which processes up to 25h of BRUVS overnight on a *CPU* without access to WIFI. 
+
+The model prioritises speed over acuracy, so it is designed to obtain a quick overview, rather than accurate metrics.
+
+Please follow [this guide](./annotation-pipelines.md#field-researcher) to implement the Field Researcher Pipeline
+
+### BRUVS Analyst
+They analyse the BRUVS to compute accurate MaxN metrics. High accuracy is crucial to them, and they have less strict time constraints.
+
+> SharkTrack helps these users with the `analyst` model, which achieves higher accuracy than humans. 
+
+The model prioritises accuracy over speed, and takes twice the time to run on *CPU*.
+
+Please follow [this guide](./annotation-pipelines.md#bruvs-analyst) to implement the Analyst Pipeline
+
+## How people run SharkTrack?
+SharkTrack is a publicly-available model, and the [SharkTrack User Guide](./sharktrack-user-guide.md) provides instructions for running it using our Python scripts. Many of our users run SharkTrack on their own, either on the cloud or on their local computers.
+
+That said, we know that Python can be a bit daunting to setup. Additionally, SharkTrack requires significant processing power which, despite we have designed it for mobile usage, might still be a challenge. Therefore, some users - particularly high-volume users - send us BRUVS videos (online or physical hard drives), which we run through SharkTrack, then we send back a results file. 
+
+If that is of interest for you, please read the [Bespoke Deployment](###bespoke-deployment) section.
+
+Whether you're going to run SharkTrack on your own or work with us, usually the first step with a new user is just running our model on a short BRUVS video and seeing what happens, so if you're interested in trying this on your BRUVS, we can work out a way to transfer a set of example images, just [email us](mailto:fppvrn@gmail.com?subject=SharkTrack-Pilot).
+
+## List of people using it
+- [University of Exeter and Government of Anguilla](https://www.linkedin.com/posts/filippo-varini_we-are-back-from-university-of-exeter-activity-7167899292593065985-dZLo?utm_source=share&utm_medium=member_desktop)
+
+## Collaborations
+### License & Citation
+This repository is licensed with the [MIT license](https://opensource.org/license/mit). If you use MegaDetector in a publication, please cite:
+
+Varini, F. et al (2024). SharkTrack. Github. Available at
+https://github.com/filippovarini/sharktrack
+
+
+The same citation, in BibTex format:
+
+```BibTex
+@article{varini2024sharktrack,
+  title={SharkTrack},
+  author={Filippo Varini et al},
+  year={2024}
+}
 ```
-videos_root
-      ├── video1
-      │   ├── chapter1.mp4
-      │   ├── chapter2.mp4
-      └── video2
-          ├── chapter1.mp4
-          ├── chapter2.mp4
+### Issues
+Please submit any issue on [GitHub](https://github.com/filippovarini/sharktrack/issues). We aim to respond to it within a week.
+### Contribution
+This project welcomes contributions, as pull requests, issues, or suggestions by [email](mailto:fppvrn@gmail.com?subject=SharkTrackContribution).
 
-```
+This is the first step of a broader effort to develop generalisable marine species classifiers. We are looking for contributors for this project. If you want to get involved in AI-driven Ocean Conservation please email us.
 
-### 📹 GoPro Compatibility ⛔️
-GoPro videos are not compatible with the model. To make them compatible, you need to convert them to a format that the model can read. You can use the [script here](./scripts/process_gopro.py) to convert the videos, by running the following command:
-```bash
-python scripts/process_gopro.py --input_path path_to_gopro_videos --output_path path_to_output_folder
-```
-This script copies the videos to the output folder, with the cleaned format. You should use this script to copy the videos from an external drive to your local machine, before running the model. 
+### Contacts
+- [Email](mailto:fppvrn@gmail.com?subject=SharkTrackGeneral)
+- Website
+- [Linkedin](https://www.linkedin.com/in/filippo-varini/)
+- [X](https://twitter.com/filippo_varini)
 
-## Processing SharkTrack Annotations
-
-
-📺 **Tutorials**:
-You can also follow this documentation using the following video tutorials:
-
-- [Uploading and cleaning detections in VIAME](https://drive.google.com/file/d/16Zw69ELvA1_pBhfcbQsjo1nc_7EBYZl2/view?usp=sharing)
-- [Computing MaxN after downloading VIAME-cleaned detections](https://drive.google.com/file/d/1DCT3vCAbAH4T8wTiMjgWUc7-lZEpgz9U/view?usp=drive_link)
-
-This document outlines a simple process to clean the predictions generated by the SharkTrack model and generate a MaxN file.
-
-1. **Familiarise with the Output:** locate the `./output` file, containing the model output. This file contains the following subitems:
-    1. `./output.csv` a csv file listing every detection in every frame of every video
-    2. `./viame.csv` a csv file listing one detection per tracked shark, for the frame in which it was detected with highest confidence
-    3. `./detections` for each tracked shark, this folder shows the frame in which it achieved maximum confidence. As you can see from the image below, the image also shows the other detections, although we are interested only in the highlighted one.
-        
-        ![Screenshot 2024-03-15 at 16.37.45.png](static/Screenshot_2024-03-15_at_16.37.45.png)
-        
-2. **Setup Annotations Platform**
-    1. Open [VIAME](https://viame.kitware.com/)
-    2. Create an account
-    3. Click “Upload“ > Add Image Sequence
-        
-        ![Screenshot 2024-03-15 at 16.45.25.png](static/Screenshot_2024-03-15_at_16.45.25.png)
-        
-        ![Screenshot 2024-03-15 at 16.45.51.png](static/Screenshot_2024-03-15_at_16.45.51.png)
-        
-    4. Upload all the images in `./detections`
-    5. Click on “annotation file” and upload `viame.csv`
-        
-        ![Screenshot 2024-03-15 at 16.47.14.png](static/Screenshot_2024-03-15_at_16.47.14.png)
-        
-    6. Pick a name for the BRUVS analysis
-
-        ![analysis_name.png](static/analysis_name.png)
-    7. Confirm upload
-3. **Clean Annotations**
-    1. Click Launch Annotator
-    2. For each frame
-        
-        ![Screenshot 2024-03-15 at 16.49.38.png](static/Screenshot_2024-03-15_at_16.49.38.png)
-        
-        1. Identify the track by clicking on the highlighted bounding box
-        2. If the detection is valid, insert the shark species
-            
-            ![Screenshot 2024-03-15 at 16.52.17.png](static/Screenshot_2024-03-15_at_16.52.17.png)
-            
-        3. If the detection is invalid, delete the track by clicking on the trash
-            
-            ![Screenshot 2024-03-15 at 16.53.25.png](static/Screenshot_2024-03-15_at_16.53.25.png)
-            
-4. **Download Cleaned Annotations**
-    
-    ![Screenshot 2024-03-15 at 16.54.04.png](static/Screenshot_2024-03-15_at_16.54.04.png)
-    
-    1. Click on the 💾 Icon
-    2. Then click Download > Viame CSV and download the file
-5. **Extract MaxN from Cleaned Annotations**
-    
-    ![Screenshot 2024-03-15 at 17.10.52.png](static/Screenshot_2024-03-15_at_17.10.52.png)
-    
-    1. Open this [Collab Notebook](https://colab.research.google.com/drive/1oiJgt1TZnBoKLi3PCZBKtiH0NnRsb-0Z?authuser=0#scrollTo=qfJdcsy_D5i1)
-    2. Upload the original `output.csv` file and the cleaned viame file you downloaded in step 4
-    3. Edit cell two and insert the names of the files
-    4. Run both cells
-    5. Close and reopen the 📁 icon (left side)
-    6. You will see a `max_n.csv` file, which is your final CSV
+### I have hours of shark video. Can you help me annotate them? questions to email us
