@@ -1,15 +1,12 @@
-#%%
 from compute_output.sharktrack_annotations import build_chapter_output
 from scripts.reformat_gopro import valid_video
 from argparse import ArgumentParser
 from ultralytics import YOLO
-import pandas as pd
 import shutil
 import torch
 import cv2
 import os
 
-#%%
 class Model():
   def __init__(self, videos_folder, max_video_cnt, stereo_prefix, output_path, mobile=False):
     """
@@ -17,10 +14,10 @@ class Model():
       mobile (bool): Whether to use lightweight model developed to run quickly on CPU
     
     Model types:
-    | Type    |  Model  | Fps  |
-    |---------|---------|------|
-    | mobile  | Yolov8n | 2fps |
-    | analyst | Yolov8s | 5fps |
+    | Type    |  Model  | Fps  | Performance |
+    |---------|---------|------|-------------|
+    | mobile  | Yolov8n | 2fps | |
+    | analyst | Yolov8s | 5fps | |
     """
     self.videos_folder = videos_folder
     self.max_video_cnt = max_video_cnt
@@ -40,7 +37,7 @@ class Model():
       self.fps = 5
     
     # Static Hyperparameters
-    self.conf_threshold = 0.2
+    self.conf_threshold = 0.25
     self.iou_association_threshold = 0.5
     self.imgsz = 640
     self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -113,10 +110,6 @@ class Model():
 
     return processed_videos
 
-  def get_results(self):
-    # 2. From the results construct VIAME
-    return self.results
-
 def main(video_path, max_video_cnt, stereo_prefix, output_path='./output'):
   model = Model(
     video_path,
@@ -124,12 +117,11 @@ def main(video_path, max_video_cnt, stereo_prefix, output_path='./output'):
     stereo_prefix,
     output_path
   )
-  results = model.run()
+  model.run()
   
   # 1. Run tracker with configs
   # 2. From the results construct VIAME
 
-#%%
 if __name__ == "__main__":
   parser = ArgumentParser()
   parser.add_argument("--input_root", type=str, required=True, help="Path to the video file")
@@ -138,4 +130,3 @@ if __name__ == "__main__":
   parser.add_argument("--output_dir", type=str, default="./output", help="Output directory for the results")
   args = parser.parse_args()
   main(args.input_root, args.max_videos, args.stereo_prefix, args.output_dir)
-# %%
