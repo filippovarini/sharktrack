@@ -1,0 +1,47 @@
+#%%
+from argparse import ArgumentParser
+import os
+
+#%%
+def valid_video(video_path):
+    right_suffix = video_path.endswith(".mp4") or video_path.endswith(".MP4")
+    right_prefix = not video_path.startswith(".")
+    return right_suffix and right_prefix
+
+def main(videos_root, output_root, stereo_prefix):
+    processed_videos = []
+
+    print('Reformatting GoPro videos')
+    os.makedirs(output_root)
+
+    for (root, _, files) in os.walk(videos_root):
+        output_dir = root.replace(videos_root, output_root)
+        for file in files:
+            stereo_filter = stereo_prefix is None or file.startswith(stereo_prefix)
+            if valid_video(file) and stereo_filter:
+                os.makedirs(output_dir, exist_ok=True)
+                input_path = os.path.join(root, file)
+                output_path = os.path.join(output_dir, file)
+                os.system(f"ffmpeg -i {input_path} -y -map 0:v -c copy {output_path}")
+                processed_videos.append(input_path)
+
+    if len(processed_videos) == 0:
+      print("No chapters found in the given folder")
+      print("Please ensure the folder structure resembles the following:")
+      print("video_path")
+      print("├── video1")
+      print("│   ├── chapter1.mp4")
+      print("│   ├── chapter2.mp4")
+      print("└── video2")
+      print("    ├── chapter1.mp4")
+      print("    ├── chapter2.mp4")
+
+#%%
+
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--input_root", type=str, required=True, help="Path to the root directory of your video file")
+    parser.add_argument("--output_root", type=str, required=True, help="Path to the output root directory of your video file")
+    parser.add_argument("--stereo_prefix", type=str, help="Prefix of the stereo video file")
+    args = parser.parse_args()
+    main(args.input_root, args.output_root, args.stereo_prefix)
