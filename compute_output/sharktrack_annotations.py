@@ -10,7 +10,7 @@ from image_processor import draw_bboxes, annotate_image
 
 SHARKTRACK_COLUMNS = ["chapter_path", "frame", "time", "track_metadata", "track_id", "xmin", "ymin", "xmax", "ymax", "confidence", "class"]
 
-classes_mapping = ['shark', 'ray']
+classes_mapping = ['elasmobranch', 'ray']
 
 def extract_frame_results(frame_results):
     boxes = frame_results.boxes.xyxy.cpu().tolist()
@@ -80,7 +80,7 @@ def postprocess(chapter_sharktrack_df, fps, next_track_index):
         2. Removes the track if the max confidence is less than MAX_CONF_THRESHOLD
     """
     MAX_CONF_THRESHOLD = 0.8
-    DURATION_THRESH = 5 if fps == 5 else 2
+    DURATION_THRESH = fps # 1 s
 
     track_counts = chapter_sharktrack_df["track_metadata"].value_counts()
     max_conf = chapter_sharktrack_df.groupby("track_metadata")["confidence"].max()
