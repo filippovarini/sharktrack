@@ -43,8 +43,8 @@ def main(videos_root, output_root, stereo_prefix):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--input_root", type=str, required=True, help="Path to the root directory of your video file")
-    parser.add_argument("--output_root", type=str, required=True, help="Path to the output root directory of your video file")
+    parser.add_argument("--input", type=str, required=True, help="Path to the root directory of your video file")
+    parser.add_argument("--output", type=str, required=True, help="Path to the output root directory of your video file")
     parser.add_argument("--stereo_prefix", type=str, help="Prefix of the stereo video file")
     args = parser.parse_args()
-    main(args.input_root, args.output_root, args.stereo_prefix)
+    main(args.input, args.output, args.stereo_prefix)

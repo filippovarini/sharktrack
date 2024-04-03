@@ -162,10 +162,10 @@ def main(video_path, max_video_cnt, stereo_prefix, output_path='./output', mobil
 
 if __name__ == "__main__":
   parser = ArgumentParser()
-  parser.add_argument("--input_root", type=str, required=True, help="Path to the video folder")
+  parser.add_argument("--input", type=str, required=True, help="Path to the video folder")
   parser.add_argument("--stereo_prefix", type=str, help="Prefix to filter stereo BRUVS")
   parser.add_argument("--max_videos", type=int, default=1000, help="Maximum videos to process")
-  parser.add_argument("--output_dir", type=str, default="./output", help="Output directory for the results")
+  parser.add_argument("--output", type=str, default="./output", help="Output directory for the results")
   parser.add_argument("--mobile", action="store_true", help="Use mobile model: 50% faster, slightly less accurate than humans")
   args = parser.parse_args()
-  main(args.input_root, args.max_videos, args.stereo_prefix, args.output_dir, args.mobile)
+  main(args.input, args.max_videos, args.stereo_prefix, args.output, args.mobile)
