@@ -4,8 +4,9 @@ import os
 
 #%%
 def valid_video(video_path):
-    right_suffix = video_path.endswith(".mp4") or video_path.endswith(".MP4")
-    right_prefix = not video_path.startswith(".")
+    video_name = os.path.basename(video_path)
+    right_suffix = video_name.endswith(".mp4") or video_name.endswith(".MP4")
+    right_prefix = not video_name.startswith(".")
     return right_suffix and right_prefix
 
 def main(videos_root, output_root, stereo_prefix):
