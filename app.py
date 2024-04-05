@@ -55,9 +55,9 @@ class Model():
           "imgsz": self.imgsz,
           "tracker": self.tracker_path,
           "verbose": False,
-          "device":self.device
+          "device":self.device,
+          "persist": True
       }
-
 
     # config
     self.next_track_index = 0
@@ -78,7 +78,7 @@ class Model():
     """
     Tracks keyframes using PyAv to overcome the GoPro audio format issue.
     """
-    print(f"Processing video: {chapter_path}... on device {self.device}")
+    print(f"Processing video: {chapter_path} on device {self.device}...")
     results = []
 
     content = av.datasets.curated(chapter_path)
@@ -91,7 +91,6 @@ class Model():
         frame_results = self.model.track(
           source=frame.to_image(),
           **self.model_args,
-          persist=True,
         )
         results.append(frame_results[0])
         
@@ -102,7 +101,7 @@ class Model():
     Uses ultralytics built-in tracker to automatically track a video with OpenCV.
     This is faster but it fails with GoPro Audio format, requiring reformatting.
     """
-    print(f"Processing video: {chapter_path}... on device {self.device}")
+    print(f"Processing video: {chapter_path} on device {self.device}...")
 
     results = self.model.track(
       chapter_path,
@@ -148,12 +147,6 @@ class Model():
 
 
   def run(self):
-    # remove previous predictions first
-    if os.path.exists(self.output_path):
-      shutil.rmtree(self.output_path)
-
-    os.makedirs(self.output_path)
-
     self.videos_folder = self.videos_folder
     processed_videos = []
 
@@ -188,8 +181,22 @@ class Model():
       return
 
     return processed_videos
+  
+def convert_abs_path(path):
+  if path and not os.path.isabs(path):
+    path = os.path.abspath(path)
+  return path
+
 
 def main(video_path, max_video_cnt, stereo_prefix, output_path='./output', mobile=False, live=False):
+  video_path = convert_abs_path(video_path)
+  output_path = convert_abs_path(output_path)
+  
+  # remove previous predictions first
+  if os.path.exists(output_path):
+    shutil.rmtree(output_path)
+  os.makedirs(output_path)
+
   model = Model(
     video_path,
     max_video_cnt,
@@ -201,7 +208,6 @@ def main(video_path, max_video_cnt, stereo_prefix, output_path='./output', mobil
     model.live_track(video_path)
   else:
     model.run()
-  
 
 if __name__ == "__main__":
   parser = ArgumentParser()
