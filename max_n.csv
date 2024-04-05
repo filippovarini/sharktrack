@@ -1,7 +1,2 @@
 chapter_path,time_sample,class,n
-../../datasets/frame_extraction_raw/val1/videos/val1_difficult1.mp4,00:16:00,elasmobranch,3
-../../datasets/frame_extraction_raw/val1/videos/val1_difficult2.mp4,00:05:20,elasmobranch,4
-../../datasets/frame_extraction_raw/val1/videos/val1_easy1.mp4,00:17:00,elasmobranch,3
-../../datasets/frame_extraction_raw/val1/videos/val1_easy2.mp4,00:18:60,elasmobranch,2
-../../datasets/frame_extraction_raw/val1/videos/val1_medium1.mp4,00:12:40,elasmobranch,2
-../../datasets/frame_extraction_raw/val1/videos/val1_medium2.mp4,00:13:60,elasmobranch,3
+/Users/filippovarini/Desktop/LGX050096.mp4,06:54:80,shark,1
