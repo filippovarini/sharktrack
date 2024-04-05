@@ -54,6 +54,9 @@ def compute_species_max_n(cleaned_annotations):
     return max_n
 
 def main(output_path, viame_output_path=None):
+    if not os.path.exists(output_path):
+        print(f"Output path {output_path} does not exist")
+        return
     if viame_output_path:
         print(f"Computing MaxN from annotations cleaned using VIAME...")
         cleaned_annotations = clean_annotations_viame(output_path, viame_output_path)
@@ -68,7 +71,7 @@ def main(output_path, viame_output_path=None):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--original_output", type=str, required=True, help="Path to the output folder of sharktrack")
+    parser.add_argument("--output", type=str, default="./outputtt", help="Path to the output folder of sharktrack")
     parser.add_argument("--viame_cleaned", type=str, help="Path to the output csv of viame")
     args = parser.parse_args()
-    main(args.original_output, args.viame_cleaned)
+    main(args.output, args.viame_cleaned)
