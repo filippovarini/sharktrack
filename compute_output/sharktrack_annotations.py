@@ -58,10 +58,11 @@ def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_trac
               }
 
   df = pd.DataFrame(data, columns=SHARKTRACK_COLUMNS)
+  concat_df(df, os.path.join(out_folder, "original_results.csv"))
   total_tracks = df["track_metadata"].nunique()
   postprocessed_results = postprocess(df, fps, next_track_index)
   filtered_tracks = postprocessed_results["track_metadata"].nunique()
-  print(f"Removed {total_tracks - filtered_tracks} with postprocessing")
+  print(f"Removed {total_tracks - filtered_tracks} tracks with postprocessing!")
 
   if not postprocessed_results.empty:
     concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
