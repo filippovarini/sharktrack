@@ -1,7 +1,17 @@
+"""
+Code to evaluate predicted MaxN accuracy using the Mean Max N proposed in the SharkTrack paper:
+
+Max N Accuracy in one video v for the species i:
+MaxNAcc = True_MaxN / (True_MaxN + MaxN_Error) where MaxN_Error = |True_MaxN - MaxN|
+
+Mean Max N Accuracy for all videos:
+mMaxNAcc = sum_v(sum_i(MaxNAcc)) / num_videos*video_species
+"""
 from argparse import ArgumentParser
 import pandas as pd
+import os
 
-def species_match():
+def max():
     """
     """
 
@@ -13,8 +23,17 @@ def evaluate_maxn(pred, target):
     required_cols = ["chapter_path", "class", "n"]
     assert [c in pred.columns and c in target.columns for c in required_cols], f"Both pred and target MaxN file must have cols {required_cols}"
 
-    # for each video
-    # for each 
+    evaluation = pd.merge(pred, target, on=["chapter_path", "class"], how="outer", suffixes=("_pred", "_target"), validate="one_to_one")
+    evaluation.fillna(0, inplace=True)
+
+    # assert no chapter_path, class duplicates
+    assert evaluation[["chapter_path", "class"]].duplicated().sum() == 0, "chapter_path, class duplicates found in evaluation"
+    
+    evaluation["MaxN_Error"] = abs(evaluation["n_pred"] - evaluation["n_target"])
+    evaluation["MaxNAcc"] = evaluation["n_target"] / (evaluation["n_target"] + evaluation["MaxN_Error"])
+    
+    mMaxNAcc = evaluation["MaxNAcc"].mean()
+    return mMaxNAcc
 
 def main(pred_path, target_path):
     if not os.path.exists(pred_path):
@@ -26,8 +45,8 @@ def main(pred_path, target_path):
 
     pred = pd.read_csv(pred_path)
     target = pd.read_csv(target_path)
-
-    
+    mMaxNAcc = evaluate_maxn(pred, target)
+    print(f"Mean MaxN Accuracy is {mMaxNAcc}")
 
 
 if __name__ == "__main__":
