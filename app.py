@@ -125,14 +125,13 @@ class Model():
     frame_width = int(cap.get(3))
     frame_height = int(cap.get(4))
 
-    out = cv2.VideoWriter(FILE_OUTPUT, cv2.VideoWriter_fourcc('M','J','P','G'),
-                            30, (frame_width, frame_height))
+    out = cv2.VideoWriter(FILE_OUTPUT, cv2.VideoWriter_fourcc('M','J','P','G'), self.fps, (frame_width, frame_height))
 
     while cap.isOpened():
       success, frame = cap.read()
 
       if success:
-        results = self.model.track(frame, **self.model_args, persist=True)
+        results = self.model.track(frame, **self.model_args)
         annotated_frame = results[0].plot()
 
         out.write(annotated_frame)
@@ -213,9 +212,9 @@ if __name__ == "__main__":
   parser = ArgumentParser()
   parser.add_argument("--input", type=str, required=True, help="Path to the video folder")
   parser.add_argument("--stereo_prefix", type=str, help="Prefix to filter stereo BRUVS")
-  parser.add_argument("--max_videos", type=int, default=1000, help="Maximum videos to process")
+  parser.add_argument("--limit", type=int, default=1000, help="Maximum videos to process")
   parser.add_argument("--output", type=str, default="./output", help="Output directory for the results")
   parser.add_argument("--mobile", action="store_true", help="Use mobile model: 50% faster, slightly less accurate than humans")
   parser.add_argument("--live", action="store_true", help="Show live tracking video for debugging purposes")
   args = parser.parse_args()
-  main(args.input, args.max_videos, args.stereo_prefix, args.output, args.mobile, args.live)
+  main(args.input, args.limit, args.stereo_prefix, args.output, args.mobile, args.live)
