@@ -65,13 +65,13 @@ def main(output_path, viame_output_path=None):
         cleaned_annotations = clean_annotations_locally(output_path)
     max_n = compute_species_max_n(cleaned_annotations)
 
-    max_n_path = './max_n.csv'
+    max_n_path = os.path.join(output_path, "maxn.csv")
     max_n.to_csv(max_n_path, index=False)
 
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--output", type=str, default="./outputtt", help="Path to the output folder of sharktrack")
+    parser.add_argument("--output", type=str, default="./output", help="Path to the output folder of sharktrack")
     parser.add_argument("--viame_cleaned", type=str, help="Path to the output csv of viame")
     args = parser.parse_args()
     main(args.output, args.viame_cleaned)
