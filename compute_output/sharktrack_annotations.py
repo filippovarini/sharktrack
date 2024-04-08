@@ -46,6 +46,7 @@ def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_trac
               "frame": frame_id,
               "time": time,
               "track_metadata": track_metadata,
+              "chapter_track_id": chapter_track_id,
               "xmin": box[0],
               "ymin": box[1],
               "xmax": box[2],
@@ -109,7 +110,7 @@ def postprocess(results, fps, next_track_index):
     # Set CopyOnWrite, according to https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy:~:text=2%0A40%20%203-,Returning%20a%20view%20versus%20a%20copy,-%23
     pd.options.mode.copy_on_write = True
     filtered_results = results.loc[~false_positive]
-    filtered_results["track_id"] = results.groupby("track_metadata").ngroup() + next_track_index
+    filtered_results["track_id"] = filtered_results.groupby("chapter_track_id").ngroup(ascending=True) + next_track_index
 
     return filtered_results
 
