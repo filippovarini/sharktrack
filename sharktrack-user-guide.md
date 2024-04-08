@@ -35,9 +35,8 @@ SharkTrack is free, and it makes us super-happy when people use it, so we put it
     source venv/bin/activate
     pip install -r requirements.txt
     ```
-3. Download the models from [here](https://drive.google.com/drive/folders/1KE5ko9XaSc6q1dDtWrB1gB8RKWjJKkcx?usp=sharing) and place them in the `./models`
 
-4. Run the model
+3. Run the model
     ```bash
     python app.py --input_root <path_to_video_folder> --mobile
     ```
