@@ -31,8 +31,13 @@ def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_trac
   data = []
   max_conf_images = {}
 
+  orig_shape = None
+
   for frame_id, frame_results in enumerate(chapter_results):
       time = format_time(frame_id / fps)
+
+      if orig_shape is None:
+        orig_shape = frame_results.orig_shape
 
       for box, chapter_track_id, confidence, cls in extract_frame_results(frame_results):
           track_metadata = f"{chapter_id}/{chapter_track_id}"
@@ -45,6 +50,8 @@ def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_trac
               "ymin": box[1],
               "xmax": box[2],
               "ymax": box[3],
+              "h": orig_shape[0],
+              "w": orig_shape[1],
               "confidence": confidence,
               "class": classes_mapping[int(cls)],
           }
@@ -57,48 +64,54 @@ def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_trac
                   "video": chapter_id
               }
 
-  df = pd.DataFrame(data, columns=SHARKTRACK_COLUMNS)
-  concat_df(df, os.path.join(out_folder, "original_results.csv"))
-  total_tracks = df["track_metadata"].nunique()
-  postprocessed_results = postprocess(df, fps, next_track_index)
-  filtered_tracks = postprocessed_results["track_metadata"].nunique()
-  print(f"Removed {total_tracks - filtered_tracks} tracks with postprocessing!")
+  results_df = pd.DataFrame(data)
 
-  if not postprocessed_results.empty:
-    concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
-    write_max_conf(postprocessed_results, max_conf_images, out_folder)
-    build_annotation_cleaning_structure(postprocessed_results, out_folder, fps, next_track_index)
-    next_track_index = postprocessed_results["track_id"].max() + 1
+  if not results_df.empty:
+    postprocessed_results = postprocess(results_df, fps, next_track_index)
+    print(f"Removed {results_df['track_metadata'].nunique() - postprocessed_results['track_metadata'].nunique()} tracks with postprocessing!")
+
+    if not postprocessed_results.empty:
+      postprocessed_results = postprocessed_results[SHARKTRACK_COLUMNS]
+      concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
+      write_max_conf(postprocessed_results, max_conf_images, out_folder)
+      build_annotation_cleaning_structure(postprocessed_results, out_folder, fps, next_track_index)
+      next_track_index = postprocessed_results["track_id"].max() + 1
 
   return next_track_index
 
 def concat_df(df, output_path):
     if os.path.exists(output_path):
         existing_df = pd.read_csv(output_path)
-        df = pd.concat([existing_df, df], ignore_index=True)
+        if not existing_df.empty:
+          df = pd.concat([existing_df, df], ignore_index=True)
     df.to_csv(output_path, index=False)
 
-def postprocess(chapter_sharktrack_df, fps, next_track_index):
+def postprocess(results, fps, next_track_index):
     """
-        1. Extracts tracks that last for less than 1s (5frames)
-        2. Removes the track if the max confidence is less than MAX_CONF_THRESHOLD
+    results: pd.DataFrame with columns SHARKTRACK_COLUMNS
     """
-    MAX_CONF_THRESHOLD = 0.8
-    DURATION_THRESH = fps # 1 s
+    length_thresh = fps
+    motion_thresh = 0.08   # Motion is the max(x,y) movement of the centre of the bounding box wrt the frame size
+    max_conf_thresh = 0.7
 
-    track_counts = chapter_sharktrack_df["track_metadata"].value_counts()
-    max_conf = chapter_sharktrack_df.groupby("track_metadata")["confidence"].max()
-    valid_tracks = track_counts[(track_counts >= DURATION_THRESH) | (max_conf > MAX_CONF_THRESHOLD)].index
-    filtered_df = chapter_sharktrack_df[chapter_sharktrack_df["track_metadata"].isin(valid_tracks)]
+    results["cx"] = (results["xmin"] + results["xmax"]) / 2
+    results["cy"] = (results["ymin"] + results["ymax"]) / 2
 
-    # assign track id
-    # To update the sliced dataset without copying (save up memory) and avoid
-    # causing SettingWithCopyWarning, deactivate it
-    pd.options.mode.chained_assignment = None
-    filtered_df['track_id'] = filtered_df.groupby('track_metadata').ngroup() + next_track_index
-    pd.options.mode.chained_assignment = 'warn'
+    grouped = results.groupby("track_metadata")
+    results["track_life"] = grouped["track_metadata"].transform("count")
+    results["max_conf"] = grouped["confidence"].transform("max")
+    results["motion_x"] = (grouped["cx"].transform("max") - grouped["cx"].transform("min")) / results["w"]
+    results["motion_y"] = (grouped["cy"].transform("max") - grouped["cy"].transform("min")) / results["h"]
 
-    return filtered_df
+    might_be_false_positive = (results["track_life"] < length_thresh) | (results[["motion_x", "motion_y"]].max(axis=1) < motion_thresh) 
+    false_positive = (might_be_false_positive & (results["max_conf"] < max_conf_thresh))
+
+    # Set CopyOnWrite, according to https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy:~:text=2%0A40%20%203-,Returning%20a%20view%20versus%20a%20copy,-%23
+    pd.options.mode.copy_on_write = True
+    filtered_results = results.loc[~false_positive]
+    filtered_results["track_id"] = results.groupby("track_metadata").ngroup() + next_track_index
+
+    return filtered_results
 
 def write_max_conf(chapter_sharktrack_df, max_conf_image, out_folder):
   """
