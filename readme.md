@@ -5,43 +5,53 @@
 
 * <a href="#overview">Overview</a>
 * <a href="#what-does-sharktrack-do">What does SharkTrack do?</a>
-* <a href="#how-people-use-sharktrack-pipeline">How do people use SharkTrack?</a>
+* <a href="#how-is-it-useful">How is it useful?</a>
 * <a href="#how-people-run-sharktrack">How do people run SharkTrack?</a>
 * <a href="#list-of-people-using-it">List of people using it</a>
 * <a href="#contributors">Contributors</a>
 * <a href="#collaborations">Collaborations</a>
+* <a href="#next-stpes">Next Steps</a>
 
 ## Overview
 Elasmobranch researchers monitor their populations using Baited Remote Underwater Video Systems (BRUVS). This is a time-consuming process, as each video needs to be manually annotated. 
 
-SharkTrack is a Machine Learning model that uses computer vision to detect and track Elasmobranchii in BRUVS videos. The tool is designed to allow researchers to focus only on interesting video frames, removing the need of watching hour-long empty videos.
+SharkTrack is a Machine Learning model that uses computer vision to detect and track Elasmobranchii in BRUVS videos. It doesn not classify the species. However, by simply detecting video snippets with sharks, the model drastically speeds up BRUVS annotation. Additionally, this package provides users a workflow to annotate species ID from model detectios.
 
-It integrates with commonly-used annotation tools to convert raw videos into detection and MaxN Metrics 20x faster than current workflows.
+> Therefore SharkTrack is an AI-enhanced workflow to convert raw BRUVS videos to MaxN, which has been tested 20x faster than traditional methods.
 
-This page is for users who are just considering the use of AI in their workflow, and aren't even sure yet whether SharkTrack would be useful. It summarizes what we do with the model to help our collaborators who are overwhelmed by BRUVS videos to annotate. This page also includes some questions and information for new collaborators. 
+Here we provide a guide to learn about SharkTrack. The guide is divided in the following 3 chapters. We suggest you to spend ~15m to read them and understand the model.
 
-If you're already familiar with SharkTrack and you're ready to run it on your data (and you have some familiarity with running Python code), see the [SharkTrack User Guide](./sharktrack-user-guide.md) for instructions on downloading and running the model.
+| Chapter | Reading Time | Description
+|--|--|--|
+| [Introduction to SharkTrack](./readme.md#overview) | 7m | This page is for users who are just considering the use of AI in their workflow, and aren't even sure yet whether SharkTrack would be useful. It summarizes what we do with the model, how it can help you and how other people use it | 
+| [SharkTrack User Guide](./sharktrack-user-guide.md) | 5m | This is a guide to run SharkTrack on your data. Jump to it if you're already familiar with SharkTrack and you're ready to run it on your data (and you have some familiarity with running Python code).
+| [Annotation Pipeline](./annotation-pipelines.md) | 6m | This page illustrates the AI-enhanced BRUVS annotation workflow. Jump to it to convert the model's output into MaxN metrics 
+
 
 [![watrch video](static/video_screenshot.png)](https://drive.google.com/file/d/1b_74wdPXyJPe2P-m1c45jjsV2C5Itr-R/view?usp=sharing)
 *Click on the image above to watch a demo*
 
 ## What does SharkTrack do?
-SharkTrack takes a folder with BRUVS videos and outputs something [like this](./static/test-output/). The output folder contains:
-- `output.csv` lists each detection at each timeframe for each video
-- `viame.csv` for each tracked shark, records the detection which achieved the highest confidence (`max-conf-detection`)
-- `detections/` for each tracked shark, saves the `.jpg` frame in which the shark track achieved highest confidence.
-    ![detection example](./static/test-output/detections/5.jpg)
-    *The image shows the shark (red box) whose track achieved the higest confidence in this frame, over all others in which the same shark was detected. It also shows other detections (white boxes) and the video, time and confidence of the red detection*
+SharkTrack is a AI-enhanced BRUVS annotation pipeline.
 
-The `max-conf-detections` extracted in `viame.csv` and `detections/` are used in the [annotation workflow](./annotation-pipelines.md) to allow the user to classify each shark only once per track and have the MaxN automatically computed from it. This tracker-enabled process is significantly faster than classifying each frame.
+What this jargon means is that it does the following steps:
+1. Takes a folder with BRUVS videos, detects where sharks are in the videos.
+2. Communicates this with an output [like this](./static/test-output/). Read [this](./annotation-pipelines.md#step-0-understand-the-output) our output format and its motivations. 
+3. Provides a workflow for users to quickly clean detections and assign species ID.
 
-## How people use SharkTrack? (Pipeline)
-SharkTrack alone is useless to researchers. We integrate the model into an end-to-end BRUVS processing pipeline that converts raw BRUVS into MaxN metrics.
+Basically, its goal is to allow researchers to spend time *only* classifying shark species, saving the majority of time spent looking at empty frames.
 
-Users of SharkTrack do so by:
-1. Running the model over a batch of BRUVS videos [[Guide here]](./sharktrack-user-guide.md)
-2. Removing incorrect detections and assigning species ID to the correct ones [[Guide here]](./annotation-pipelines.md)
-4. Computing MaxN metrics [[Guide here]](./annotation-pipelines.md)
+<p><img src="./static/test-output/detections/5.jpg" width=450/>
+
+*Example image showing the video and time of the red detection*
+
+## How is it useful?
+The main use of SharkTrack is to compute BRUVS MaxN in hours instead of months (or years!). It can do this on a modern but simple laptop, without access to WIFI or GPU.
+
+If not [fine tuned](#bespoke-deployment), it achieves ~90% MaxN accuracy. We understand that some researchers might require higher accuracy metrics, or might want to double check them. In this case, SharkTrack is very useful in providing a general overview of where sharks are in the BRUVS videos.
+
+Researchers also use SharkTrack during sampling, to process BRUVS overnight and share findings the next day.
+
 
 We have two main types of users:
 ### Field Researcher
@@ -65,15 +75,8 @@ Whether you're going to run SharkTrack on your own or work with us, usually the 
 
 ## List of people using it
 - [University of Exeter and Government of Anguilla](https://www.linkedin.com/posts/filippo-varini_we-are-back-from-university-of-exeter-activity-7167899292593065985-dZLo?utm_source=share&utm_medium=member_desktop)
-- 
-## Contributors
-This software was written and supported by the efforts of
-- [Filippo Varini](https://www.linkedin.com/in/filippo-varini/)
-- [Sophie Wilday](https://www.linkedin.com/in/sophie-wilday-889663b9/)
-- [Jeremy Jenrette](https://jeremyjenrette.weebly.com/)
-- [Dr Joel Gayford](https://www.sharkmeasurements.com/)
-- [Prof Ben Glocker](https://www.imperial.ac.uk/people/b.glocker)
-- [Prof Francesco Ferretti](https://ferrettigs.github.io/)
+- [Shark Research Institute Mexico](https://www.sharkresearchmexico.com/) 
+
 
 ## Contributors
 This software was written and supported by the efforts of

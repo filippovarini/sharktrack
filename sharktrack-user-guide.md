@@ -13,10 +13,12 @@
 * <a href="#next-steps">Next steps</a>
 
 ## Overview
-The first step to process your BRUVS videos is running the model on them. This page explains how to go from raw videos to a detection output [like this](./static/test-output/). You can learn the output structure [here](./readme.md#what-does-sharktrack-do).
+This page provides a guide on running the SharkTrack ML model on your BRUVS videos to detect shark in them. 
 
-![sharktrack output](./static/test-output/detections/11.jpg)
-*An example of SharkTrack output detection*
+<img src="./static/test-output/detections/11.jpg" width=400/>
+
+*An example of SharkTrack output detection. Learn more [here](./annotation-pipelines.md#step-0-understand-the-output)*
+
 
 ## Our Ask to SharkTrack user
 SharkTrack is free, and it makes us super-happy when people use it, so we put it out there as a downloadable model that is easy to use. That means we don't know who's using it unless you contact us, so please please [email us](mailto:fppvrn@gmail.com?subject=SharkTrackUser) and star this repo if you find it useful!
