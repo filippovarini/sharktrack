@@ -5,7 +5,7 @@ import os
 sys.path.append("compute_output")
 from utils import format_time, unformat_time
 from viame_annotations import max_conf2viame, add_metadata_row
-from image_processor import draw_bboxes, annotate_image
+from image_processor import draw_bbox, annotate_image
 
 
 SHARKTRACK_COLUMNS = ["chapter_path", "frame", "time", "track_metadata", "track_id", "xmin", "ymin", "xmax", "ymax", "confidence", "class"]
@@ -18,8 +18,9 @@ def extract_frame_results(frame_results):
     track_ids = tracks.int().cpu().tolist() if tracks is not None else []
     confidences = frame_results.boxes.conf.cpu().tolist()
     classes = frame_results.boxes.cls.cpu().tolist()
+    plot = frame_results.plot(conf=False, labels=False, line_width=1)
 
-    return zip(boxes, track_ids, confidences, classes)
+    return zip(boxes, track_ids, confidences, classes), plot
 
 def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_track_index):
   """
@@ -39,7 +40,9 @@ def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_trac
       if orig_shape is None:
         orig_shape = frame_results.orig_shape
 
-      for box, chapter_track_id, confidence, cls in extract_frame_results(frame_results):
+      track_results, frame_plot = extract_frame_results(frame_results)
+
+      for box, chapter_track_id, confidence, cls in track_results:
           track_metadata = f"{chapter_id}/{chapter_track_id}"
           row = {
               "chapter_path": chapter_id,
@@ -60,9 +63,7 @@ def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_trac
           if track_metadata not in max_conf_images or max_conf_images[track_metadata]["confidence"] < confidence:
               max_conf_images[track_metadata] = {
                   "confidence": confidence,
-                  "image": frame_results.orig_img,
-                  "time": time,
-                  "video": chapter_id
+                  "image": frame_plot,
               }
 
   results_df = pd.DataFrame(data)
@@ -75,7 +76,6 @@ def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_trac
       postprocessed_results = postprocessed_results[SHARKTRACK_COLUMNS]
       concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
       write_max_conf(postprocessed_results, max_conf_images, out_folder)
-      build_annotation_cleaning_structure(postprocessed_results, out_folder, fps, next_track_index)
       next_track_index = postprocessed_results["track_id"].max() + 1
 
   return next_track_index
@@ -114,66 +114,28 @@ def postprocess(results, fps, next_track_index):
 
     return filtered_results
 
-def write_max_conf(chapter_sharktrack_df, max_conf_image, out_folder):
+def write_max_conf(poostprocessed_results, max_conf_image, out_folder):
   """
   Saves annotated images with the maximum confidence detection for each track
   """
-  det_folder = os.path.join(out_folder, "detections")
-  os.makedirs(det_folder, exist_ok=True)
-  for track_metadata in max_conf_image:
-      track_id_filter = chapter_sharktrack_df[chapter_sharktrack_df["track_metadata"] == track_metadata]["track_id"]
-      if track_id_filter.empty:
-          # postprocessing removed it
-          continue
-      track_id = track_id_filter.iloc[0]
-      output_image_id = f"{track_id}.jpg"
-      output_path = os.path.join(det_folder, output_image_id)
-      image = max_conf_image[track_metadata]["image"]
-      time = max_conf_image[track_metadata]["time"]
-      video = max_conf_image[track_metadata]["video"]
-      conf = max_conf_image[track_metadata]["confidence"]
-      image = annotate_image(image, video, time, conf)
-      cv2.imwrite(output_path, image)
-    
-def extract_track_max_conf_detection(sharktrack_df):
-  """
-  Given the sharktrack_output in csv format, return the maximum confidence detection for each track, uniquely identified by video/chapter/track_id
-  """
-  max_conf_detection = (
-     sharktrack_df
-      .groupby(["track_metadata"], as_index = False)
-      .apply(lambda x: x.loc[x["confidence"].idxmax()])
-      .sort_values('track_id')
-      .reset_index(drop=True)
-    )
-  return max_conf_detection
+  max_conf_detections_idx = poostprocessed_results.groupby("track_metadata")["confidence"].idxmax()
+  max_conf_detections_df = poostprocessed_results.loc[max_conf_detections_idx]
 
-def build_annotation_cleaning_structure(sharktrack_output, out_folder, fps, next_track_index):
-  max_conf_detections = extract_track_max_conf_detection(sharktrack_output)
-  # add bounding boxes to detections
-  detections_path = os.path.join(out_folder, "detections")
-  save_track_max_conf_frame(sharktrack_output, max_conf_detections, detections_path)
-  
-  # construct viame df
-  viame_df = max_conf2viame(max_conf_detections, fps, next_track_index)
-  viame_path = os.path.join(out_folder, "viame.csv")
-  if not os.path.exists(viame_path):
-    viame_df = add_metadata_row(viame_df, fps)
-  concat_df(viame_df, viame_path)
-
-
-def save_track_max_conf_frame(sharktrack_output, max_conf_detections, det_folder):
-  # For each detection, save the image to the detection folder
-  for _, row in max_conf_detections.iterrows():
+  # 2. For each of it, edit the plot by making the track more visible and save it
+  for _, row in max_conf_detections_df.iterrows():
+    video = row["chapter_path"]
     time = row["time"]
-    unique_track_id = row["track_id"]
-    chapter_path = row["chapter_path"]
+    confidence = row["confidence"]
+    plot = max_conf_image[row["track_metadata"]]["image"]
+    assert confidence == max_conf_image[row["track_metadata"]]["confidence"]
+
+    img = annotate_image(plot, video, time, confidence)
+
+    # 3. Make focused track more visible
     max_conf_bbox = row[["xmin", "ymin", "xmax", "ymax"]].values
+    img = draw_bbox(img, max_conf_bbox)
 
-    # Draw the rectangles
-    img_path = os.path.join(det_folder, f"{unique_track_id}.jpg")
-    img = cv2.imread(img_path)
-    all_bboxes = sharktrack_output[(sharktrack_output["chapter_path"] == chapter_path) & (sharktrack_output["time"] == time)][["xmin", "ymin", "xmax", "ymax"]].values
-    img = draw_bboxes(img, all_bboxes, max_conf_bbox)
-
-    cv2.imwrite(img_path, img)
+    # save
+    output_image_id = f"{row["track_id"]}.jpg"
+    output_path = os.path.join(out_folder, output_image_id)
+    cv2.imwrite(output_path, img)

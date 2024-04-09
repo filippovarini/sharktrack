@@ -37,7 +37,7 @@ class Model():
       self.fps = 1
     else:
       print("Using analyst model...")
-      self.model = YOLO(analyst_model)
+      self.model = YOLO(mobile_model)
       self.tracker_path = "trackers/tracker_5fps.yaml"
       self.tracker_path = "botsort.yaml"
       self.run_tracker = self.track_video
