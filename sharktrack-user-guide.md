@@ -41,6 +41,30 @@ SharkTrack is free, and it makes us super-happy when people use it, so we put it
     python app.py --input_root <path_to_video_folder> --mobile
     ```
 
+## Step By Step
+
+### 1. Downloading the model
+#### Windows Users
+1. Open "Command Prompt"
+2. Copy these lines
+    ```bash
+    mkdir c:\git
+    cd c:\git
+    git clone https://github.com/filippovarini/sharktrack.git
+    cd c:\git\sharktrack
+    python -m venv venv # use python3 on mac
+    source venv/bin/activate
+    pip install -r requirements.txt
+    ```
+#### MAC Users
+1. Open the application "Terminal" on Mac or "Commnad Prompt" on Windows
+1. Copy these lines
+    ```bash
+    git clone https://github.com/filippovarini/sharktrack.git
+    cd sharktrack
+    ```
+    and paste them in the opened application
+
 ## How fast is SharkTrack? Can I use it on my laptop?
 We have provided 2 SharkTrack models, the mobile and analyst models. Both models are able to run on the CPU. The analyst model is more accurate, but takes more. 
 You can find a more thorough comparison [here](#model-types-mobile-vs-analyst).
