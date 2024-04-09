@@ -32,12 +32,12 @@ class Model():
     if mobile:
       print("Using mobile model...")
       self.model = YOLO(mobile_model)
-      self.tracker_path = "trackers/tracker_1fps.yaml"
-      self.run_tracker = self.track_frames
-      self.fps = 1
+      self.tracker_path = "trackers/tracker_3fps.yaml"
+      self.run_tracker = self.track_video
+      self.fps = 3
     else:
       print("Using analyst model...")
-      self.model = YOLO(mobile_model)
+      self.model = YOLO(analyst_model)
       self.tracker_path = "trackers/tracker_5fps.yaml"
       self.tracker_path = "botsort.yaml"
       self.run_tracker = self.track_video
@@ -74,27 +74,6 @@ class Model():
     assert next_track_index is not None, f"Error saving results for {chapter_id}"
     self.next_track_index = next_track_index
   
-  def track_frames(self, chapter_path):
-    """
-    Tracks keyframes using PyAv to overcome the GoPro audio format issue.
-    """
-    print(f"Processing video: {chapter_path} on device {self.device}...")
-    results = []
-
-    content = av.datasets.curated(chapter_path)
-    
-    with av.open(content) as container:
-      video_stream = container.streams.video[0]         # take only video stream
-      video_stream.codec_context.skip_frame = 'NONKEY'  # and only keyframes (1fps)
-
-      for frame in container.decode(video_stream):
-        frame_results = self.model.track(
-          source=frame.to_image(),
-          **self.model_args,
-        )
-        results.append(frame_results[0])
-        
-    return results
 
   def track_video(self, chapter_path):
     """
