@@ -38,7 +38,7 @@ SharkTrack is free, and it makes us super-happy when people use it, so we put it
     See [troubleshooting](#troubleshooting) for problems
 3. Run the model
     ```bash
-    python app.py --input <path_to_video_folder> --mobile
+    python app.py
     ```
 
 ## Step By Step
