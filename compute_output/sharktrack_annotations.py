@@ -75,7 +75,7 @@ def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_trac
     if not postprocessed_results.empty:
       postprocessed_results = postprocessed_results[SHARKTRACK_COLUMNS]
       concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
-      write_max_conf(postprocessed_results, max_conf_images, out_folder)
+      write_max_conf(postprocessed_results, max_conf_images, out_folder, fps)
       next_track_index = postprocessed_results["track_id"].max() + 1
 
   return next_track_index
@@ -114,12 +114,16 @@ def postprocess(results, fps, next_track_index):
 
     return filtered_results
 
-def write_max_conf(poostprocessed_results, max_conf_image, out_folder):
+def write_max_conf(poostprocessed_results, max_conf_image, out_folder, fps):
   """
   Saves annotated images with the maximum confidence detection for each track
   """
+  det_folder = os.path.join(out_folder, "detections")
+  os.makedirs(det_folder, exist_ok=True)
+
   max_conf_detections_idx = poostprocessed_results.groupby("track_metadata")["confidence"].idxmax()
   max_conf_detections_df = poostprocessed_results.loc[max_conf_detections_idx]
+
 
   # 2. For each of it, edit the plot by making the track more visible and save it
   for _, row in max_conf_detections_df.iterrows():
@@ -137,5 +141,11 @@ def write_max_conf(poostprocessed_results, max_conf_image, out_folder):
 
     # save
     output_image_id = f"{row['track_id']}.jpg"
-    output_path = os.path.join(out_folder, output_image_id)
+    output_path = os.path.join(det_folder, output_image_id)
     cv2.imwrite(output_path, img)
+
+  viame_df = max_conf2viame(max_conf_detections_df)
+  viame_path = os.path.join(out_folder, "viame.csv")
+  if not os.path.exists(viame_path):
+    viame_df = add_metadata_row(viame_df, fps)
+  concat_df(viame_df, viame_path)
