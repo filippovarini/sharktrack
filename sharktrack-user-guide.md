@@ -38,7 +38,7 @@ SharkTrack is free, and it makes us super-happy when people use it, so we put it
     See [troubleshooting](#troubleshooting) for problems
 3. Run the model
     ```bash
-    python app.py --input_root <path_to_video_folder> --mobile
+    python app.py --input <path_to_video_folder> --mobile
     ```
 
 ## Step By Step
@@ -93,11 +93,11 @@ conda activate sharktrack_venv
 You now are ready to run SharkTrack! You can do so using the following command
 
 ```bash
-python app.py --input_root <path_to_video_folder> --mobile
+python app.py --input <path_to_video_folder> --mobile
 ```
 
 #### Arguments
-- `--input_root` Path to the video folder. SharkTrack takes a folder of arbitrary depth as input and processes all .mp4 videos in it.
+- `--input` Path to the video folder. SharkTrack takes a folder of arbitrary depth as input and processes all .mp4 videos in it.
 - `--stereo_prefix` If your folder contains Stereo-BRUVS, you can tell SharkTrack to only process the left or right video by passing the prefix of the videos you want to process (i.e. `LGX`)
 - `--max_videos` Limit of videos to process (default=1000)
 - `--output_dir` Path to output folder (default=`./output`)
@@ -124,7 +124,7 @@ To solve this issue, we have provided a [script](./scripts/reformat_gopro.py) to
 
 You can run it with the following command:
 ```bash
-python scripts/reformat_gopro.py --input_root <Original video folder path> --output_root <New video folder path>
+python scripts/reformat_gopro.py --input <Original video folder path> --output <New video folder path>
 ```
 If the videos are Stereo-BRUVS, you can use the `--stereo_prefix` to only reformat left/right videos, as described [here](#arguments).
 
@@ -136,12 +136,12 @@ The good news is that this script is an alternative command to copy data. Theref
 1. Collect BRUVS videos
 2. When you get home, for each GoPro, connect the SD and run 
     ```bash
-    python scripts/reformat_gopro.py --input_root PATH_TO_SD --output_root COPY_DESTINATION
+    python scripts/reformat_gopro.py --input PATH_TO_SD --output COPY_DESTINATION
     ```
     Ideally, use the same destination
 3. Overnight run the model on the copied data 
     ```bash
-    python app.py --input_root COPY_DESTINATION
+    python app.py --input COPY_DESTINATION
     ```
 
 If you know of a better solution, please [email us](mailto:fppvrn@gmail.com?subject=SharkTrackSuggestion)!
