@@ -51,7 +51,7 @@ The following steps require that you have:
 
 If you don't have an up-to-date python version, install it [here](https://www.python.org/downloads/).
 
-### 1. Downloading the model
+### Downloading the model
 If you are familiar with `git`, follow [these](#quick-tutorial). Alternatively:
 
 1. Download the model from [here](https://github.com/filippovarini/sharktrack/releases) by double-clicking on the latest "source code"
@@ -88,7 +88,7 @@ conda activate sharktrack_venv
 - *`python -m venv venv` says `python` not found* Try running `python3 -m venv venv`
 - *`python -m venv venv` says `venv` module not found* Check the python version by running `python --version` and make sure it's older than 3.8.If not download it [here](https://www.python.org/downloads/). Once it's downloaded, try running the same command. If it still fails, run `python3 -m venv venv`
 
-### 3. Running the Model
+### Running the Model
 
 You now are ready to run SharkTrack! You can do so using the following command
 
