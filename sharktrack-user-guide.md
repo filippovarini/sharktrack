@@ -35,7 +35,6 @@ SharkTrack is free, and it makes us super-happy when people use it, so we put it
     source venv/bin/activate
     pip install -r requirements.txt
     ```
-
 3. Run the model
     ```bash
     python app.py --input_root <path_to_video_folder> --mobile
@@ -56,6 +55,8 @@ SharkTrack is free, and it makes us super-happy when people use it, so we put it
     source venv/bin/activate
     pip install -r requirements.txt
     ```
+3. Paste them on "Command Prompt" and hit Enter
+4. Check Troubleshooting for any problem
 #### MAC Users
 1. Open the application "Terminal" on Mac or "Commnad Prompt" on Windows
 1. Copy these lines
@@ -64,6 +65,8 @@ SharkTrack is free, and it makes us super-happy when people use it, so we put it
     cd sharktrack
     ```
     and paste them in the opened application
+
+#### Troubleshooting
 
 ## How fast is SharkTrack? Can I use it on my laptop?
 We have provided 2 SharkTrack models, the mobile and analyst models. Both models are able to run on the CPU. The analyst model is more accurate, but takes more. 
