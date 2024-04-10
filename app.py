@@ -70,7 +70,6 @@ class Model():
     return frame_skip
 
   def save_chapter_results(self, chapter_id, yolo_results):
-    print(f"Saving results for {chapter_id}...")
     next_track_index = build_chapter_output(chapter_id, yolo_results, self.fps, self.output_path, self.next_track_index)
     assert next_track_index is not None, f"Error saving results for {chapter_id}"
     self.next_track_index = next_track_index
@@ -80,7 +79,7 @@ class Model():
     Uses ultralytics built-in tracker to automatically track a video with OpenCV.
     This is faster but it fails with GoPro Audio format, requiring reformatting.
     """
-    print(f"Processing video: {chapter_path} on device {self.device}...")
+    print(f"Processing video: {chapter_path} on device {self.device}. Might take some time...")
 
     results = self.model.track(
       chapter_path,
@@ -189,7 +188,7 @@ def main(video_path, max_video_cnt, stereo_prefix, output_path='./output', mobil
 
 if __name__ == "__main__":
   parser = ArgumentParser()
-  parser.add_argument("--input", type=str, required=True, help="Path to the video folder")
+  parser.add_argument("--input", type=str, default="input_videos", help="Path to the video folder")
   parser.add_argument("--stereo_prefix", type=str, help="Prefix to filter stereo BRUVS")
   parser.add_argument("--limit", type=int, default=1000, help="Maximum videos to process")
   parser.add_argument("--output", type=str, default="./output", help="Output directory for the results")
