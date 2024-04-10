@@ -3,7 +3,7 @@ from datetime import datetime
 
 VIAME_COLUMNS = ['# 1: Detection or Track-id',	'2: Video or Image Identifier', '3: Unique Frame Identifier',	'4-7: Img-bbox(TL_x',	'TL_y',	'BR_x',	'BR_y)',	'8: Detection or Length Confidence',	'9: Target Length (0 or -1 if invalid)',	'10-11+: Repeated Species', 'Confidence Pairs or Attributes']
 
-def max_conf2viame(max_conf_detections, fps, track_count):
+def max_conf2viame(max_conf_detections):
   """
   Creates a csv file in VIAME format to upload the detection to the VIAME annotation
   software and clean the annotations.
@@ -17,7 +17,7 @@ def max_conf2viame(max_conf_detections, fps, track_count):
       '# 1: Detection or Track-id': row['track_id'], 
       '2: Video or Image Identifier': f"{row['track_id']}.jpg", 
       # instead of frame_id because VIAME maps annotation to image with the index in the imnage sequence 
-      '3: Unique Frame Identifier': index + track_count,
+      '3: Unique Frame Identifier': row['track_id'],
       '4-7: Img-bbox(TL_x': row['xmin'], 
       'TL_y': row['ymin'], 
       'BR_x': row['xmax'], 

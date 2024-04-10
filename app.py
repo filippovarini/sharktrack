@@ -48,6 +48,7 @@ class Model():
     self.iou_association_threshold = 0.5
     self.imgsz = 640
     self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    self.device = 'cpu'
 
     self.model_args = {
           "conf": self.conf_threshold,
