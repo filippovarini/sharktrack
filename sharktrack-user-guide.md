@@ -6,8 +6,8 @@
 * <a href="#overview">Overview</a>
 * <a href="#our-ask-to-sharktrack-user">Our Ask to SharkTrack user</a>
 * <a href="#quick-tutorial">Quick Tutorial</a>
+* <a href="#step-by-step">Detailed Guide</a>
 * <a href="#how-fast-is-sharktrack-can-i-use-it-on-my-laptop">How fast is SharkTrack Can I use it on my laptop?</a>
-* <a href="#how-to-run-sharktrack">How to run SharkTrack</a>
 * <a href="#model-types-mobile-vs-analyst">Model Types: Mobile vs Analyst</a>
 * <a href="#can-i-trust-its-accuracy">Can I trust it's accuracy?</a>
 * <a href="#next-steps">Next steps</a>
@@ -31,10 +31,11 @@ SharkTrack is free, and it makes us super-happy when people use it, so we put it
     ```
 2. Setup Virtual Environment
     ```bash
-    python -m venv venv # use python3 on mac
+    python -m venv venv
     source venv/bin/activate
     pip install -r requirements.txt
     ```
+    See [troubleshooting](#troubleshooting) for problems
 3. Run the model
     ```bash
     python app.py --input_root <path_to_video_folder> --mobile
@@ -42,67 +43,53 @@ SharkTrack is free, and it makes us super-happy when people use it, so we put it
 
 ## Step By Step
 
+### 0. Requirements
+The following steps require that you have:
+- A programming interface application. If you have a MAC, that is "Terminal", on Windows "Command Prompt". Open the respective application to make sure it works
+- Python 3.9 version and above. Check this by running `python --version` on your terminal.
+    - *Note* If you have multiple python installations, sometimes the latest version might be accessed by `python3 --version`. If this command returns a version later or equal than 3.9, use this by swapping, in the following instructions, `python` with `python3`
+
+If you don't have an up-to-date python version, install it [here](https://www.python.org/downloads/).
+
 ### 1. Downloading the model
-#### Windows Users
-1. Open "Command Prompt"
-2. Copy these lines
-    ```bash
-    mkdir c:\git
-    cd c:\git
-    git clone https://github.com/filippovarini/sharktrack.git
-    cd c:\git\sharktrack
-    python -m venv venv # use python3 on mac
-    source venv/bin/activate
-    pip install -r requirements.txt
-    ```
-3. Paste them on "Command Prompt" and hit Enter
-4. Check Troubleshooting for any problem
-#### MAC Users
-1. Open the application "Terminal" on Mac or "Commnad Prompt" on Windows
-1. Copy these lines
-    ```bash
-    git clone https://github.com/filippovarini/sharktrack.git
-    cd sharktrack
-    ```
-    and paste them in the opened application
+If you are familiar with `git`, follow [these](#quick-tutorial). Alternatively:
+
+1. Download the model from [here](https://github.com/filippovarini/sharktrack/releases) by double-clicking on the latest "source code"
+2. Unzip the downloaded folder and
+    - If on **Windows**:
+        - Open the extracted `sharktrack` folder
+        - Click on the [address bar](https://uis.georgetown.edu/wp-content/uploads/2019/05/win10-fileexplorer-addrbar.png)
+        - type `cmd` and Enter
+        - this sholuld show you the Command Prompt application
+    - If on **Mac**:
+        - Right-click on the `sharktrack` folder
+        - Click "New Terminal at Folder" (sometimes this is under Services)
+        - This should show you the Terminal application
+3. Set up the programming environment by copy and pasting on the Command Prompt or Terminal the following lines and hitting enter
+```
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+4. Check [Troubleshooting](#troubleshooting) for any problem
+
+#### Anaconda
+If you have installed python with anaconda, run step (1)(2) of [Windows](#windows) or [Mac](#mac-users) and then, copy and paste these lines
+
+```python
+conda create -n sharktrack_venv anaconda
+conda activate sharktrack_venv
+```
+
+*Note:* If you have already done this step, you just need to run `conda activate sharktrack_venv`
 
 #### Troubleshooting
+- *The terminal/prompt is showing an error saying I need `git`* Go ahead and [install it](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git). Alternatively, download the latest "source code"  [from here](https://github.com/filippovarini/sharktrack/releases).
+- *`python -m venv venv` says `python` not found* Try running `python3 -m venv venv`
+- *`python -m venv venv` says `venv` module not found* Check the python version by running `python --version` and make sure it's older than 3.8.If not download it [here](https://www.python.org/downloads/). Once it's downloaded, try running the same command. If it still fails, run `python3 -m venv venv`
 
-## How fast is SharkTrack? Can I use it on my laptop?
-We have provided 2 SharkTrack models, the mobile and analyst models. Both models are able to run on the CPU. The analyst model is more accurate, but takes more. 
-You can find a more thorough comparison [here](#model-types-mobile-vs-analyst).
+### 3. Running the Model
 
-As a rule of thumb, we suggest running the more accurate model first. If that is too slow, you can switch to the mobile model by simply passing the `--mobile` in the [run script](#2-running-the-model).
-
-## How to run SharkTrack
-
-### 1. Environment Setup
-We recommend setting up the model in the suggested directory, to re-use the virtual environment. That said, feel free to change the download location if you have a reason to
-#### Windows
-```bash
-mkdir c:\git
-cd c:\git
-git clone https://github.com/filippovarini/sharktrack.git
-cd c:\git\sharktrack
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-set PYTHONPATH=c:\git\sharktrack
-```
-
-#### Mac/Linux
-```bash
-mkdir ~/git
-cd ~/git
-git clone https://github.com/filippovarini/sharktrack.git
-cd ~/git/sharktrack
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-export PYTHONPATH="$HOME/git/sharktrack"
-```
-
-### 2. Running the model
 You now are ready to run SharkTrack! You can do so using the following command
 
 ```bash
@@ -115,6 +102,12 @@ python app.py --input_root <path_to_video_folder> --mobile
 - `--max_videos` Limit of videos to process (default=1000)
 - `--output_dir` Path to output folder (default=`./output`)
 - `--mobile` Whether to run the mobile version of the model. More info [here](#mobile-vs-analyst).
+
+## How fast is SharkTrack? Can I use it on my laptop?
+We have provided 2 SharkTrack models, the mobile and analyst models. Both models are able to run on the CPU. The analyst model is more accurate, but takes more. 
+You can find a more thorough comparison [here](#model-types-mobile-vs-analyst).
+
+As a rule of thumb, we suggest running the more accurate model first. If that is too slow, you can switch to the mobile model by simply passing the `--mobile` in the [run script](#2-running-the-model).
 
 ## Model Types: Mobile vs Analyst
 |Model|Accuracy (F1)| CPU Inference Time | Limitations | Good for
