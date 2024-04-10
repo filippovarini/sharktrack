@@ -27,17 +27,17 @@ class Model():
     self.stereo_prefix = stereo_prefix
     self.output_path = output_path
 
-    mobile_model = "models/mobile.pt"
-    analyst_model = "models/analyst.pt"
+    model_path = "models/model.pt"
+
     if mobile:
       print("Using mobile model...")
-      self.model = YOLO(mobile_model)
+      self.model = YOLO(model_path)
       self.tracker_path = "trackers/tracker_3fps.yaml"
       self.run_tracker = self.track_video
       self.fps = 3
     else:
       print("Using analyst model...")
-      self.model = YOLO(analyst_model)
+      self.model = YOLO(model_path)
       self.tracker_path = "trackers/tracker_5fps.yaml"
       self.tracker_path = "botsort.yaml"
       self.run_tracker = self.track_video
