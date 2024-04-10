@@ -94,6 +94,7 @@ You can find a tutorial [here]
 #### 🚀 Pro Tips
 - Do a first pass to remove all wrong detections and assign species ID in a second pass
 - If unsure about species/validity, use the image bottom text to find the relative video and time.
+- If on Windows, use F2 to rename the file quickly and Crl+D to remove it
 - If on Mac, visualise image in Gallery mode, use Cmd+Del to remove the image and Enter to rename the file
 
 ### VIAME User Guide
