@@ -25,7 +25,7 @@ Before we compute MaxN, it is important to understand the model output.
 
 > **TL;DR:** When SharkTrack detects a shark, it tracks it across frames, generating a "Shark Track". Then, it saves all results in `output.csv` and for each track stores in `detections/` a frame where it was detected. Thanks to this, the user only needs to validate/classify the same shark once as we take care of tracking it!
 
-Locate the output directory. It should be `./output`, unless you have provided a custom `--output_dir` argument. The folder will look something [like this](./static/test-output/) and it contains :
+Locate the output directory. It should be `./output`, unless you have provided a custom `--output` argument when running `python app.py`. The folder will look something [like this](./static/test-output/) and it contains :
 - `output.csv` lists each detection at each timeframe for each video
 - `viame.csv` annotations in VIAME format, to integrate with the VIAME annotation tool (more below) 
 - `detections/` for each tracked elasmobranch, saves the `.jpg` frame in which its track achieved highest confidence.
@@ -153,8 +153,9 @@ Amazing! You have cleaned all annotations, it's time to generate MaxN from it!
 
 - Open the Terminal and move to the `sharktrack` repo that you installed in [this step](./sharktrack-user-guide.md#1-environment-setup).
 - Activate the virtual environment (guide [here](./sharktrack-user-guide.md#1-environment-setup))
-- Run `python scripts/compute_maxn.py --output {model_output}`
-    - **NOTE** If you used VIAME to clean detections, you will need to pass the downloaded cleaned annotations. You can do this by running instead: `python scripts/compute_maxn.py --output {model_output} --viame_cleaned {downloaded_viame.csv}`
+- Run `python scripts/compute_maxn.py --path {path_to_model_cleaned_results}`
+    - **NOTE** If you used VIAME to clean detections, you will need to pass the downloaded cleaned annotations. You can do this by running instead: `python scripts/compute_maxn.py --path {path_to_model_cleaned_results} --viame_cleaned {downloaded_viame.csv}`
+    - **NOTE** Here `path_to_model_cleaned_results` is the path to the model output (default `./output`) where inside you have the `output.csv` file and the `detecrtions` folder, with cleaned detections and assigned Species ID
 - You will see a `maxn.csv` file in the SharkTrack folder
 
 🚀 Hooray! You have obtained the MaxN! 

@@ -27,7 +27,7 @@ def clean_annotations_locally(output_path):
     for d in valid_detections:
         try:
             track_id = int(d.split("-")[0])
-            label = d.split("-")[1].replace(".jpg", "")
+            label = d.split("-", maxsplit=1)[1].replace(".jpg", "")
             labeled_detections[track_id] = label
         except:
             raise Exception("All files in ./detections should be '{TRACK_ID}-{CLASS}.jpg' but there is failing file: " + d)
@@ -53,6 +53,7 @@ def compute_species_max_n(cleaned_annotations):
 
     return max_n
 
+
 def main(output_path, viame_output_path=None):
     if not os.path.exists(output_path):
         print(f"Output path {output_path} does not exist")
@@ -67,11 +68,12 @@ def main(output_path, viame_output_path=None):
 
     max_n_path = os.path.join(output_path, "maxn.csv")
     max_n.to_csv(max_n_path, index=False)
+    print(f"MaxN computed! Check in the folder {output_path}/maxn.csv")
 
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--output", type=str, default="./output", help="Path to the output folder of sharktrack")
+    parser.add_argument("--path", type=str, default="./output", help="Path to the output folder of sharktrack")
     parser.add_argument("--viame_cleaned", type=str, help="Path to the output csv of viame")
     args = parser.parse_args()
-    main(args.output, args.viame_cleaned)
+    main(args.path, args.viame_cleaned)

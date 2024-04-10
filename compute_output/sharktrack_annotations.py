@@ -67,16 +67,20 @@ def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_trac
               }
 
   results_df = pd.DataFrame(data)
+  sharks_found = 0
 
   if not results_df.empty:
     postprocessed_results = postprocess(results_df, fps, next_track_index)
-    print(f"Removed {results_df['track_metadata'].nunique() - postprocessed_results['track_metadata'].nunique()} tracks with postprocessing!")
 
     if not postprocessed_results.empty:
       postprocessed_results = postprocessed_results[SHARKTRACK_COLUMNS]
       concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
       write_max_conf(postprocessed_results, max_conf_images, out_folder, fps)
-      next_track_index = postprocessed_results["track_id"].max() + 1
+      new_next_track_index = postprocessed_results["track_id"].max() + 1
+      sharks_found = new_next_track_index - next_track_index
+      next_track_index = new_next_track_index
+  
+  print(f"Found {sharks_found} tracks!")
 
   return next_track_index
 
