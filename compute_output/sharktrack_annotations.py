@@ -136,6 +136,6 @@ def write_max_conf(poostprocessed_results, max_conf_image, out_folder):
     img = draw_bbox(img, max_conf_bbox)
 
     # save
-    output_image_id = f"{row["track_id"]}.jpg"
+    output_image_id = f"{row['track_id']}.jpg"
     output_path = os.path.join(out_folder, output_image_id)
     cv2.imwrite(output_path, img)
