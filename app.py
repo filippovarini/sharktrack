@@ -27,7 +27,7 @@ class Model():
     self.stereo_prefix = stereo_prefix
     self.output_path = output_path
 
-    model_path = "models/model.pt"
+    model_path = "models/sharktrack.pt"
 
     if mobile:
       print("Using mobile model...")
