@@ -24,6 +24,7 @@ This page provides a guide on running the SharkTrack ML model on your BRUVS vide
 SharkTrack is free, and it makes us super-happy when people use it, so we put it out there as a downloadable model that is easy to use. That means we don't know who's using it unless you contact us, so please please [email us](mailto:fppvrn@gmail.com?subject=SharkTrackUser) and star this repo if you find it useful!
 
 ## Quick Tutorial
+If you prefer using Anaconda, or find any error with the following instructions, move to the [Step by Step](#step-by-step) guide.
 1. Clone SharkTrack
     ```bash
     git clone https://github.com/filippovarini/sharktrack.git
@@ -43,8 +44,9 @@ SharkTrack is free, and it makes us super-happy when people use it, so we put it
     This will run the model against the example video in `./input_videos`
 
 ## Step By Step
+If you don't have experience with Python, the following steps might be the hardest to setup the model. If you think your organisation would benefit from near-instant BRUVS analysis, please consider this challenge as an investment in the future. Don't hesitate to post any problems you might encounter [here](https://github.com/filippovarini/sharktrack/issues).
 
-### 0. Requirements
+### Pre-Requirements
 To run sharktrack, you will need to have installed Python 3.9 or above. You can check that by opening your Terminal or Cmd and running `python -V`. *Note: on Mac the older version might be saved as `python3 -V`*
 
 If you don't have python or the version is outdated, please install it [here](https://www.python.org/downloads/). Make sure to check the box to add Python to the system path when installing it.
@@ -56,9 +58,16 @@ If you are familiar with `git`, follow [these](#quick-tutorial). Alternatively:
 2. Unzip the downloaded folder and
     - If on **Windows**:
         - Open the extracted `sharktrack` folder
-        - Click on the [address bar](https://uis.georgetown.edu/wp-content/uploads/2019/05/win10-fileexplorer-addrbar.png)
-        - type `cmd` and Enter
-        - this sholuld show you the Command Prompt application
+        - If you use anaconda:
+            - Click on the [address bar](https://uis.georgetown.edu/wp-content/uploads/2019/05/win10-fileexplorer-addrbar.png)
+            - Click "Copy address" in the address bar
+            <img src="./static/copy_address.png" width=200/>
+            - Open the Anaconda Prompt
+            - Run `cd {the address you just copied}`
+        - If you use Python from the Command Prompt
+            - Click on the [address bar](https://uis.georgetown.edu/wp-content/uploads/2019/05/win10-fileexplorer-addrbar.png)
+            - Replace the text with `cmd` and hit Enter
+        - This sholuld show you the Command/Anaconda Prompt application
     - If on **Mac**:
         - Right-click on the `sharktrack` folder
         - Click "New Terminal at Folder" (sometimes this is under Services)
@@ -130,11 +139,11 @@ The model uses `OpenCV` speed-up the video read and achieve creditable speed for
 
 To solve this issue, we have provided a [script](./scripts/reformat_gopro.py) to reformat the videos by removing the audio stream. 
 
-> **NOTE** You need to have `ffmpeg` installed. If not, download it [here](https://ffmpeg.org/download.html)
+> **NOTE** You need to have `ffmpeg` installed. Check this by running `ffmpeg -version`. If you don't have it, download it [here](https://ffmpeg.org/download.html). We suggest following [this](https://www.youtube.com/watch?v=22vmzTs5BoE) tutorial.
 
 You can run it with the following command:
 ```bash
-python scripts/reformat_gopro.py --input <Original video folder path> --output <New video folder path>
+python scripts/reformat_gopro.py --input {Original video folder path} --output {New video folder path}
 ```
 If the videos are Stereo-BRUVS, you can use the `--stereo_prefix` to only reformat left/right videos, as described [here](#arguments).
 
