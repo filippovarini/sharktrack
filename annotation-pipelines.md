@@ -90,7 +90,7 @@ If you want multiple users to annotate the detections, you can simply upload the
 ## Extract MaxN
 Amazing! You have cleaned all annotations, it's time to generate MaxN from it!
 
-- Open the Terminal and move to the `sharktrack` repo that you installed in [this step](./sharktrack-user-guide.md#1-environment-setup).
+- Open the Terminal at the `sharktrack` folder location. Check [this step](./sharktrack-user-guide.md#downloading-the-model) for guidance on opening the terminal at the specific location.
 - Activate the virtual environment (guide [here](./sharktrack-user-guide.md#setup-environment))
 - Run `python scripts/compute_maxn.py --path {path_to_model_cleaned_results}`
     - **NOTE** Here `path_to_model_cleaned_results` is the path to the model output (default `./output`) where inside you have the `output.csv` file and the `detecrtions` folder, with cleaned detections and assigned Species ID
