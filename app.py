@@ -27,19 +27,16 @@ class Model():
     self.stereo_prefix = stereo_prefix
     self.output_path = output_path
 
-    model_path = "models/sharktrack.pt"
+    self.model_path = "models/sharktrack.pt"
 
     if mobile:
       print("Using mobile model...")
-      self.model = YOLO(model_path)
       self.tracker_path = "trackers/tracker_3fps.yaml"
       self.run_tracker = self.track_video
       self.fps = 3
     else:
       print("Using analyst model...")
-      self.model = YOLO(model_path)
       self.tracker_path = "trackers/tracker_5fps.yaml"
-      self.tracker_path = "botsort.yaml"
       self.run_tracker = self.track_video
       self.fps = 5
     
@@ -80,8 +77,9 @@ class Model():
     This is faster but it fails with GoPro Audio format, requiring reformatting.
     """
     print(f"Processing video: {chapter_path} on device {self.device}. Might take some time...")
+    model = YOLO(self.model_path)
 
-    results = self.model.track(
+    results = model.track(
       chapter_path,
       **self.model_args,
       vid_stride=self._get_frame_skip(chapter_path),
@@ -105,11 +103,13 @@ class Model():
 
     out = cv2.VideoWriter(FILE_OUTPUT, cv2.VideoWriter_fourcc('M','J','P','G'), self.fps, (frame_width, frame_height))
 
+    model = YOLO(self.model_path)
+
     while cap.isOpened():
       success, frame = cap.read()
 
       if success:
-        results = self.model.track(frame, **self.model_args)
+        results = model.track(frame, **self.model_args)
         annotated_frame = results[0].plot()
 
         out.write(annotated_frame)

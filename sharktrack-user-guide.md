@@ -103,9 +103,10 @@ python app.py --input <path_to_video_folder>
 The additional input arguments below provide additional functionality
 - `--input` Path to the video folder. SharkTrack takes a folder of arbitrary depth as input and processes all .mp4 videos in it.
 - `--stereo_prefix` If your folder contains Stereo-BRUVS, you can tell SharkTrack to only process the left or right video by passing the prefix of the videos you want to process (i.e. `LGX`)
-- `--max_videos` Limit of videos to process (default=1000)
+- `--limit` Limit of videos to process (default=1000)
 - `--output` Path to output folder (default=`./output`)
 - `--mobile` Whether to run the mobile version of the model. More info [here](#mobile-vs-analyst). Example: `python app.py --mobile` 
+- `--live` Boolean, pass it to output the same input video with a live detection annotation. Example: `python app.py --live`
 
 ## How fast is SharkTrack? Can I use it on my laptop?
 We have provided 2 SharkTrack models, the mobile and analyst models. Both models are able to run on the CPU. The analyst model is more accurate, but takes more. 
