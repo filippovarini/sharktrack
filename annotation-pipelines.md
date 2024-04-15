@@ -15,10 +15,6 @@ This page provides instruction on generating MaxN metrics from the model output.
 1. **Clean** the model output: delete wrong detections and assign species ID to the correct ones
 2. Generate **MaxN** from the cleaned output
 
-You can also follow this documentation using the following video tutorials:
-
-- [Uploading and cleaning detections in VIAME](https://drive.google.com/file/d/16Zw69ELvA1_pBhfcbQsjo1nc_7EBYZl2/view?usp=sharing)
-- [Computing MaxN after downloading VIAME-cleaned detections](https://drive.google.com/file/d/1DCT3vCAbAH4T8wTiMjgWUc7-lZEpgz9U/view?usp=drive_link)
 
 ## Understand the Output
 Before we compute MaxN, it is important to understand the model output.
@@ -27,7 +23,6 @@ Before we compute MaxN, it is important to understand the model output.
 
 Locate the output directory. It should be `./output`, unless you have provided a custom `--output` argument when running `python app.py`. The folder will look something [like this](./static/test-output/) and it contains :
 - `output.csv` lists each detection at each timeframe for each video
-- `viame.csv` annotations in VIAME format, to integrate with the VIAME annotation tool (more below) 
 - `detections/` for each tracked elasmobranch, saves the `.jpg` frame in which its track achieved highest confidence.
 
     <img src="./static/test-output/detections/14.jpg" width=600 />
@@ -96,9 +91,8 @@ If you want multiple users to annotate the detections, you can simply upload the
 Amazing! You have cleaned all annotations, it's time to generate MaxN from it!
 
 - Open the Terminal and move to the `sharktrack` repo that you installed in [this step](./sharktrack-user-guide.md#1-environment-setup).
-- Activate the virtual environment (guide [here](./sharktrack-user-guide.md#1-environment-setup))
+- Activate the virtual environment (guide [here](./sharktrack-user-guide.md#setup-environment))
 - Run `python scripts/compute_maxn.py --path {path_to_model_cleaned_results}`
-    - **NOTE** If you used VIAME to clean detections, you will need to pass the downloaded cleaned annotations. You can do this by running instead: `python scripts/compute_maxn.py --path {path_to_model_cleaned_results} --viame_cleaned {downloaded_viame.csv}`
     - **NOTE** Here `path_to_model_cleaned_results` is the path to the model output (default `./output`) where inside you have the `output.csv` file and the `detecrtions` folder, with cleaned detections and assigned Species ID
 - You will see a `maxn.csv` file in the SharkTrack folder
 
