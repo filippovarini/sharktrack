@@ -40,16 +40,14 @@ SharkTrack is free, and it makes us super-happy when people use it, so we put it
     ```bash
     python app.py
     ```
+    This will run the model against the example video in `./input_videos`
 
 ## Step By Step
 
 ### 0. Requirements
-The following steps require that you have:
-- A programming interface application. If you have a MAC, that is "Terminal", on Windows "Command Prompt". Open the respective application to make sure it works
-- Python 3.9 version and above. Check this by running `python --version` on your terminal.
-    - *Note* If you have multiple python installations, sometimes the latest version might be accessed by `python3 --version`. If this command returns a version later or equal than 3.9, use this by swapping, in the following instructions, `python` with `python3`
+To run sharktrack, you will need to have installed Python 3.9 or above. You can check that by opening your Terminal or Cmd and running `python -V`. 
 
-If you don't have an up-to-date python version, install it [here](https://www.python.org/downloads/).
+If you don't have python or the version is outdated, please install it [here](https://www.python.org/downloads/). Make sure to check the box to add Python to the system path when installing it.
 
 ### Downloading the model
 If you are familiar with `git`, follow [these](#quick-tutorial). Alternatively:
@@ -66,22 +64,17 @@ If you are familiar with `git`, follow [these](#quick-tutorial). Alternatively:
         - Click "New Terminal at Folder" (sometimes this is under Services)
         - This should show you the Terminal application
 3. Set up the programming environment by copy and pasting on the Command Prompt or Terminal the following lines and hitting enter
-```
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-4. Check [Troubleshooting](#troubleshooting) for any problem
+    ```
+    python -m venv venv
+    source venv/bin/activate
+    ```
+    Alternatively, if you have Anaconda, run
+    ```
+    conda create -n sharktrack_venv anaconda
+    conda activate sharktrack_venv
+    ```
+4. Run `pip install-r requirements.txt
 
-#### Anaconda
-If you have installed python with anaconda, run step (1)(2) of [Windows](#windows) or [Mac](#mac-users) and then, copy and paste these lines
-
-```python
-conda create -n sharktrack_venv anaconda
-conda activate sharktrack_venv
-```
-
-*Note:* If you have already done this step, you just need to run `conda activate sharktrack_venv`
 
 #### Troubleshooting
 - *The terminal/prompt is showing an error saying I need `git`* Go ahead and [install it](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git). Alternatively, download the latest "source code"  [from here](https://github.com/filippovarini/sharktrack/releases).
@@ -90,18 +83,25 @@ conda activate sharktrack_venv
 
 ### Running the Model
 
-You now are ready to run SharkTrack! You can do so using the following command
+You now are ready to run SharkTrack! 
 
+The quickiest way to do so, is moving your videos in the `./input_videos` folder and running
 ```bash
-python app.py --input <path_to_video_folder> --mobile
+python app.py
 ```
 
-#### Arguments
+Alternatively, if you don't want to move the videos, you can tell SharkTrack to find them by running
+
+```bash
+python app.py --input <path_to_video_folder>
+```
+
+The additional input arguments below provide additional functionality
 - `--input` Path to the video folder. SharkTrack takes a folder of arbitrary depth as input and processes all .mp4 videos in it.
 - `--stereo_prefix` If your folder contains Stereo-BRUVS, you can tell SharkTrack to only process the left or right video by passing the prefix of the videos you want to process (i.e. `LGX`)
 - `--max_videos` Limit of videos to process (default=1000)
-- `--output_dir` Path to output folder (default=`./output`)
-- `--mobile` Whether to run the mobile version of the model. More info [here](#mobile-vs-analyst).
+- `--output` Path to output folder (default=`./output`)
+- `--mobile` Whether to run the mobile version of the model. More info [here](#mobile-vs-analyst). Example: `python app.py --mobile` 
 
 ## How fast is SharkTrack? Can I use it on my laptop?
 We have provided 2 SharkTrack models, the mobile and analyst models. Both models are able to run on the CPU. The analyst model is more accurate, but takes more. 
