@@ -72,23 +72,28 @@ If you are familiar with `git`, follow [these](#quick-tutorial). Alternatively:
         - Right-click on the `sharktrack` folder
         - Click "New Terminal at Folder" (sometimes this is under Services)
         - This should show you the Terminal application
-3. Set up the programming environment by copy and pasting on the Command Prompt or Terminal the following lines and hitting enter
+
+### Setup Environment
+Now you have the downloaded the model and you have the Terminal application open. It is time to setup the software environment.
+- **Windows**
+    ```
+    python -m venv venv
+    venv\Scripts\activate.bat
+    pip install -r requirements.txt
+    ```
+- **Mac**
     ```
     python -m venv venv
     source venv/bin/activate
+    pip install -r requirements.txt
     ```
-    - If `python3` has the valid version, change the first line with `python3 -m venv venv`
-    - Replace `source venv/bin/activate` with `venv\Scripts\activate.bat 
-
-    Alternatively, if you have Anaconda, run
+- **Anaconda**
     ```
     conda create -n sharktrack_venv anaconda
     conda activate sharktrack_venv
-    ```
-4. Run 
-    ```
     pip install -r requirements.txt
     ```
+*If `python3` has the valid version, change the first line with `python3 -m venv venv`*
 
 
 #### Troubleshooting
