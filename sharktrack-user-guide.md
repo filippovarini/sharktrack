@@ -76,7 +76,10 @@ If you are familiar with `git`, follow [these](#quick-tutorial). Alternatively:
     conda create -n sharktrack_venv anaconda
     conda activate sharktrack_venv
     ```
-4. Run `pip install-r requirements.txt
+4. Run 
+    ```
+    pip install -r requirements.txt
+    ```
 
 
 #### Troubleshooting
@@ -121,11 +124,13 @@ As a rule of thumb, we suggest running the more accurate model first. If that is
 |`mobile`|0.83 | 3.5x video speed | Unstable tracking | Quick overview of daily BRUVS deployment
 
 ### GoPro Limitation 📹⛔️
-The `analyst` model uses `OpenCV` speed-up the video read and achieve creditable speed for its size. Unfortunately, OpenCV fails with the GoPro audio encoding (GoPro AAC), as documented [here](https://stackoverflow.com/questions/78039408/cv2-ffmpeg-grabframe-packet-read-max-attempts-exceeded-error-after-exactly-rea).
+The model uses `OpenCV` speed-up the video read and achieve creditable speed for its size. Unfortunately, OpenCV fails with the GoPro audio encoding (GoPro AAC), as documented [here](https://stackoverflow.com/questions/78039408/cv2-ffmpeg-grabframe-packet-read-max-attempts-exceeded-error-after-exactly-rea).
 
-> Therefore, the `analyst` model can't process GoPro videos
+> Therefore, the model can't process GoPro videos
 
 To solve this issue, we have provided a [script](./scripts/reformat_gopro.py) to reformat the videos by removing the audio stream. 
+
+> **NOTE** You need to have `ffmpeg` installed. If not, download it [here](https://ffmpeg.org/download.html)
 
 You can run it with the following command:
 ```bash
