@@ -51,15 +51,15 @@ Now that you understand the model output, you need to clean it by:
 - Assigning species ID to the correct ones left
 
 ### Cleaning Guide
-Each track has an associated image in `detections/` for you to clean it.
+SharkTrack saves an image for each track in the `detections/` folder. In this image, it highlights the track with a *thick* bounding box. Additionally, it also tells what else it found in the same image, with *thin* bounding boxes. 
 
-When you look at a detection image, you are cleaning the detection in the red box. The white boxes are there only to provide context and their tracks are saved in other detection files for you to clean. 
+The purpose of the *thin* boxes is for you to that the model missed a shark if there is no thick or thin box around it and thus be confident about the weaknesses of it.
 
 <img src="./static/test-output/detections/8.jpg" width=400 />
 
-*In this image refers to the detection in the red box (bottom right). By classifying this image, you are classifying only that detection*
+*In this image refers to the detection in the thick box (bottom right). By classifying this image, you are classifying only that detection*
 
-Below, we provide examples of detection files and what cleaning action should be performed
+Sometimes, it is ambiguous whether you should accept or reject the detection as invalid one. Therefore, below, we provide examples of detection files and what cleaning action should be performed.
 
 
 | | | |
@@ -68,28 +68,19 @@ Below, we provide examples of detection files and what cleaning action should be
 |<img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test-output/detections/1.jpg" > Confirm and assign species |  <img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test1.jpg"> Reject as it already exists (white box)|<img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test2.jpg"> Reject detection as not elasmobranch|
 |<img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test3.jpg"> Confirm and assign ray species  |  <img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test4.jpg"> Definitely not elasmobranch!|<img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test5.jpg"> Hmm tricky! Check the suggested video and time to know better!|
 
-### Pipelines
-SharkTrack proposes two ways of cleaning the output:
-|Cleaning Method|Description|When to Use it| Guide|
-|--|--|--|--|
-|Local| Using your laptop, delete wrong detections and rename valid with the species | Very quick and intuitive, don't need wifi or third-party app | [here](#local-user-guide)
-|VIAME|  Upload and clean detections on the [VIAME](https://viame.kitware.com/) annotation tool | Allows multiple analysts to collaborate | [here](#viame-user-guide)
+### Annotation Pipeline
+Once you have seen the output, it is time to clean it. This is the step where we leverage *your* knowledge to ID the Elasmobranch.
 
-Please check the respective guide for instructions.
-
-> ⏰ As a rule of thumb, you should be able to clean 50 detections per minute. 100h of BRUVS should prodice ~3000 detections -> just 1h of cleaning!
-
-### Local User Guide
-1. Open the `detections` folder ([example](./static/test-output/detections/)). It will have many detections names `{track_id}.jpg`
-2. Scroll through all images and locate the relative detection, which is the red box
+1. Open the `detections` folder ([example](./static/test-output/detections/)). It will have many detections named `{track_id}.jpg`
+2. Scroll through all images and locate the relative detection, which is the *thick* box
 3. If the detection is not an elasmobranch, delete the file
 4. If the detection is an elasmobranch, rename the file to `{track_id}-{species_id}.jpg`
     
     **Important:** you can use whichever species_id but make sure to keep the original `track_id`, and separate it with a "-"
 
-You can find a tutorial [here]
 
 <img src="./static/local-cleaning.png" width=500/>
+*As shown in this picture, we are renaming the detection with the species id, in this case "ray". We are leaving the original track_id and separating with a "-".
 
 #### 🚀 Pro Tips
 - Do a first pass to remove all wrong detections and assign species ID in a second pass
@@ -97,57 +88,9 @@ You can find a tutorial [here]
 - If on Windows, use F2 to rename the file quickly and Crl+D to remove it
 - If on Mac, visualise image in Gallery mode, use Cmd+Del to remove the image and Enter to rename the file
 
-### VIAME User Guide
+#### Collaborating
+If you want multiple users to annotate the detections, you can simply upload the whole `./detections` folder on a drive (Google, DropBox, OneDrive etc) and perform the above steps there!
 
-        
-#### Setup Annotations Platform
-1. Open [VIAME](https://viame.kitware.com/)
-2. Create an account
-3. Click “Upload“ > Add Image Sequence
-    
-    <img src="static/Screenshot_2024-03-15_at_16.45.25.png" width=400 />
-    
-4. Upload all the images in `./detections`
-5. Click on “annotation file” and upload `viame.csv`
-    
-    <img src="static/Screenshot_2024-03-15_at_16.47.14.png" width=400/>
-    
-6. Pick a name for the BRUVS analysis
-
-    <img src="static/analysis_name.png)
-7. Confir" width=400/> upload
-#### Clean Annotations
-1. Click Launch Annotator
-2. For each frame
-    
-    <img src="static/Screenshot_2024-03-15_at_16.49.38.png" width=400/>
-    
-    i. Identify the track by clicking on the highlighted bounding box
-
-    ii. If the detection is valid, insert the shark species
-        
-    <img src="static/Screenshot_2024-03-15_at_16.52.17.png" width=400/>
-        
-    iii. If the detection is invalid, delete the track by clicking on the trash
-        
-    <img src="static/Screenshot_2024-03-15_at_16.53.25.png" width=400/>
-            
-#### Download Cleaned Annotations
-    
-<img src="static/Screenshot_2024-03-15_at_16.54.04.png" width=400 />
-
-1. Save the changes by click on the 💾 Icon
-2. Then click Download > "VIAME CSV" and download the file
-
-
-#### 🚀 Pro Tips
-- Navigate with the top/down arrows between frames
-- Press the "Delete" key to delete garbage detection
-- Press Shift+Enter to assign a species to the detection
-Collaboration:
-- Other users can contribute by searching your username in the VIAME search bar and locating your folder
-- You need to give them access by right clicking on the project > Access Control
-- You can save the changes by click on the 💾 Icon and resume later
 
 ## Extract MaxN
 Amazing! You have cleaned all annotations, it's time to generate MaxN from it!
