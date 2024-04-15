@@ -45,7 +45,7 @@ SharkTrack is free, and it makes us super-happy when people use it, so we put it
 ## Step By Step
 
 ### 0. Requirements
-To run sharktrack, you will need to have installed Python 3.9 or above. You can check that by opening your Terminal or Cmd and running `python -V`. 
+To run sharktrack, you will need to have installed Python 3.9 or above. You can check that by opening your Terminal or Cmd and running `python -V`. *Note: on Mac the older version might be saved as `python3 -V`*
 
 If you don't have python or the version is outdated, please install it [here](https://www.python.org/downloads/). Make sure to check the box to add Python to the system path when installing it.
 
@@ -68,6 +68,9 @@ If you are familiar with `git`, follow [these](#quick-tutorial). Alternatively:
     python -m venv venv
     source venv/bin/activate
     ```
+    - If `python3` has the valid version, change the first line with `python3 -m venv venv`
+    - Replace `source venv/bin/activate` with `venv\Scripts\activate.bat 
+
     Alternatively, if you have Anaconda, run
     ```
     conda create -n sharktrack_venv anaconda
@@ -77,6 +80,7 @@ If you are familiar with `git`, follow [these](#quick-tutorial). Alternatively:
 
 
 #### Troubleshooting
+Below you can find solutions to common problems encountered.
 - *The terminal/prompt is showing an error saying I need `git`* Go ahead and [install it](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git). Alternatively, download the latest "source code"  [from here](https://github.com/filippovarini/sharktrack/releases).
 - *`python -m venv venv` says `python` not found* Try running `python3 -m venv venv`
 - *`python -m venv venv` says `venv` module not found* Check the python version by running `python --version` and make sure it's older than 3.8.If not download it [here](https://www.python.org/downloads/). Once it's downloaded, try running the same command. If it still fails, run `python3 -m venv venv`
