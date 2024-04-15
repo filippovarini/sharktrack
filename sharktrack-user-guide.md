@@ -61,7 +61,6 @@ If you are familiar with `git`, follow [these](#quick-tutorial). Alternatively:
         - If you use anaconda:
             - Click on the [address bar](https://uis.georgetown.edu/wp-content/uploads/2019/05/win10-fileexplorer-addrbar.png)
             - Click "Copy address" in the address bar
-            <img src="./static/copy_address.png" width=200/>
             - Open the Anaconda Prompt
             - Run `cd {the address you just copied}`
         - If you use Python from the Command Prompt
