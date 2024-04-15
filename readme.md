@@ -1,6 +1,22 @@
 # SharkTrack
 *Speeding up Elasmobranch BRUVS processing by 20x...*
 
+## Before we start...
+
+Here we provide a guide to learn about SharkTrack. The guide is divided in the following 3 chapters. We suggest you to spend ~15m to read them and understand the model, but feel free to jump to the sections as you like.
+
+| Chapter | Reading Time | Description
+|--|--|--|
+| [Introduction to SharkTrack](./readme.md#introduction-to-sharktrack) | 7m | This page is for users who are just considering the use of AI in their workflow, and aren't even sure yet whether SharkTrack would be useful. It summarizes what we do with the model, how it can help you and how other people use it | 
+| [SharkTrack User Guide](./sharktrack-user-guide.md) | 5m | This is a guide to run SharkTrack on your data. Jump to it if you're already familiar with SharkTrack and you're ready to run it on your data (and you have some familiarity with running Python code).
+| [Annotation Pipeline](./annotation-pipelines.md) | 6m | This page illustrates the AI-enhanced BRUVS annotation workflow. Jump to it to convert the model's output into MaxN metrics 
+
+[![watrch video](static/video_screenshot.png)](https://drive.google.com/file/d/1b_74wdPXyJPe2P-m1c45jjsV2C5Itr-R/view?usp=sharing)
+*Click on the image above to watch a demo*
+
+
+# Introduction to SharkTrack
+
 ## Contents
 
 * <a href="#overview">Overview</a>
@@ -18,18 +34,6 @@ Elasmobranch researchers monitor their populations using Baited Remote Underwate
 SharkTrack is a Machine Learning model that uses computer vision to detect and track Elasmobranchii in BRUVS videos. It doesn not classify the species. However, by simply detecting video snippets with sharks, the model drastically speeds up BRUVS annotation. Additionally, this package provides users a workflow to annotate species ID from model detectios.
 
 > Therefore SharkTrack is an AI-enhanced workflow to convert raw BRUVS videos to MaxN, which has been tested 20x faster than traditional methods.
-
-Here we provide a guide to learn about SharkTrack. The guide is divided in the following 3 chapters. We suggest you to spend ~15m to read them and understand the model.
-
-| Chapter | Reading Time | Description
-|--|--|--|
-| [Introduction to SharkTrack](./readme.md#overview) | 7m | This page is for users who are just considering the use of AI in their workflow, and aren't even sure yet whether SharkTrack would be useful. It summarizes what we do with the model, how it can help you and how other people use it | 
-| [SharkTrack User Guide](./sharktrack-user-guide.md) | 5m | This is a guide to run SharkTrack on your data. Jump to it if you're already familiar with SharkTrack and you're ready to run it on your data (and you have some familiarity with running Python code).
-| [Annotation Pipeline](./annotation-pipelines.md) | 6m | This page illustrates the AI-enhanced BRUVS annotation workflow. Jump to it to convert the model's output into MaxN metrics 
-
-
-[![watrch video](static/video_screenshot.png)](https://drive.google.com/file/d/1b_74wdPXyJPe2P-m1c45jjsV2C5Itr-R/view?usp=sharing)
-*Click on the image above to watch a demo*
 
 ## What does SharkTrack do?
 SharkTrack is a AI-enhanced BRUVS annotation pipeline.

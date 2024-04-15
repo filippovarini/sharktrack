@@ -45,7 +45,6 @@ class Model():
     self.iou_association_threshold = 0.5
     self.imgsz = 640
     self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    self.device = 'cpu'
 
     self.model_args = {
           "conf": self.conf_threshold,
@@ -195,4 +194,8 @@ if __name__ == "__main__":
   parser.add_argument("--mobile", action="store_true", help="Use mobile model: 50% faster, slightly less accurate than humans")
   parser.add_argument("--live", action="store_true", help="Show live tracking video for debugging purposes")
   args = parser.parse_args()
+
+  # avoid duplicate libraries exception caused by numpy installation
+  os.environ["KMP_DUPLICATE_LIB_OK"]="True"
+
   main(args.input, args.limit, args.stereo_prefix, args.output, args.mobile, args.live)
