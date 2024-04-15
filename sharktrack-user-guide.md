@@ -82,18 +82,24 @@ Now you have the downloaded the model and you have the Terminal application open
     pip install -r requirements.txt
     ```
 - **Mac**
-    ```
-    python -m venv venv
-    source venv/bin/activate
-    pip install -r requirements.txt
-    ```
+    
+    1. Firstly:
+        ```
+        python -m venv venv
+        ```
+        If it fails, try switching the above command with `python3 -m venv venv`.
+    2. Secondly:
+        ```
+        source venv/bin/activate
+        pip install -r requirements.txt
+        ```
+    
 - **Anaconda**
     ```
     conda create -n sharktrack_venv anaconda
     conda activate sharktrack_venv
     pip install -r requirements.txt
     ```
-*If `python3` has the valid version, change the first line with `python3 -m venv venv`*
 
 
 #### Troubleshooting
