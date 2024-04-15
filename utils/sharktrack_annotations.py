@@ -2,8 +2,8 @@ import pandas as pd
 import sys
 import cv2
 import os
-sys.path.append("compute_output")
-from utils import format_time, unformat_time
+sys.path.append("utils")
+from utils.time_processor import format_time, unformat_time
 from viame_annotations import max_conf2viame, add_metadata_row
 from image_processor import draw_bbox, annotate_image
 

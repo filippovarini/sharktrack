@@ -1,4 +1,4 @@
-from compute_output.sharktrack_annotations import build_chapter_output
+from utils.sharktrack_annotations import build_chapter_output
 from scripts.reformat_gopro import valid_video
 from argparse import ArgumentParser
 from ultralytics import YOLO
