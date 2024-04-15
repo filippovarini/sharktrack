@@ -83,12 +83,12 @@ Now you have the downloaded the model and you have the Terminal application open
     ```
 - **Mac**
     
-    1. Firstly:
+    1. Firstly, copy-paste in Terminal the following command and hit enter:
         ```
         python -m venv venv
         ```
-        If it fails, try switching the above command with `python3 -m venv venv`.
-    2. Secondly:
+        If it fails, try copy-pasting this command instead `python3 -m venv venv`.
+    2. Secondly, copy-paste in Terminal the following command and hit enter:
         ```
         source venv/bin/activate
         pip install -r requirements.txt
