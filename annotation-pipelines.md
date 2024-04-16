@@ -9,11 +9,13 @@
 * <a href="#extract-maxn">Extract MaxN</a>
 
 ## Overview
-After running SharkTrack on your videos, you should have an output similar to [this folder](./static/test-output/).
+After running SharkTrack on your videos, you should have an output similar to [this folder](./static/test-output/). This page provides instructions on converting the output to MaxN metrics.
 
-This page provides instruction on generating MaxN metrics from the model output. To do so, you would need to perform two steps:
-1. **Clean** the model output: delete wrong detections and assign species ID to the correct ones
+To do so, you will perform two steps:
+1. **Cleaning the Output**: Here you will delete wrong detections and assign species ID to the correct ones.
 2. Generate **MaxN** from the cleaned output
+
+Below you can find guidance on each step.
 
 
 ## Understand the Output
@@ -27,7 +29,7 @@ Locate the output directory. It should be `./output`, unless you have provided a
 
     <img src="./static/test-output/detections/14.jpg" width=600 />
 
-    *The image shows the shark (red box) whose track achieved the higest confidence in this frame, over all others in which the same shark was detected. It also shows other detections (white boxes) and the video, time and confidence of the red detection*
+    *The image shows the shark (thicker box) whose track achieved the higest confidence in this frame, over all others in which the same shark was detected. It also shows other detections (white boxes) and the video, time and confidence of detection in the thicker*
 
 ### Output FAQs
 - **What is a track?** The same elasmobranch will appear in multiple (consecutive) frames of the video. A track is a bounding box with an id, saying "this is the same shark I found before" 
