@@ -15,6 +15,8 @@
 ## Overview
 This page provides a guide on running the SharkTrack ML model on your BRUVS videos to detect shark in them. 
 
+> If you already have an output and want to comput MaxN, jump to [this guide](./annotation-pipelines.md)
+
 <img src="./static/test-output/detections/11.jpg" width=400/>
 
 *An example of SharkTrack output detection. Learn more [here](./annotation-pipelines.md#step-0-understand-the-output)*
@@ -126,7 +128,7 @@ Alternatively, if you don't want to move the videos, you can tell SharkTrack to 
 python app.py --input <path_to_video_folder>
 ```
 
-> After the model finishes running, it will show how many tracks it found! You can now check the results in the output folder. Now it is time to **Clean the Annotations**. Move to the [next page for instructions](./annotation-pipelines.md).
+> After the model finishes running, it will show how many tracks it found! You can now check the results in the output folder. Now it is time to **Generate MaxN**. Move to the [next page for instructions](./annotation-pipelines.md).
 
 #### Additional Arguments
 The additional input arguments below provide additional functionality
