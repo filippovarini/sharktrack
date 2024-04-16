@@ -38,7 +38,7 @@ Locate the output directory. It should be `./output`, unless you have provided a
 - **What is a `max-conf-detection`?** A track is made up of different detections for the same elasmobranch at different times. Each detection has a confidence score. The `max-conf-detection` is the detection (frame,time,bounding box) which achieved the highest score, and it's associated frame is saved in the `./detections/` folder for each track
 - **Why does it matter?** This allows the user to process only once annotation per track, instead of thousands of frames. Once the user is done with the cleaning, a script automatically reflects the changes on every detection for the track, computing MaxN
 - **But one frame is not enough to determine the species of a shark** That's why we show in the frame the video path and time, so you can go back to the video, and use it to assign a Species.
-- **I am seing the same elasmobranch in multiple detections**: The model might lose the track and create a new one. This will not affect the MaxN accuracy, it will only require you to clean more images.
+- **I am seing the same elasmobranch in multiple detections**: The model might think the same shark two or more sharks appearing consequently. In this case, classify all of them. This will not affect the MaxN accuracy, it will only require you to classify more images.
 - **But...?** If you have any other question, feel free to [email us](mailto:fppvrn@gmail.com?subject=SharkTrackFAQ)
 
 
@@ -78,8 +78,9 @@ Find pro tips [here](#🚀-pro-tips)
 1. Open the `detections` folder ([example](./static/test-output/detections/)). It will have many detections named `{track_id}.jpg`
 2. Scroll through all images and locate the relative detection, which is the *thick* box
 3. If the detection is not an elasmobranch, delete the file
-4. If the detection is an elasmobranch, rename the file with the species id, **keeping the original number** (example: `1-scalloped_hammer.jpg` for detection 1)
-    **Important:** you can use whichever species_id but make sure to keep the original `track_id` number, and separate it with a "-"
+4. If the detection is an elasmobranch, rename the file with the species id, **keeping the original number** separated by a "-" (example: `1-scallop_hamhead.jpg`)
+    
+    **Important:** you can write whichever species id but make sure to keep the original `track_id` number separated with a "-"
 
 
 <img src="./static/local-cleaning.png" width=500/>
@@ -100,8 +101,8 @@ Amazing! You have cleaned all annotations, it's time to generate MaxN from it!
 
 - Open the Terminal at the `sharktrack` folder location. Check [this step](./sharktrack-user-guide.md#downloading-the-model) for guidance on opening the terminal at the specific location.
 - Activate the virtual environment (guide [here](./sharktrack-user-guide.md#setup-environment))
-- Run `python scripts/compute_maxn.py --path {path_to_model_cleaned_results}`
-    - **NOTE** Here `path_to_model_cleaned_results` is the path to the model output (default `./output`) where inside you have the `output.csv` file and the `detecrtions` folder, with cleaned detections and assigned Species ID
+- Run `python scripts/compute_maxn.py --path {output_path}`, replacing `output_path` with the name of the folder that contains the `output.csv` file and cleaned `./detections`
+    - **NOTE** Replace `path_to_model_cleaned_results` is the path to the model output (default `./output`) where inside you have the `output.csv` file and the `detections` folder, with cleaned detections and assigned Species ID
 - You will see a `maxn.csv` file in the SharkTrack folder
 
 🚀 Hooray! You have obtained the MaxN! 
