@@ -101,8 +101,7 @@ Amazing! You have cleaned all annotations, it's time to generate MaxN from it!
 
 - Open the Terminal at the `sharktrack` folder location. Check [this step](./sharktrack-user-guide.md#downloading-the-model) for guidance on opening the terminal at the specific location.
 - Activate the virtual environment (guide [here](./sharktrack-user-guide.md#setup-environment))
-- Run `python scripts/compute_maxn.py --path {output_path}`, replacing `output_path` with the name of the folder that contains the `output.csv` file and cleaned `./detections`
-    - **NOTE** Replace `path_to_model_cleaned_results` is the path to the model output (default `./output`) where inside you have the `output.csv` file and the `detections` folder, with cleaned detections and assigned Species ID
+- Run `python scripts/compute_maxn.py --path {output_path}`, replacing `{output_path}` with the name of the folder that contains the `output.csv` file and cleaned `./detections`.
 - You will see a `maxn.csv` file in the SharkTrack folder
 
 🚀 Hooray! You have obtained the MaxN! 
