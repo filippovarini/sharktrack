@@ -47,12 +47,14 @@ Here, we define *detections* as the image showing the highest-confidence detecti
 
 Now that you understand the model output, you need to clean it by:
 - Rejecting tracks that are not of elasmobranchii
-- Assigning species ID to the correct ones left
+- Assigning Species ID to the remaining detection images.
 
 ### Cleaning Guide
 SharkTrack saves an image for each track in the `detections/` folder. In this image, it highlights the track with a *thick* bounding box. Additionally, it also tells what else it found in the same image, with *thin* bounding boxes. 
 
-The purpose of the *thin* boxes is for you to that the model missed a shark if there is no thick or thin box around it and thus be confident about the weaknesses of it.
+If you see a shark with no box around it, you know the model missed this shark. 
+
+The purpose of the thin boxes is to tell you that those additional sharks have their own detection image in the same `./detection` folder.
 
 <img src="./static/test-output/detections/8.jpg" width=400 />
 
