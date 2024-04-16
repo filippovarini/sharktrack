@@ -24,7 +24,7 @@ This page provides a guide on running the SharkTrack ML model on your BRUVS vide
 SharkTrack is free, and it makes us super-happy when people use it, so we put it out there as a downloadable model that is easy to use. That means we don't know who's using it unless you contact us, so please please [email us](mailto:fppvrn@gmail.com?subject=SharkTrackUser) and star this repo if you find it useful!
 
 ## Quick Tutorial
-If you prefer using Anaconda, or find any error with the following instructions, move to the [Step by Step](#step-by-step) guide.
+If you don't have experience with Python or you find any error with the following instructions, move to the [Step by Step](#step-by-step) guide.
 1. Clone SharkTrack
     ```bash
     git clone https://github.com/filippovarini/sharktrack.git
@@ -47,15 +47,16 @@ If you prefer using Anaconda, or find any error with the following instructions,
 If you don't have experience with Python, the following steps might be the hardest to setup the model. If you think your organisation would benefit from near-instant BRUVS analysis, please consider this challenge as an investment in the future. Don't hesitate to post any problems you might encounter [here](https://github.com/filippovarini/sharktrack/issues).
 
 ### Pre-Requirements
-To run sharktrack, you will need to have installed Python 3.9 or above. You can check that by opening your Terminal or Cmd and running `python -V`. *Note: on Mac the older version might be saved as `python3 -V`*
+To run sharktrack, you will need to have installed Python 3.9 or above. You can check that by opening your "Command Prompt" application on Windows or "Terminal" on Mac and running `python -V`. *Note: on Mac the older version might be saved as `python3 -V`*
 
 If you don't have python or the version is outdated, please install it [here](https://www.python.org/downloads/). Make sure to check the box to add Python to the system path when installing it.
 
 ### Downloading the model
-If you are familiar with `git`, follow [these](#quick-tutorial). Alternatively:
+Follow the below instructions to download the model. Alternatively, if you are familiar with `git`, skip to [here](#quick-tutorial).
 
-1. Download the model from [here](https://github.com/filippovarini/sharktrack/releases) by double-clicking on the latest "source code"
-2. Unzip the downloaded folder and
+1. Download the model from [here](https://github.com/filippovarini/sharktrack/releases) by double-clicking on the latest "source code". Dowload the zipfile only!
+2. Unzip the folder and extract `sharktrack`. We suggest moving the downloaded folder to the Desktop or any place where it is easier to find.
+3. Unzip the downloaded folder and
     - If on **Windows**:
         - Open the extracted `sharktrack` folder
         - If you use anaconda:
@@ -71,6 +72,7 @@ If you are familiar with `git`, follow [these](#quick-tutorial). Alternatively:
         - Right-click on the `sharktrack` folder
         - Click "New Terminal at Folder" (sometimes this is under Services)
         - This should show you the Terminal application
+    
 
 ### Setup Environment
 Now you have the downloaded the model and you have the Terminal application open. It is time to setup the software environment.
@@ -111,7 +113,9 @@ Below you can find solutions to common problems encountered.
 
 You now are ready to run SharkTrack! 
 
-The quickiest way to do so, is moving your videos in the `./input_videos` folder and running
+The quickiest way to do so, is moving your videos in the `./input_videos` folder which is inside sharktrack.
+
+Then, you can run the following command. It is fine if it takes some time to initialise!
 ```bash
 python app.py
 ```
@@ -122,6 +126,9 @@ Alternatively, if you don't want to move the videos, you can tell SharkTrack to 
 python app.py --input <path_to_video_folder>
 ```
 
+> After the model finishes running, it will show how many tracks it found! You can now check the results in the output folder. Now it is time to **Clean the Annotations**. Move to the [next page for instructions](./annotation-pipelines.md).
+
+#### Additional Arguments
 The additional input arguments below provide additional functionality
 - `--input` Path to the video folder. SharkTrack takes a folder of arbitrary depth as input and processes all .mp4 videos in it.
 - `--stereo_prefix` If your folder contains Stereo-BRUVS, you can tell SharkTrack to only process the left or right video by passing the prefix of the videos you want to process (i.e. `LGX`)
