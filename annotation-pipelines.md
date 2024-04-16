@@ -29,7 +29,9 @@ Locate the output directory. It should be `./output`, unless you have provided a
 
     <img src="./static/test-output/detections/14.jpg" width=600 />
 
-    *The image shows the shark (thicker box) whose track achieved the higest confidence in this frame, over all others in which the same shark was detected. It also shows other detections (white boxes) and the video, time and confidence of detection in the thicker*
+    *The image shows the shark (thicker box) whose track achieved the higest confidence in this frame, over all other frames in which the same shark was detected. It also shows other detections (thinner boxes).*
+
+    *Below the image, you can read the name of the video file, confidence and time of the detection in the thicker box.*
 
 ### Output FAQs
 - **What is a track?** The same elasmobranch will appear in multiple (consecutive) frames of the video. A track is a bounding box with an id, saying "this is the same shark I found before" 
@@ -61,8 +63,8 @@ Sometimes, it is ambiguous whether you should accept or reject the detection as 
 
 | | | |
 |:-------------------------:|:-------------------------:|:-------------------------:|
-|<img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test-output/detections/15.jpg" >  Confirm detection and assign species |  <img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test-output/detections/16.jpg" /> Reject detection as already tracked (white box) |<img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test-output/detections/14.jpg" > Confirm detection and assign species |
-|<img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test-output/detections/1.jpg" > Confirm and assign species |  <img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test1.jpg"> Reject as it already exists (white box)|<img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test2.jpg"> Reject detection as not elasmobranch|
+|<img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test-output/detections/15.jpg" >  Confirm detection and assign species |  <img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test-output/detections/16.jpg" /> Reject detection as already tracked (thin box) |<img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test-output/detections/14.jpg" > Confirm detection and assign species |
+|<img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test-output/detections/1.jpg" > Confirm and assign species |  <img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test1.jpg"> Reject as it already exists (thin box)|<img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test2.jpg"> Reject detection as not elasmobranch|
 |<img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test3.jpg"> Confirm and assign ray species  |  <img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test4.jpg"> Definitely not elasmobranch!|<img width="1604" alt="screen shot 2017-08-07 at 12 18 15 pm" src="./static/test5.jpg"> Hmm tricky! Check the suggested video and time to know better!|
 
 ### Annotation Pipeline
