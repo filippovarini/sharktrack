@@ -31,7 +31,7 @@ Here we provide a guide to learn about SharkTrack. The guide is divided in the f
 ## Overview
 Elasmobranch researchers monitor their populations using Baited Remote Underwater Video Systems (BRUVS). This is a time-consuming process, as each video needs to be manually annotated. 
 
-SharkTrack is a Machine Learning model that uses computer vision to detect and track Elasmobranchii in BRUVS videos. It doesn not classify the species. However, by simply detecting video snippets with sharks, the model drastically speeds up BRUVS annotation. Additionally, this package provides users a workflow to annotate species ID from model detectios.
+SharkTrack is a Machine Learning model that uses computer vision to detect and track Elasmobranchii in BRUVS videos. It does not classify the species. However, by simply detecting video snippets with sharks, the model drastically speeds up BRUVS annotation. Additionally, this package provides users a workflow to annotate species ID from model detectios.
 
 > Therefore SharkTrack is an AI-enhanced workflow to convert raw BRUVS videos to MaxN, which has been tested 20x faster than traditional methods.
 
@@ -40,7 +40,7 @@ SharkTrack is a AI-enhanced BRUVS annotation pipeline.
 
 What this jargon means is that it does the following steps:
 1. Takes a folder with BRUVS videos, detects where sharks are in the videos.
-2. Communicates this with an output [like this](./static/test-output/). Read [this](./annotation-pipelines.md#step-0-understand-the-output) our output format and its motivations. 
+2. Communicates this with an output [like this](./static/test-output/). Read [this](./annotation-pipelines.md#understand-the-output) to learn about our output format and its motivations. 
 3. Provides a workflow for users to quickly clean detections and assign species ID.
 
 Basically, its goal is to allow researchers to spend time *only* classifying shark species, saving the majority of time spent looking at empty frames.
