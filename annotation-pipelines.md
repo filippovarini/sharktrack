@@ -52,15 +52,16 @@ Now that you understand the model output, you need to clean it by:
 ### Cleaning Guide
 SharkTrack saves an image for each track in the `detections/` folder. In this image, it highlights the track with a *thick* bounding box. Additionally, it also tells what else it found in the same image, with *thin* bounding boxes. 
 
+The purpose of the thin boxes is to tell you that those additional sharks have their own detection image in the same `./detection` folder.
+
 If you see a shark with no box around it, you know the model missed this shark. 
 
-The purpose of the thin boxes is to tell you that those additional sharks have their own detection image in the same `./detection` folder.
 
 <img src="./static/test-output/detections/8.jpg" width=400 />
 
-*In this image refers to the detection in the thick box (bottom right). By classifying this image, you are classifying only that detection*
+*By classifying the image above, you are only classifying the shark in the thick box.*
 
-Sometimes, it is ambiguous whether you should accept or reject the detection as invalid one. Therefore, below, we provide examples of detection files and what cleaning action should be performed.
+Sometimes, it is ambiguous whether you should accept or reject the detection. Therefore, below, we provide examples of detection files and what cleaning action should be performed.
 
 
 | | | |
@@ -72,12 +73,13 @@ Sometimes, it is ambiguous whether you should accept or reject the detection as 
 ### Annotation Pipeline
 Once you have seen the output, it is time to clean it. This is the step where we leverage *your* knowledge to ID the Elasmobranch.
 
+Find pro tips [here](#🚀-pro-tips) 
+
 1. Open the `detections` folder ([example](./static/test-output/detections/)). It will have many detections named `{track_id}.jpg`
 2. Scroll through all images and locate the relative detection, which is the *thick* box
 3. If the detection is not an elasmobranch, delete the file
-4. If the detection is an elasmobranch, rename the file to `{track_id}-{species_id}.jpg`
-    
-    **Important:** you can use whichever species_id but make sure to keep the original `track_id`, and separate it with a "-"
+4. If the detection is an elasmobranch, rename the file with the species id, **keeping the original number** (example: `1-scalloped_hammer.jpg` for detection 1)
+    **Important:** you can use whichever species_id but make sure to keep the original `track_id` number, and separate it with a "-"
 
 
 <img src="./static/local-cleaning.png" width=500/>
