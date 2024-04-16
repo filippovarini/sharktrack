@@ -4,7 +4,6 @@ import cv2
 import os
 sys.path.append("utils")
 from utils.time_processor import format_time, unformat_time
-from viame_annotations import max_conf2viame, add_metadata_row
 from image_processor import draw_bbox, annotate_image
 
 
@@ -27,7 +26,6 @@ def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_trac
   Turns ultralytics.Results into MOT format
   Postprocesses the results
   Saves Maximum Detection Confidence images
-  Saves VIAME-annotations for cleaning
   """
   data = []
   max_conf_images = {}
@@ -147,9 +145,3 @@ def write_max_conf(poostprocessed_results, max_conf_image, out_folder, fps):
     output_image_id = f"{row['track_id']}.jpg"
     output_path = os.path.join(det_folder, output_image_id)
     cv2.imwrite(output_path, img)
-
-  viame_df = max_conf2viame(max_conf_detections_df)
-  viame_path = os.path.join(out_folder, "viame.csv")
-  if not os.path.exists(viame_path):
-    viame_df = add_metadata_row(viame_df, fps)
-  concat_df(viame_df, viame_path)

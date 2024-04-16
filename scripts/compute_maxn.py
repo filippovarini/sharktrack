@@ -2,21 +2,6 @@ from argparse import ArgumentParser
 import pandas as pd
 import os
 
-def clean_annotations_viame(output_path, viame_output_path):
-    original_output_path = os.path.join(output_path, "output.csv")
-    assert os.path.exists(original_output_path), f"No output.csv file found in {original_output_path}. output.csv represents the unclean output from sharktrack and is required to clean the annotations."
-    sharktrack_df = pd.read_csv(original_output_path)
-
-    viame_df = pd.read_csv(viame_output_path, skiprows=lambda x: x in [1])
-
-    # Viame output contains only the tracks that are True Positive
-    sharktrack_df = sharktrack_df[sharktrack_df["track_id"].isin(viame_df["# 1: Detection or Track-id"])]
-    # Viame output contains the correct species
-    class_mapping = viame_df.set_index("# 1: Detection or Track-id")["10-11+: Repeated Species"]
-    sharktrack_df["class"] = sharktrack_df["track_id"].map(class_mapping)
-
-    return sharktrack_df
-
 def clean_annotations_locally(output_path):
     predefined_detection_folder = "detections"
     detections_path = os.path.join(output_path, predefined_detection_folder)
@@ -36,7 +21,6 @@ def clean_annotations_locally(output_path):
     assert os.path.exists(original_output_path), f"No output.csv file found in {original_output_path}. output.csv represents the unclean output from sharktrack and is required to clean the annotations."
     sharktrack_df = pd.read_csv(original_output_path)
 
-    # Viame output contains only the tracks that are True Positive
     sharktrack_df = sharktrack_df[sharktrack_df["track_id"].isin(labeled_detections.keys())]
     sharktrack_df["class"] = sharktrack_df["track_id"].apply(lambda k: labeled_detections[k])
 
@@ -54,16 +38,12 @@ def compute_species_max_n(cleaned_annotations):
     return max_n
 
 
-def main(output_path, viame_output_path=None):
+def main(output_path):
     if not os.path.exists(output_path):
         print(f"Output path {output_path} does not exist")
         return
-    if viame_output_path:
-        print(f"Computing MaxN from annotations cleaned using VIAME...")
-        cleaned_annotations = clean_annotations_viame(output_path, viame_output_path)
-    else:
-        print(f"Computing MaxN from annotations cleaned locally...")
-        cleaned_annotations = clean_annotations_locally(output_path)
+    print(f"Computing MaxN from annotations cleaned locally...")
+    cleaned_annotations = clean_annotations_locally(output_path)
     max_n = compute_species_max_n(cleaned_annotations)
 
     max_n_path = os.path.join(output_path, "maxn.csv")
@@ -74,6 +54,5 @@ def main(output_path, viame_output_path=None):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--path", type=str, default="./output", help="Path to the output folder of sharktrack")
-    parser.add_argument("--viame_cleaned", type=str, help="Path to the output csv of viame")
     args = parser.parse_args()
-    main(args.path, args.viame_cleaned)
+    main(args.path)
