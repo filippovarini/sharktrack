@@ -88,7 +88,10 @@ Find pro tips [here](#🚀-pro-tips)
 
 #### 🚀 Pro Tips
 - Do a first pass to remove all wrong detections and assign species ID in a second pass
-- If unsure about species/validity, use the image bottom text to find the relative video and time.
+- If unsure about species/validity you might want to look at the raw video, look at the text at the bottom of the image to find the relative video and time.
+    
+    <img src="./static/video_time.png" width=300 />
+
 - If on Windows, use F2 to rename the file quickly and Crl+D to remove it
 - If on Mac, visualise image in Gallery mode, use Cmd+Del to remove the image and Enter to rename the file
 
@@ -99,7 +102,7 @@ If you want multiple users to annotate the detections, you can simply upload the
 ## Extract MaxN
 Amazing! You have cleaned all annotations, it's time to generate MaxN from it!
 
-- Open the Terminal at the `sharktrack` folder location. Check [this step](./sharktrack-user-guide.md#downloading-the-model) for guidance on opening the terminal at the specific location.
+- Open the Prompt/Terminal at the `sharktrack` folder location as described in the [User Guide](./sharktrack-user-guide.md) when Downloading the model.
 - Activate the virtual environment (guide [here](./sharktrack-user-guide.md#setup-environment))
 - Run `python scripts/compute_maxn.py --path output`, replacing `output` with the path of the folder that contains the `output.csv` file and cleaned `./detections`.
     Example: `python scripts/compute_maxn.py --path bruvs_2509`
