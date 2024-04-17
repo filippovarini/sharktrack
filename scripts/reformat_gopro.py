@@ -26,7 +26,7 @@ def main(videos_root, output_root, stereo_prefix):
                 if os.path.exists(output_path):
                     print(f"Skipping {input_path} as it already exists")
                     continue
-                os.system(f"ffmpeg -i '{input_path}' -y -map 0:v -c copy '{output_path}'")
+                os.system(f"ffmpeg -i {input_path} -y -map 0:v -c copy {output_path}")
                 processed_videos.append(input_path)
 
     if len(processed_videos) == 0:
