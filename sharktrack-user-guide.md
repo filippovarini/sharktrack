@@ -80,8 +80,8 @@ Follow the below instructions to download the model. Alternatively, if you are f
 Now you have the downloaded the model and you have the Terminal application open. It is time to setup the software environment.
 - **If you use Anaconda**
     ```
-    conda create -n sharktrack_venv anaconda
-    conda activate sharktrack_venv
+    conda create -n sharktrack anaconda
+    conda activate sharktrack
     pip install -r requirements.txt
     ```
 
