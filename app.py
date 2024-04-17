@@ -123,46 +123,6 @@ class Model():
 
 
   def run(self):
-    elasmodetections = [
-    "2020_RS_073",
-      "2020_RS_076",
-      "2020_RS_078",
-      "2020_RS_001",
-      "2020_RS_005",
-      "2020_RS_005",
-      "2020_RS_040",
-      "2020_RS_050",
-      "2020_RS_051",
-      "2020_RS_054",
-      "2020_RS_055",
-      "2020_RS_056",
-      "2020_RS_057",
-      "2020_RS_060",
-      "2020_RS_063",
-      "2020_RS_069",
-      "2020_RS_071",
-      "2020_RS_075",
-      "2020_RS_095",
-      "2020_RS_101",
-      "2020_RS_106",
-      "2020_RS_109",
-      "2020_RS_111",
-      "2020_RS_004",
-      "2020_RS_043",
-      "2020_RS_064",
-      "2020_RS_071",
-      "2020_RS_074",
-      "2020_RS_092",
-      "2020_RS_096",
-      "2020_RS_098",
-      "2020_RS_109",
-      "2020_RS_109",
-      "2020_RS_119",
-      "2020_RS_121",
-      "2020_RS_123",
-      "2020_RS_081",
-      "2020_RS_109"
-    ]
     self.videos_folder = self.videos_folder
     processed_videos = []
 
@@ -179,9 +139,6 @@ class Model():
           stereo_filter = self.stereo_prefix is None or file.startswith(self.stereo_prefix)
           if valid_video(file) and stereo_filter:
             chapter_path = os.path.join(root, file)
-            if not any([f in chapter_path for f in elasmodetections]):
-              print(f"{chapter_path} unprocessed!")
-              continue
             chapter_id = chapter_path.replace(f"{self.videos_folder}/", "")
             chapter_results = self.run_tracker(chapter_path)
             self.save_chapter_results(chapter_id, chapter_results)
