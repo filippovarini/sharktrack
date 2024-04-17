@@ -102,10 +102,11 @@ If you want multiple users to annotate the detections, you can simply upload the
 ## Extract MaxN
 Amazing! You have cleaned all annotations, it's time to generate MaxN from it!
 
-- Open the Prompt/Terminal at the `sharktrack` folder location as described in the [User Guide](./sharktrack-user-guide.md) when Downloading the model.
+*If you already have a prompt open, where you ran the model, you can skip to the third step*
+- Open the Prompt/Terminal at the `sharktrack` folder location as you did when running the model in the [User Guide](./sharktrack-user-guide.md) step.
 - Activate the virtual environment (guide [here](./sharktrack-user-guide.md#setup-environment))
-- Run `python scripts/compute_maxn.py --path output`, replacing `output` with the path of the folder that contains the `output.csv` file and cleaned `./detections`.
-    Example: `python scripts/compute_maxn.py --path bruvs_2509`
+- Run `python scripts/compute_maxn.py --path <output_path>`, replacing `<output_path>` with the path of the folder that contains the `output.csv` file and cleaned `./detections`.
+    Example: `python scripts/compute_maxn.py --path output`
 - You will see a `maxn.csv` file in the SharkTrack folder
 
 🚀 Hooray! You have obtained the MaxN! 
