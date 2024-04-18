@@ -65,7 +65,7 @@ def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_trac
               }
 
   results_df = pd.DataFrame(data)
-  sharks_found = 0
+  tracks_found = 0
 
   if not results_df.empty:
     postprocessed_results = postprocess(results_df, fps, next_track_index)
@@ -75,10 +75,14 @@ def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_trac
       concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
       write_max_conf(postprocessed_results, max_conf_images, out_folder, fps)
       new_next_track_index = postprocessed_results["track_id"].max() + 1
-      sharks_found = new_next_track_index - next_track_index
+      tracks_found = new_next_track_index - next_track_index
       next_track_index = new_next_track_index
   
-  print(f"Found {sharks_found} tracks!")
+  print(f"Found {tracks_found} tracks!")
+
+  # save a new row in the overview.csv file
+  overview_row = {"chapter_path": chapter_id, "tracks_found": tracks_found}
+  concat_df(pd.DataFrame([overview_row]), os.path.join(out_folder, "overview.csv"))
 
   return next_track_index
 
