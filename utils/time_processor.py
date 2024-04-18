@@ -15,7 +15,7 @@ def format_time(seconds):
     milliseconds = int(td.microseconds / 10000)  # Convert microseconds to milliseconds and round to 2 digits
 
     # Format the time string
-    time_str = f"{minutes:02}:{seconds:02}:{milliseconds:02}"
+    time_str = f"{minutes:02}m:{seconds:02}s"
     return time_str
 
 def unformat_time(time_str):

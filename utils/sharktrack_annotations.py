@@ -3,7 +3,7 @@ import sys
 import cv2
 import os
 sys.path.append("utils")
-from utils.time_processor import format_time, unformat_time
+from utils.time_processor import format_time
 from image_processor import draw_bbox, annotate_image
 
 

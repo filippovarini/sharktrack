@@ -11,17 +11,7 @@ import torch
 import av.datasets
 
 class Model():
-  def __init__(self, videos_folder, max_video_cnt, stereo_prefix, output_path, mobile=False):
-    """
-    Args:
-      mobile (bool): Whether to use lightweight model developed to run quickly on CPU
-    
-    Model types:
-    | Type    |  Model  | Fps  | F1   | MOTA |
-    |---------|---------|------|------|------|
-    | mobile  | Yolov8n | 1fps | 0.83 | 0.39 |
-    | analyst | Yolov8s | 5fps | 0.85 | 0.74 |
-    """
+  def __init__(self, videos_folder, max_video_cnt, stereo_prefix, output_path, mobile=False, device_override=None):
     self.videos_folder = videos_folder
     self.max_video_cnt = max_video_cnt
     self.stereo_prefix = stereo_prefix
@@ -44,7 +34,7 @@ class Model():
     self.conf_threshold = 0.25
     self.iou_association_threshold = 0.5
     self.imgsz = 640
-    self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    self.device = torch.device(device_override) if device_override else torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     self.model_args = {
           "conf": self.conf_threshold,
@@ -164,7 +154,7 @@ def convert_abs_path(path):
   return path
 
 
-def main(video_path, max_video_cnt, stereo_prefix, output_path='./output', mobile=False, live=False):
+def main(video_path, max_video_cnt, stereo_prefix, output_path='./output', mobile=False, live=False, device_override=None):
   video_path = convert_abs_path(video_path)
   output_path = convert_abs_path(output_path)
   
@@ -178,7 +168,8 @@ def main(video_path, max_video_cnt, stereo_prefix, output_path='./output', mobil
     max_video_cnt,
     stereo_prefix,
     output_path,
-    mobile
+    mobile,
+    device_override=device_override
   )
   if live:
     model.live_track(video_path)
