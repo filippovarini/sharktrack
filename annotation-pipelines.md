@@ -26,6 +26,7 @@ Before we compute MaxN, it is important to understand the model output.
 Locate the output directory. It should be `./output`, unless you have provided a custom `--output` argument when running `python app.py`. The folder will look something [like this](./static/test-output/) and it contains :
 - `output.csv` lists each detection at each timeframe for each video
 - `detections/` for each tracked elasmobranch, saves the `.jpg` frame in which its track achieved highest confidence.
+- `overview.csv` Lists all videos processed and tracks found in each.
 
     <img src="./static/test-output/detections/14.jpg" width=600 />
 
