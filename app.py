@@ -23,17 +23,18 @@ class Model():
       print("Using mobile model...")
       self.tracker_path = "trackers/tracker_3fps.yaml"
       self.run_tracker = self.track_video
+      self.imgsz = 320
       self.fps = 3
     else:
       print("Using analyst model...")
       self.tracker_path = "trackers/tracker_5fps.yaml"
       self.run_tracker = self.track_video
+      self.imgsz = 640
       self.fps = 5
     
     # Static Hyperparameters
     self.conf_threshold = 0.25
     self.iou_association_threshold = 0.5
-    self.imgsz = 640
     self.device = torch.device(device_override) if device_override else torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     self.model_args = {
@@ -41,7 +42,7 @@ class Model():
           "iou": self.iou_association_threshold,
           "imgsz": self.imgsz,
           "tracker": self.tracker_path,
-          "verbose": False,
+          "verbose": True,
           "device":self.device,
           "persist": True
       }
