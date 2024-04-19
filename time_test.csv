@@ -1,4 +1,7 @@
 ,test,compute_time
-0,outputs/anguilla_speed_testcuda,0 days 00:03:18.225871
-1,outputs/redsea_speed_testcuda,0 days 00:01:33.825055
-2,outputs/maldives_speed_testcuda,0 days 00:00:37.653696
+0,outputs/anguilla_speed_testcuda,0 days 00:29:59.122910
+1,outputs/anguilla_speed_testcpu,0 days 00:30:02.877652
+2,outputs/redsea_speed_testcuda,0 days 00:14:41.064672
+3,outputs/redsea_speed_testcpu,0 days 00:18:35.946475
+4,outputs/maldives_speed_testcuda,0 days 00:06:40.849867
+5,outputs/maldives_speed_testcpu,0 days 00:13:09.387949
