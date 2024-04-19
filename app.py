@@ -1,4 +1,6 @@
 from utils.sharktrack_annotations import build_chapter_output
+from utils.image_processor import annotate_image
+from utils.time_processor import format_time
 from scripts.reformat_gopro import valid_video
 from argparse import ArgumentParser
 from ultralytics import YOLO
@@ -11,7 +13,7 @@ import torch
 import av.datasets
 
 class Model():
-  def __init__(self, videos_folder, max_video_cnt, stereo_prefix, output_path, mobile=False, device_override=None):
+  def __init__(self, videos_folder, max_video_cnt, stereo_prefix, output_path, peek=False, device_override=None):
     self.videos_folder = videos_folder
     self.max_video_cnt = max_video_cnt
     self.stereo_prefix = stereo_prefix
@@ -19,35 +21,28 @@ class Model():
 
     self.model_path = "models/sharktrack.pt"
 
-    if mobile:
-      print("Using mobile model...")
-      self.tracker_path = "trackers/tracker_3fps.yaml"
-      self.run_tracker = self.track_video
-      self.imgsz = 320
-      self.fps = 3
-    else:
-      print("Using analyst model...")
-      self.tracker_path = "trackers/tracker_5fps.yaml"
-      self.run_tracker = self.track_video
-      self.imgsz = 640
-      self.fps = 5
-    
-    # Static Hyperparameters
-    self.conf_threshold = 0.25
-    self.iou_association_threshold = 0.5
-    self.device = torch.device(device_override) if device_override else torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-
     self.model_args = {
-          "conf": self.conf_threshold,
-          "iou": self.iou_association_threshold,
-          "imgsz": self.imgsz,
-          "tracker": self.tracker_path,
-          "verbose": True,
-          "device":self.device,
-          "persist": True
-      }
+      "conf": 0.25,
+      "iou": 0.5,
+      "device": torch.device(device_override) if device_override else torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'),
+      "verbose": False,
+    }
 
-    # config
+    if peek:
+      print("NOTE: You are using the model 'peek' mode. Please be aware of the following:")
+      print("  ✅ Runs significantly faster")
+      print("  ⛔️ You won't be able to compute MaxN, but only find interesting frames")
+      print("-" * 20)
+      print("")
+      self.inference_type = self.keyframe_detection
+      self.model_args["imgsz"] = 320
+    else:
+      self.inference_type = self.track_video
+      self.fps = 5
+      self.model_args["tracker"] = "trackers/tracker_3fps.yaml"
+      self.model_args["persist"] = True
+      self.model_args["imgsz"] = 640
+      
     self.next_track_index = 0
   
   def _get_frame_skip(self, chapter_path):
@@ -61,12 +56,42 @@ class Model():
     assert next_track_index is not None, f"Error saving results for {chapter_id}"
     self.next_track_index = next_track_index
 
+  def keyframe_detection(self, chapter_path):
+    """
+    Tracks keyframes using PyAv to overcome the GoPro audio format issue.
+    """
+    print(f"Processing video: {chapter_path} on device {self.model_args['device']}")
+    peek_dir = os.path.join(self.output_path, "interesting_frames")
+    os.makedirs(peek_dir, exist_ok=True)
+
+    model = YOLO(self.model_path)
+
+    content = av.datasets.curated(chapter_path)
+    
+    with av.open(content) as container:
+      video_stream = container.streams.video[0]         # take only video stream
+      video_stream.codec_context.skip_frame = 'NONKEY'  # and only keyframes (1fps)
+      frame_idx = 0
+      for frame in container.decode(video_stream):
+        frame_idx += 1
+        print(f"  processing frame {frame_idx}...", end="\r")
+        frame_results = model(
+          source=frame.to_image(),
+          **self.model_args
+        )
+        if len(frame_results[0].boxes.xyxy.cpu().tolist()) > 0:
+          plot = frame_results[0].plot(labels=False, line_width=1, conf=True)
+          time = format_time(float(frame.pts * video_stream.time_base))
+          img = annotate_image(plot, chapter_path, time, conf=None)
+          cv2.imwrite(os.path.join(peek_dir, f"{self.next_track_index}.jpg"), img)
+          self.next_track_index += 1
+        
   def track_video(self, chapter_path):
     """
     Uses ultralytics built-in tracker to automatically track a video with OpenCV.
     This is faster but it fails with GoPro Audio format, requiring reformatting.
     """
-    print(f"Processing video: {chapter_path} on device {self.device}. Might take some time...")
+    print(f"Processing video: {chapter_path} on device {self.model_args['device']}. Might take some time...")
     model = YOLO(self.model_path)
 
     results = model.track(
@@ -76,7 +101,8 @@ class Model():
       stream=True,
     )
 
-    return results
+    chapter_id = chapter_path.replace(f"{self.videos_folder}/", "")
+    self.save_chapter_results(chapter_id, results)
 
   def live_track(self, chapter_path, output_folder='./output/'):
     """
@@ -118,9 +144,7 @@ class Model():
     processed_videos = []
 
     if valid_video(self.videos_folder):
-      print("processing only one video...")
-      chapter_results = self.run_tracker(self.videos_folder)
-      self.save_chapter_results(self.videos_folder, chapter_results)
+      self.inference_type(self.videos_folder)
       processed_videos.append(self.videos_folder)
     else:
       for (root, _, files) in os.walk(self.videos_folder):
@@ -130,9 +154,7 @@ class Model():
           stereo_filter = self.stereo_prefix is None or file.startswith(self.stereo_prefix)
           if valid_video(file) and stereo_filter:
             chapter_path = os.path.join(root, file)
-            chapter_id = chapter_path.replace(f"{self.videos_folder}/", "")
-            chapter_results = self.run_tracker(chapter_path)
-            self.save_chapter_results(chapter_id, chapter_results)
+            self.inference_type(chapter_path)
             processed_videos.append(chapter_path)
 
     if len(processed_videos) == 0:
@@ -159,7 +181,6 @@ def main(video_path, max_video_cnt, stereo_prefix, output_path='./output', mobil
   video_path = convert_abs_path(video_path)
   output_path = convert_abs_path(output_path)
   
-  # remove previous predictions first
   if os.path.exists(output_path):
     shutil.rmtree(output_path)
   os.makedirs(output_path)
@@ -183,11 +204,11 @@ if __name__ == "__main__":
   parser.add_argument("--stereo_prefix", type=str, help="Prefix to filter stereo BRUVS")
   parser.add_argument("--limit", type=int, default=1000, help="Maximum videos to process")
   parser.add_argument("--output", type=str, default="./output", help="Output directory for the results")
-  parser.add_argument("--mobile", action="store_true", help="Use mobile model: 50% faster, slightly less accurate than humans")
+  parser.add_argument("--peek", action="store_true", help="Use peek mode: 5x faster but only finds interesting frames, without tracking/computing MaxN")
   parser.add_argument("--live", action="store_true", help="Show live tracking video for debugging purposes")
   args = parser.parse_args()
 
   # avoid duplicate libraries exception caused by numpy installation
   os.environ["KMP_DUPLICATE_LIB_OK"]="True"
 
-  main(args.input, args.limit, args.stereo_prefix, args.output, args.mobile, args.live)
+  main(args.input, args.limit, args.stereo_prefix, args.output, args.peek, args.live)

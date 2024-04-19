@@ -27,7 +27,8 @@ def annotate_image(img, chapter_path, time, conf):
 
     # Position the text on the white padding
     cv2.putText(new_image, f"Video: {chapter_path}", (10, img.shape[0] + 30), font, font_scale, font_color, line_type)
-    cv2.putText(new_image, f"Confidence: {round(conf, 2)}", (10, img.shape[0] + 60), font, font_scale, font_color, line_type)
+    if conf:
+        cv2.putText(new_image, f"Confidence: {round(conf, 2)}", (10, img.shape[0] + 60), font, font_scale, font_color, line_type)
     cv2.putText(new_image, f"Time: {time}", (10, img.shape[0] + 90), font, font_scale, font_color, line_type)
 
     return new_image
