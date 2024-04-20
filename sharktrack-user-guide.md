@@ -128,10 +128,11 @@ python app.py --input <path_to_video_folder>
 #### Additional Arguments
 The additional input arguments below provide additional functionality
 - `--input` Path to the video folder. SharkTrack takes a folder of arbitrary depth as input and processes all .mp4 videos in it.
-- `--stereo_prefix` If your folder contains Stereo-BRUVS, you can tell SharkTrack to only process the left or right video by passing the prefix of the videos you want to process (i.e. `python app.py --stereo_prefix LGX`)
+- `--stereo_prefix` Run the model only on video whose filename starts with a specific prefix. For example, you can run `python app.py --stereo_prefix L` to only process videos starting with "L" (useful for Stereo-BRUVS).
 - `--limit` Limit of videos to process (default=1000)
 - `--conf` Set custom confidence threshold, default=0.25. (i.e. `python app.py --conf 0.8`) 
 - `--output` Path to output folder (default=`./output`)
+- `--peek` Run the model in [peek mode](#sharktrackpeek-mode)
 - `--live` output a tracked video like [this](https://drive.google.com/file/d/1b_74wdPXyJPe2P-m1c45jjsV2C5Itr-R/view?usp=sharing)
 
 ## SharkTrackPeek Mode
@@ -141,7 +142,7 @@ This "peek" version runs 5x faster, taking 15% of real video time. However, peek
 
 You can activate it by adding the `--peek` argument (i.e.`python app.py --peek` )
 
-The output will cointain an `interesting_frames` folder, listing all the detections found by the model.
+The output will contain a folder names `peek_frames`, listing all the detections found by the model.
 
 This mode is particularly useful if you are doing field deployment and want to compute a quick overview of your daily videos, but you can't leave your machine running for hours.
 
