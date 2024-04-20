@@ -62,7 +62,7 @@ class Model():
     Tracks keyframes using PyAv to overcome the GoPro audio format issue.
     """
     print(f"Processing video: {chapter_path} on device {self.model_args['device']}")
-    peek_dir = os.path.join(self.output_path, "interesting_frames")
+    peek_dir = os.path.join(self.output_path, "peek_frames")
     os.makedirs(peek_dir, exist_ok=True)
 
     model = YOLO(self.model_path)
