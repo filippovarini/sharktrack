@@ -11,11 +11,15 @@ def format_time(seconds):
 
     # Extract minutes, seconds, and milliseconds
     minutes = int(td.total_seconds() // 60)
+    hours = 0
+    if minutes > 60:
+        hours = minutes // 60
+        minutes = minutes % 60
     seconds = int(td.total_seconds() % 60)
     milliseconds = int(td.microseconds / 10000)  # Convert microseconds to milliseconds and round to 2 digits
 
     # Format the time string
-    time_str = f"{minutes:02}m:{seconds:02}s"
+    time_str = f"{hours:02}h:{minutes:02}m:{seconds:02}s"
     return time_str
 
 def unformat_time(time_str):
