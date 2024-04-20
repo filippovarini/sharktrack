@@ -182,7 +182,6 @@ def main(video_path, max_video_cnt, stereo_prefix, output_path='./output', peek=
   video_path = convert_abs_path(video_path)
   output_path = convert_abs_path(output_path)
 
-  print(video_path, max_video_cnt, stereo_prefix, output_path, peek, live, conf, device_override)
   
   if os.path.exists(output_path):
     shutil.rmtree(output_path)
