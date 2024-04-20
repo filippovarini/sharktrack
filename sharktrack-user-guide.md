@@ -7,10 +7,9 @@
 * <a href="#our-ask-to-sharktrack-user">Our Ask to SharkTrack user</a>
 * <a href="#quick-tutorial">Quick Tutorial</a>
 * <a href="#step-by-step">Detailed Guide</a>
-* <a href="#how-fast-is-sharktrack-can-i-use-it-on-my-laptop">How fast is SharkTrack Can I use it on my laptop?</a>
-* <a href="#model-types-mobile-vs-analyst">Model Types: Mobile vs Analyst</a>
-* <a href="#can-i-trust-its-accuracy">Can I trust it's accuracy?</a>
-* <a href="#next-steps">Next steps</a>
+* <a href="#sharktrackpeek-mode">SharkTrack Peek Mode</a>
+* <a href="#how-fastaccurate-is-sharktrack">How Fast and Accurate is SharkTrack?</a>
+* <a href="#next-steps">Next Steps</a>
 
 ## Overview
 This page provides a guide on running the SharkTrack ML model on your BRUVS videos to detect shark in them. 
@@ -104,15 +103,7 @@ Now you have the downloaded the model and you have the Terminal application open
         pip install -r requirements.txt
         ```
     
-
-
-
-#### Troubleshooting
-Below you can find solutions to common problems encountered.
-- *The terminal/prompt is showing an error saying I need `git`* Go ahead and [install it](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git). Alternatively, download the latest "source code"  [from here](https://github.com/filippovarini/sharktrack/releases).
-- *`python -m venv venv` says `python` not found* Try running `python3 -m venv venv`
-- *`python -m venv venv` says `venv` module not found* Check the python version by running `python --version` and make sure it's older than 3.8.If not download it [here](https://www.python.org/downloads/). Once it's downloaded, try running the same command. If it still fails, run `python3 -m venv venv`
-
+*If you encounter any problem, check out the [troubleshooting](#troubleshooting) section.*
 ### Running the Model
 
 You now are ready to run SharkTrack! 
@@ -132,21 +123,45 @@ python app.py --input <path_to_video_folder>
 
 > After the model finishes running, it will show how many tracks it found! You can now check the results in the output folder. Now it is time to **Generate MaxN**. Move to the [next page for instructions](./annotation-pipelines.md).
 
+> ⏰ The model takes 0.75% video time to run on CPU. If you need a faster model, check the [SharkTrack Peek Mode](#sharktrackpeek-mode)
+
 #### Additional Arguments
 The additional input arguments below provide additional functionality
 - `--input` Path to the video folder. SharkTrack takes a folder of arbitrary depth as input and processes all .mp4 videos in it.
 - `--stereo_prefix` If your folder contains Stereo-BRUVS, you can tell SharkTrack to only process the left or right video by passing the prefix of the videos you want to process (i.e. `python app.py --stereo_prefix LGX`)
 - `--limit` Limit of videos to process (default=1000)
 - `--output` Path to output folder (default=`./output`)
-- `--mobile` Whether to run the mobile version of the model. More info [here](#mobile-vs-analyst). Example: `python app.py --mobile` 
-- `--live` Boolean, pass it to output the same input video with a live detection annotation. Example: `python app.py --live`
+- `--live` output a tracked video like [this](https://drive.google.com/file/d/1b_74wdPXyJPe2P-m1c45jjsV2C5Itr-R/view?usp=sharing)
+
+## SharkTrackPeek Mode
+You can use SharkTrack to extract interesting frames in the video, without tracking Elasmobranchs. 
+
+This "peek" version runs 5x faster, taking 15% of real video time. However, peek mode will only output interesting frames, without the possibility of computing MaxN. 
+
+You can activate it by adding the `--peek` argument (i.e.`python app.py --peek` )
+
+The output will cointain an `interesting_frames` folder, listing all the detections found by the model.
+
+This mode is particularly useful if you are doing field deployment and want to compute a quick overview of your daily videos, but you can't leave your machine running for hours.
+
+> **Note** We recommend trying the default mode first, as it provides finer grained and more accurate information.
+
+## Troubleshooting
+Below you can find solutions to common problems encountered.
+
+### Installation and Setup
+- *The terminal/prompt is showing an error saying I need `git`* Go ahead and [install it](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git). Alternatively, download the latest "source code"  [from here](https://github.com/filippovarini/sharktrack/releases).
+- *`python -m venv venv` says `python` not found* Try running `python3 -m venv venv` or `py -m venv venv` 
+- *`python -m venv venv` says `venv` module not found* Check the python version by running `python --version` and make sure it's older than 3.8.If not download it [here](https://www.python.org/downloads/). Once it's downloaded, try running the same command. If it still fails, run `python3 -m venv venv`
 
 ### GoPro Limitation 📹⛔️
-The model uses `OpenCV` speed-up the video read and achieve creditable speed for its size. Unfortunately, OpenCV fails with the GoPro audio encoding (GoPro AAC), as documented [here](https://stackoverflow.com/questions/78039408/cv2-ffmpeg-grabframe-packet-read-max-attempts-exceeded-error-after-exactly-rea).
+If the Command Prompt/Terminal shows you the following message
+```bash
+[ WARN:0@379.898] global cap_ffmpeg_impl.hpp:1541 grabFrame packet read max attempts exceeded, if your video have multiple streams (video, audio) try to increase attempt limit by setting environment variable OPENCV_FFMPEG_READ_ATTEMPTS (current value is 10000)
+```
+it means that your GoPro version is incompatible with the software (if interested, learn more [here](https://stackoverflow.com/questions/78039408/cv2-ffmpeg-grabframe-packet-read-max-attempts-exceeded-error-after-exactly-rea)).
 
-> Therefore, the model can't process GoPro videos
-
-To solve this issue, we have provided a [script](./scripts/reformat_gopro.py) to reformat the videos by removing the audio stream. 
+Therefore, the model can't process your videos. To solve this issue, we have provided a [script](./scripts/reformat_gopro.py) to reformat the videos by removing the audio stream. 
 
 > **NOTE** You need to have `ffmpeg` installed. Check this by running `ffmpeg -version`. If you don't have it, download it [here](https://ffmpeg.org/download.html) by following [this](https://www.youtube.com/watch?v=22vmzTs5BoE) tutorial. Close and re-open the Prompt/Terminal once you download it.
 
@@ -174,20 +189,13 @@ The good news is that this script is an alternative command to copy data. Theref
 
 If you know of a better solution, please [email us](mailto:fppvrn@gmail.com?subject=SharkTrackSuggestion)!
 
-## How fast is SharkTrack? Can I use it on my laptop?
-We have provided 2 SharkTrack models, the mobile and analyst models. Both models are able to run on the CPU. The analyst model is more accurate, but takes more. 
-You can find a more thorough comparison [here](#model-types-mobile-vs-analyst).
-
-As a rule of thumb, we suggest running the more accurate model first. If that is too slow, you can switch to the mobile model by simply passing the `--mobile` in the [run script](#2-running-the-model).
-
-## Model Types: Mobile vs Analyst
-|Model|Accuracy (F1)| CPU Inference Time | Limitations | Good for
+## How fast/accurate is SharkTrack?
+|Mode|Feature| Inference Time | Limitations | Good for
 |--|--|--| --| --|
-|`analyst`| 0.85 | 1.5x video speed | Can't process GoPro | Above-human-level detection accuracy
-|`mobile`|0.83 | 3.5x video speed | Unstable tracking | Quick overview of daily BRUVS deployment
+|`analyst` (default)| Compute MaxN | 45m per video-hour | Slower and can't process some GoPro videos | Species-ID and MaxN
+|`peek`| Extract interesting frames | 9m per video-hour | Doesn't support annotation and outputs many more frames to review | Quick overview of daily BRUVS deployment
 
-## Can I trust it's accuracy?
-The `analyst` model outperforms human accuracy, which is at the level of the `mobile`, according to [Ditria et al 2020](https://www.frontiersin.org/articles/10.3389/fmars.2020.00429/full).
+Both models achieve a classification accuracy of 0.86 which above human-level performance, according to [Ditria et al 2020](https://www.frontiersin.org/articles/10.3389/fmars.2020.00429/full).
 
 Additionally, the pipeline is designed to minimise False Positives and leverage human knowledge. That is, it has a very low confidence threshold. This ensures close to all sharks are detected, but causes 5x "garbage detections", which the user manually rejects. We found that researchers are happier to have control over the rejection of the detections, knowing that everything was captured.
 

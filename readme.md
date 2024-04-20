@@ -58,15 +58,18 @@ Researchers also use SharkTrack during sampling, to process BRUVS overnight and 
 
 
 We have two main types of users:
-### Field Researcher
-They are currently doing BRUVS deployment. They want their daily videos to be processed overnight to share detections with the team and externally and have a precise idea of which sampling site records more sharks.
-
-SharkTrack helps these users with the `mobile` model, which processes up to 25h of BRUVS overnight on a *CPU* without access to WIFI. The model prioritises speed over acuracy, so it is designed to obtain a quick overview, rather than accurate metrics.
-
 ### BRUVS Analyst
 They analyse the BRUVS to compute accurate MaxN metrics. High accuracy is crucial to them, and they have less strict time constraints.
 
-SharkTrack helps these users with the `analyst` model, which achieves higher accuracy than humans. The model prioritises accuracy over speed, and takes twice the time to run on *CPU*.
+They use the default SharkTrack mode, called `analyst`, to detect Elasmobranch and easily annotate the species and compute MaxN.
+
+### Field Researcher
+They are currently doing BRUVS deployment. They want their daily videos to be processed overnight to share detections with the team and externally and have a precise idea of which sampling site records more sharks.
+
+They can use the `peek` mode of SharkTrack. This mode extracts interesting frames from the video, without providing annotation or MaxN support, but it is helpful to have a quick overview of their daily videos. 
+
+You can check more about the two versions of SharkTrack ][here](./sharktrack-user-guide.md#how-fastaccurate-is-sharktrack)
+
 
 ## How people run SharkTrack?
 SharkTrack is a publicly-available model, and the [SharkTrack User Guide](./sharktrack-user-guide.md) provides instructions for running it using our Python scripts. Many of our users run SharkTrack on their own, either on the cloud or on their local computers.
