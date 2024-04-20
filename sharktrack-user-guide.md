@@ -130,6 +130,7 @@ The additional input arguments below provide additional functionality
 - `--input` Path to the video folder. SharkTrack takes a folder of arbitrary depth as input and processes all .mp4 videos in it.
 - `--stereo_prefix` If your folder contains Stereo-BRUVS, you can tell SharkTrack to only process the left or right video by passing the prefix of the videos you want to process (i.e. `python app.py --stereo_prefix LGX`)
 - `--limit` Limit of videos to process (default=1000)
+- `--conf` Set custom confidence threshold, default=0.25. (i.e. `python app.py --conf 0.8`) 
 - `--output` Path to output folder (default=`./output`)
 - `--live` output a tracked video like [this](https://drive.google.com/file/d/1b_74wdPXyJPe2P-m1c45jjsV2C5Itr-R/view?usp=sharing)
 

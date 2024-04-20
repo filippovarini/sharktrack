@@ -13,7 +13,7 @@ import torch
 import av.datasets
 
 class Model():
-  def __init__(self, videos_folder, max_video_cnt, stereo_prefix, output_path, peek=False, device_override=None):
+  def __init__(self, videos_folder, max_video_cnt, stereo_prefix, output_path, peek=False, device_override=None, conf=0.25):
     self.videos_folder = videos_folder
     self.max_video_cnt = max_video_cnt
     self.stereo_prefix = stereo_prefix
@@ -22,7 +22,7 @@ class Model():
     self.model_path = "models/sharktrack.pt"
 
     self.model_args = {
-      "conf": 0.25,
+      "conf": conf,
       "iou": 0.5,
       "device": torch.device(device_override) if device_override else torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'),
       "verbose": False,
@@ -32,6 +32,7 @@ class Model():
       print("NOTE: You are using the model 'peek' mode. Please be aware of the following:")
       print("  ✅ Runs significantly faster")
       print("  ⛔️ You won't be able to compute MaxN, but only find interesting frames")
+      print("  💡 You can safely ignore the ffmpeg warnings below")
       print("-" * 20)
       print("")
       self.inference_type = self.keyframe_detection
@@ -80,7 +81,7 @@ class Model():
           **self.model_args
         )
         if len(frame_results[0].boxes.xyxy.cpu().tolist()) > 0:
-          plot = frame_results[0].plot(labels=False, line_width=1, conf=True)
+          plot = frame_results[0].plot(line_width=2)
           time = format_time(float(frame.pts * video_stream.time_base))
           img = annotate_image(plot, chapter_path, time, conf=None)
           cv2.imwrite(os.path.join(peek_dir, f"{self.next_track_index}.jpg"), img)
@@ -177,9 +178,11 @@ def convert_abs_path(path):
   return path
 
 
-def main(video_path, max_video_cnt, stereo_prefix, output_path='./output', mobile=False, live=False, device_override=None):
+def main(video_path, max_video_cnt, stereo_prefix, output_path='./output', peek=False, live=False, conf=0.25, device_override=None):
   video_path = convert_abs_path(video_path)
   output_path = convert_abs_path(output_path)
+
+  print(video_path, max_video_cnt, stereo_prefix, output_path, peek, live, conf, device_override)
   
   if os.path.exists(output_path):
     shutil.rmtree(output_path)
@@ -190,8 +193,9 @@ def main(video_path, max_video_cnt, stereo_prefix, output_path='./output', mobil
     max_video_cnt,
     stereo_prefix,
     output_path,
-    mobile,
-    device_override=device_override
+    peek,
+    device_override=device_override,
+    conf=conf
   )
   if live:
     model.live_track(video_path)
@@ -203,6 +207,7 @@ if __name__ == "__main__":
   parser.add_argument("--input", type=str, default="input_videos", help="Path to the video folder")
   parser.add_argument("--stereo_prefix", type=str, help="Prefix to filter stereo BRUVS")
   parser.add_argument("--limit", type=int, default=1000, help="Maximum videos to process")
+  parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
   parser.add_argument("--output", type=str, default="./output", help="Output directory for the results")
   parser.add_argument("--peek", action="store_true", help="Use peek mode: 5x faster but only finds interesting frames, without tracking/computing MaxN")
   parser.add_argument("--live", action="store_true", help="Show live tracking video for debugging purposes")
@@ -211,4 +216,4 @@ if __name__ == "__main__":
   # avoid duplicate libraries exception caused by numpy installation
   os.environ["KMP_DUPLICATE_LIB_OK"]="True"
 
-  main(args.input, args.limit, args.stereo_prefix, args.output, args.peek, args.live)
+  main(args.input, args.limit, args.stereo_prefix, args.output, args.peek, args.live, args.conf)
