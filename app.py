@@ -84,7 +84,7 @@ class Model():
           plot = frame_results[0].plot(line_width=2)
           time = format_time(float(frame.pts * video_stream.time_base))
           img = annotate_image(plot, chapter_path, time, conf=None)
-          cv2.imwrite(os.path.join(peek_dir, f"{self.next_track_index}.jpg"), img)
+          cv2.imwrite(os.path.join(peek_dir, f"{os.path.basename(chapter_path)}_{self.next_track_index}.jpg"), img)
           self.next_track_index += 1
         
   def track_video(self, chapter_path):
