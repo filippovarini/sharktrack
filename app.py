@@ -1,5 +1,4 @@
-from utils.sharktrack_annotations import save_tracker_output, save_peek_output
-from utils.image_processor import annotate_image
+from utils.sharktrack_annotations import save_tracker_output, save_peek_output, save_monospecies_output
 from utils.time_processor import format_time
 from scripts.reformat_gopro import valid_video
 from argparse import ArgumentParser
@@ -36,14 +35,18 @@ class Model():
       print("-" * 20)
       print("")
       self.inference_type = self.keyframe_detection
-      self.model_args["imgsz"] = 320
+      self.model_args["imgsz"] = kwargs["imgsz"]
       self.save_output = save_peek_output
+    elif kwargs["monospecies"]:
+      self.inference_type = self.keyframe_detection
+      self.model_args["imgsz"] = kwargs["imgsz"]
+      self.save_output = save_monospecies_output
     else:
       self.inference_type = self.track_video
       self.fps = 5
       self.model_args["tracker"] = "trackers/tracker_3fps.yaml"
       self.model_args["persist"] = True
-      self.model_args["imgsz"] = 640
+      self.model_args["imgsz"] = kwargs["imgsz"]
       self.save_output = save_tracker_output
       
     self.next_track_index = 0
@@ -100,16 +103,19 @@ class Model():
     chapter_id = chapter_path.replace(f"{self.input_path}/", "")
     self.save_chapter_results(chapter_id, results, **{"fps": self.fps})
 
-  def live_track(self, chapter_path, output_folder='./output/'):
+  def live_track(self, chapter_path, output_folder='./output'):
     """
     Plot the live tracking video for debugging purposes
     """
     print("Live tracking video...")
-    assert valid_video(chapter_path), f"⚠️ Live Tracking is heavy so it can be done on only one video at a time. Please provide a valid video path."
+    if not valid_video(chapter_path):
+      print(f"⚠️ Live Tracking is heavy so it can be done on only one video at a time. Please provide the full path of a single video with the --input argument")
+      shutil.rmtree(output_folder)
+      return
     cap = cv2.VideoCapture(chapter_path)
 
     filename = chapter_path.split('/')[-1]
-    FILE_OUTPUT = f"{output_folder}{filename.split('.')[0]}_tracked.avi"
+    FILE_OUTPUT = os.path.join(output_folder, f"{filename.split('.')[0]}_tracked.avi")
     frame_width = int(cap.get(3))
     frame_height = int(cap.get(4))
 
@@ -117,10 +123,12 @@ class Model():
 
     model = YOLO(self.model_path)
 
+    frame_idx = 0
     while cap.isOpened():
       success, frame = cap.read()
-
       if success:
+        frame_idx += 1
+        print(f"  processing frame {frame_idx}...", end="\r")
         results = model.track(frame, **self.model_args)
         annotated_frame = results[0].plot()
 
@@ -191,9 +199,10 @@ if __name__ == "__main__":
   parser.add_argument("--input", type=str, default="input_videos", help="Path to the video folder")
   parser.add_argument("--stereo_prefix", type=str, help="Prefix to filter stereo BRUVS")
   parser.add_argument("--limit", type=int, default=1000, help="Maximum videos to process")
+  parser.add_argument("--imgsz", type=int, default=640, help="Image size the model processes. Default 640. Lower is faster but lower accuracy and vice versa.")
   parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
-  parser.add_argument("--imgsz", type=int, default=None, help="Confidence threshold")
   parser.add_argument("--output", type=str, default="./output", help="Output directory for the results")
+  parser.add_argument("--monospecies", action="store_true", help="All elasmobranchs are of the same species")
   parser.add_argument("--peek", action="store_true", help="Use peek mode: 5x faster but only finds interesting frames, without tracking/computing MaxN")
   parser.add_argument("--live", action="store_true", help="Show live tracking video for debugging purposes")
   args = parser.parse_args()

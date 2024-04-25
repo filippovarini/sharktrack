@@ -20,6 +20,26 @@ def save_peek_output(chapter_id, frame_results, out_folder, next_track_index, **
       cv2.imwrite(os.path.join(peek_dir, f"{os.path.basename(chapter_id)}_{next_track_index}.jpg"), img)
       next_track_index += 1
   return next_track_index
+
+def save_monospecies_output(chapter_id, frame_results, out_folder, next_track_index, **kwargs):
+  """
+  In this case, the user specifies that all sharks are of the same species. Therefore
+  we don't need the tracker, and will just save the frame with MaxN
+  """
+  video_name = os.path.basename(chapter_id)
+  curr_maxn_detections = [f for f in os.listdir(out_folder) if f.endswith(f"{video_name}.jpg")]
+  assert len(curr_maxn_detections) <= 1, "Must have at most one MaxN detection"
+  curr_maxn = 0 if len(curr_maxn_detections) == 0 else int(curr_maxn_detections[0].split("-")[0])
+
+  new_maxn = len(frame_results[0].boxes.xyxy.cpu().tolist())
+  if new_maxn > curr_maxn:
+    if len(curr_maxn_detections) > 0:
+      os.remove(os.path.join(out_folder, curr_maxn_detections[0]))
+    plot = frame_results[0].plot(line_width=2)
+    img = annotate_image(plot, chapter_id, kwargs["time"], conf=None)
+    cv2.imwrite(os.path.join(out_folder, f"{new_maxn}-{video_name}.jpg"), img)
+
+  return next_track_index
     
 
 def extract_frame_results(frame_results):
