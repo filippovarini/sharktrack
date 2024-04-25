@@ -133,7 +133,9 @@ The additional input arguments below provide additional functionality
 - `--conf` Set custom confidence threshold, default=0.25. (i.e. `python app.py --conf 0.8`) 
 - `--output` Path to output folder (default=`./output`)
 - `--peek` Run the model in [peek mode](#sharktrackpeek-mode)
-- `--live` output a tracked video like [this](https://drive.google.com/file/d/1b_74wdPXyJPe2P-m1c45jjsV2C5Itr-R/view?usp=sharing)
+- `--imgsz` Select the image size the model processes. Default 640. Lower is faster but lower accuracy and vice versa.
+- `--monospecies` Assume all sharks are of the same species and outputs directly the MaxN frame
+- `--live` output a tracked video like [this](https://drive.google.com/file/d/1b_74wdPXyJPe2P-m1c45jjsV2C5Itr-R/view?usp=sharing). ⚠️ Requires to provide the full video path with the `--input` argument (i.e. `python app.py --live --input input_folder/sample.mp4`)
 
 ## SharkTrackPeek Mode
 You can use SharkTrack to extract interesting frames in the video, without tracking Elasmobranchs. 
