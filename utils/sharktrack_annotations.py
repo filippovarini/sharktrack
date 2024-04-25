@@ -11,6 +11,17 @@ SHARKTRACK_COLUMNS = ["chapter_path", "frame", "time", "track_metadata", "track_
 
 classes_mapping = ['elasmobranch']
 
+def save_peek_output(chapter_id, frame_results, out_folder, next_track_index, **kwargs):
+  peek_dir = os.path.join(out_folder, "peek_frames")
+  os.makedirs(peek_dir, exist_ok=True)
+  if len(frame_results[0].boxes.xyxy.cpu().tolist()) > 0:
+      plot = frame_results[0].plot(line_width=2)
+      img = annotate_image(plot, chapter_id, kwargs["time"], conf=None)
+      cv2.imwrite(os.path.join(peek_dir, f"{os.path.basename(chapter_id)}_{next_track_index}.jpg"), img)
+      next_track_index += 1
+  return next_track_index
+    
+
 def extract_frame_results(frame_results):
     boxes = frame_results.boxes.xyxy.cpu().tolist()
     tracks = frame_results.boxes.id
@@ -21,7 +32,7 @@ def extract_frame_results(frame_results):
 
     return zip(boxes, track_ids, confidences, classes), plot
 
-def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_track_index):
+def save_tracker_output(chapter_id, chapter_results, out_folder, next_track_index, **kwargs):
   """
   Turns ultralytics.Results into MOT format
   Postprocesses the results
@@ -33,7 +44,7 @@ def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_trac
   orig_shape = None
 
   for frame_id, frame_results in enumerate(chapter_results):
-      time = format_time(frame_id / fps)
+      time = format_time(frame_id / kwargs["fps"])
 
       if orig_shape is None:
         orig_shape = frame_results.orig_shape
@@ -68,12 +79,12 @@ def build_chapter_output(chapter_id, chapter_results, fps, out_folder, next_trac
   tracks_found = 0
 
   if not results_df.empty:
-    postprocessed_results = postprocess(results_df, fps, next_track_index)
+    postprocessed_results = postprocess(results_df, kwargs["fps"], next_track_index)
 
     if not postprocessed_results.empty:
       postprocessed_results = postprocessed_results[SHARKTRACK_COLUMNS]
       concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
-      write_max_conf(postprocessed_results, max_conf_images, out_folder, fps)
+      write_max_conf(postprocessed_results, max_conf_images, out_folder, kwargs["fps"])
       new_next_track_index = postprocessed_results["track_id"].max() + 1
       tracks_found = new_next_track_index - next_track_index
       next_track_index = new_next_track_index

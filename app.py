@@ -1,4 +1,4 @@
-from utils.sharktrack_annotations import build_chapter_output
+from utils.sharktrack_annotations import save_tracker_output, save_peek_output
 from utils.image_processor import annotate_image
 from utils.time_processor import format_time
 from scripts.reformat_gopro import valid_video
@@ -13,22 +13,22 @@ import torch
 import av.datasets
 
 class Model():
-  def __init__(self, videos_folder, max_video_cnt, stereo_prefix, output_path, peek=False, device_override=None, conf=0.25):
-    self.videos_folder = videos_folder
-    self.max_video_cnt = max_video_cnt
-    self.stereo_prefix = stereo_prefix
+  def __init__(self, input_path, output_path, **kwargs):
+    self.input_path = input_path
+    self.max_video_cnt = kwargs["limit"]
+    self.stereo_prefix = kwargs["stereo_prefix"]
     self.output_path = output_path
 
     self.model_path = "models/sharktrack.pt"
 
     self.model_args = {
-      "conf": conf,
+      "conf": kwargs["conf"],
       "iou": 0.5,
-      "device": torch.device(device_override) if device_override else torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'),
+      "device": torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'),
       "verbose": False,
     }
 
-    if peek:
+    if kwargs["peek"]:
       print("NOTE: You are using the model 'peek' mode. Please be aware of the following:")
       print("  ✅ Runs significantly faster")
       print("  ⛔️ You won't be able to compute MaxN, but only find interesting frames")
@@ -37,12 +37,14 @@ class Model():
       print("")
       self.inference_type = self.keyframe_detection
       self.model_args["imgsz"] = 320
+      self.save_output = save_peek_output
     else:
       self.inference_type = self.track_video
       self.fps = 5
       self.model_args["tracker"] = "trackers/tracker_3fps.yaml"
       self.model_args["persist"] = True
       self.model_args["imgsz"] = 640
+      self.save_output = save_tracker_output
       
     self.next_track_index = 0
   
@@ -52,8 +54,8 @@ class Model():
     frame_skip = round(actual_fps / self.fps)
     return frame_skip
 
-  def save_chapter_results(self, chapter_id, yolo_results):
-    next_track_index = build_chapter_output(chapter_id, yolo_results, self.fps, self.output_path, self.next_track_index)
+  def save_chapter_results(self, chapter_id, yolo_results, **kwargs):
+    next_track_index = self.save_output(chapter_id, yolo_results, self.output_path, self.next_track_index, **kwargs)
     assert next_track_index is not None, f"Error saving results for {chapter_id}"
     self.next_track_index = next_track_index
 
@@ -62,13 +64,10 @@ class Model():
     Tracks keyframes using PyAv to overcome the GoPro audio format issue.
     """
     print(f"Processing video: {chapter_path} on device {self.model_args['device']}")
-    peek_dir = os.path.join(self.output_path, "peek_frames")
-    os.makedirs(peek_dir, exist_ok=True)
 
     model = YOLO(self.model_path)
 
     content = av.datasets.curated(chapter_path)
-    
     with av.open(content) as container:
       video_stream = container.streams.video[0]         # take only video stream
       video_stream.codec_context.skip_frame = 'NONKEY'  # and only keyframes (1fps)
@@ -80,12 +79,8 @@ class Model():
           source=frame.to_image(),
           **self.model_args
         )
-        if len(frame_results[0].boxes.xyxy.cpu().tolist()) > 0:
-          plot = frame_results[0].plot(line_width=2)
-          time = format_time(float(frame.pts * video_stream.time_base))
-          img = annotate_image(plot, chapter_path, time, conf=None)
-          cv2.imwrite(os.path.join(peek_dir, f"{os.path.basename(chapter_path)}_{self.next_track_index}.jpg"), img)
-          self.next_track_index += 1
+        time = format_time(float(frame.pts * video_stream.time_base))
+        self.save_chapter_results(chapter_path, frame_results, **{"time": time})
         
   def track_video(self, chapter_path):
     """
@@ -102,8 +97,8 @@ class Model():
       stream=True,
     )
 
-    chapter_id = chapter_path.replace(f"{self.videos_folder}/", "")
-    self.save_chapter_results(chapter_id, results)
+    chapter_id = chapter_path.replace(f"{self.input_path}/", "")
+    self.save_chapter_results(chapter_id, results, **{"fps": self.fps})
 
   def live_track(self, chapter_path, output_folder='./output/'):
     """
@@ -141,14 +136,14 @@ class Model():
 
 
   def run(self):
-    self.videos_folder = self.videos_folder
+    self.input_path = self.input_path
     processed_videos = []
 
-    if valid_video(self.videos_folder):
-      self.inference_type(self.videos_folder)
-      processed_videos.append(self.videos_folder)
+    if valid_video(self.input_path):
+      self.inference_type(self.input_path)
+      processed_videos.append(self.input_path)
     else:
-      for (root, _, files) in os.walk(self.videos_folder):
+      for (root, _, files) in os.walk(self.input_path):
         for file in files:
           if len(processed_videos) == self.max_video_cnt:
             break
@@ -159,15 +154,7 @@ class Model():
             processed_videos.append(chapter_path)
 
     if len(processed_videos) == 0:
-      print("No chapters found in the given folder")
-      print("Please ensure the folder structure resembles the following:")
-      print("videos_folder")
-      print("├── video1")
-      print("│   ├── chapter1.mp4")
-      print("│   ├── chapter2.mp4")
-      print("└── video2")
-      print("    ├── chapter1.mp4")
-      print("    ├── chapter2.mp4")
+      print("No BRUVS videos found in the given folder")
       return
 
     return processed_videos
@@ -178,25 +165,23 @@ def convert_abs_path(path):
   return path
 
 
-def main(video_path, max_video_cnt, stereo_prefix, output_path='./output', peek=False, live=False, conf=0.25, device_override=None):
-  video_path = convert_abs_path(video_path)
-  output_path = convert_abs_path(output_path)
+def main(**kwargs):
+  video_path = convert_abs_path(kwargs["input"])
+  output_path = convert_abs_path(kwargs["output"])
 
   
   if os.path.exists(output_path):
-    shutil.rmtree(output_path)
+    print("Error: Output directory already exists! Please provide a new output directory")
+    return
   os.makedirs(output_path)
 
   model = Model(
     video_path,
-    max_video_cnt,
-    stereo_prefix,
     output_path,
-    peek,
-    device_override=device_override,
-    conf=conf
+    **kwargs
   )
-  if live:
+
+  if kwargs["live"]:
     model.live_track(video_path)
   else:
     model.run()
@@ -207,6 +192,7 @@ if __name__ == "__main__":
   parser.add_argument("--stereo_prefix", type=str, help="Prefix to filter stereo BRUVS")
   parser.add_argument("--limit", type=int, default=1000, help="Maximum videos to process")
   parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
+  parser.add_argument("--imgsz", type=int, default=None, help="Confidence threshold")
   parser.add_argument("--output", type=str, default="./output", help="Output directory for the results")
   parser.add_argument("--peek", action="store_true", help="Use peek mode: 5x faster but only finds interesting frames, without tracking/computing MaxN")
   parser.add_argument("--live", action="store_true", help="Show live tracking video for debugging purposes")
@@ -215,4 +201,4 @@ if __name__ == "__main__":
   # avoid duplicate libraries exception caused by numpy installation
   os.environ["KMP_DUPLICATE_LIB_OK"]="True"
 
-  main(args.input, args.limit, args.stereo_prefix, args.output, args.peek, args.live, args.conf)
+  main(**vars(args))
