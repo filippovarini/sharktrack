@@ -31,7 +31,7 @@ Here we provide a guide to learn about SharkTrack. The guide is divided in the f
 ## Overview
 Elasmobranch researchers monitor their populations using Baited Remote Underwater Video Systems (BRUVS). This is a time-consuming process, as each video needs to be manually annotated. 
 
-SharkTrack is a Machine Learning model that uses computer vision to detect and track Elasmobranchii in BRUVS videos. It does not classify the species. However, by simply detecting video snippets with sharks, the model drastically speeds up BRUVS annotation. Additionally, this package provides users a workflow to annotate species ID from model detectios.
+SharkTrack is a Machine Learning model that uses computer vision to detect and track Elasmobranchii in BRUVS videos. It does not classify the species. However, by simply detecting video snippets with elasmobranchs, the model drastically speeds up BRUVS annotation. Additionally, this package provides users a workflow to annotate species ID from model detectios.
 
 > Therefore SharkTrack is an AI-enhanced workflow to convert raw BRUVS videos to MaxN, which has been tested 20x faster than traditional methods.
 
@@ -68,7 +68,7 @@ They are currently doing BRUVS deployment. They want their daily videos to be pr
 
 They can use the `peek` mode of SharkTrack. This mode extracts interesting frames from the video, without providing annotation or MaxN support, but it is helpful to have a quick overview of their daily videos. 
 
-You can check more about the two versions of SharkTrack ][here](./sharktrack-user-guide.md#how-fastaccurate-is-sharktrack)
+You can check more about the two versions of SharkTrack [here](./sharktrack-user-guide.md#how-fastaccurate-is-sharktrack)
 
 
 ## How people run SharkTrack?
@@ -76,7 +76,7 @@ SharkTrack is a publicly-available model, and the [SharkTrack User Guide](./shar
 
 That said, we know that Python can be a bit daunting to setup. Additionally, SharkTrack requires significant processing power which, despite we have designed it for mobile usage, might still be a challenge. Therefore, some users - particularly high-volume users - send us BRUVS videos (online or physical hard drives), which we run through SharkTrack, then we send back a results file. 
 
-If that is of interest for you, please read the [Bespoke Deployment](###bespoke-deployment) section.
+If that is of interest for you, please read the [Bespoke Deployment](#bespoke-deployment) section.
 
 Whether you're going to run SharkTrack on your own or work with us, usually the first step with a new user is just running our model on a short BRUVS video and seeing what happens, so if you're interested in trying this on your BRUVS, we can work out a way to transfer a set of example images, just [email us](mailto:fppvrn@gmail.com?subject=SharkTrack-Pilot).
 
