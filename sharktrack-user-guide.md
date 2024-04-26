@@ -37,6 +37,7 @@ If you don't have experience with Python or you find any error with the followin
     source venv/bin/activate
     pip install -r requirements.txt
     ```
+    If it fails, replace the first line with this command instead `python3 -m venv venv`.
     See [troubleshooting](#troubleshooting) for problems
 3. Run the model
     ```bash
@@ -197,7 +198,7 @@ If you know of a better solution, please [email us](mailto:fppvrn@gmail.com?subj
 |Mode|Feature| Inference Time | Limitations | Good for
 |--|--|--| --| --|
 |`analyst` (default)| Compute MaxN | 45m per video-hour | Slower and can't process some GoPro videos | Species-ID and MaxN
-|`peek`| Extract interesting frames | 9m per video-hour | Doesn't support annotation and outputs many more frames to review | Quick overview of daily BRUVS deployment
+|`peek`| Extract interesting frames | 9m per video-hour | Doesn't support annotation and outputs many more frames to review | Extract all frames with Elasmobranch
 
 Both models achieve a classification accuracy of 0.86 which above human-level performance, according to [Ditria et al 2020](https://www.frontiersin.org/articles/10.3389/fmars.2020.00429/full).
 
