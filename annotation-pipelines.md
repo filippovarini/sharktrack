@@ -103,7 +103,13 @@ If you want multiple users to annotate the detections, you can simply upload the
 ## Extract MaxN
 Amazing! You have cleaned all annotations, it's time to generate MaxN from it!
 
-*If you already have a prompt open, where you ran the model, you can skip to the third step*
+1. Go to https://sharktrack.wildflow.ai/
+2. Click "Calculate MaxN" > "Select Directory"
+3. Select the directory that contains the "detections/" directory and the "output.csv" file
+
+### I don't have bandwidth
+If you don't have access to bandwidth, you can compute MaxN locally by following the steps below:
+
 - Open the Prompt/Terminal at the `sharktrack` folder location as you did when running the model in the [User Guide](./sharktrack-user-guide.md) step.
 - Activate the virtual environment (guide [here](./sharktrack-user-guide.md#setup-environment))
 - Run `python scripts/compute_maxn.py --path <output_path>`, replacing `<output_path>` with the path of the folder that contains the `output.csv` file and cleaned `./detections`.
