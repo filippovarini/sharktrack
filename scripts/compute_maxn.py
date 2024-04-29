@@ -27,11 +27,11 @@ def clean_annotations_locally(output_path):
     return sharktrack_df
 
 def compute_species_max_n(cleaned_annotations):
-    frame_box_cnt = cleaned_annotations.groupby(["chapter_path", "frame", "class"], as_index=False).agg(time=("time", "first"), n=("track_id", "count"), tracks_in_maxn=("track_id", lambda x: list(x)))
+    frame_box_cnt = cleaned_annotations.groupby(["video_path", "video_directory", "video_name", "frame", "class"], as_index=False).agg(time=("time", "first"), n=("track_id", "count"), tracks_in_maxn=("track_id", lambda x: list(x)))
 
     # for each chapter, species, get the max n and return video, species, max_n, chapter, time when that happens
-    max_n = frame_box_cnt.sort_values("n", ascending=False).groupby(["chapter_path", "class"], as_index=False).head(1)
-    max_n = max_n.sort_values(["chapter_path", "n"], ascending=[True, False])
+    max_n = frame_box_cnt.sort_values("n", ascending=False).groupby(["video_path", "video_directory", "video_name", "class"], as_index=False).head(1)
+    max_n = max_n.sort_values(["video_path", "n"], ascending=[True, False])
     max_n = max_n.reset_index(drop=True)
 
     return max_n
