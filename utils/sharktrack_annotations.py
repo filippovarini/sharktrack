@@ -11,61 +11,24 @@ SHARKTRACK_COLUMNS = ["video_path", "video_directory", "video_name", "frame", "t
 
 classes_mapping = ['elasmobranch']
 
-def save_peek_output(chapter_id, frame_results, out_folder, next_track_index, **kwargs):
-  peek_dir = os.path.join(out_folder, "peek_frames")
-  os.makedirs(peek_dir, exist_ok=True)
-  if len(frame_results[0].boxes.xyxy.cpu().tolist()) > 0:
-      plot = frame_results[0].plot(line_width=2)
-      img = annotate_image(plot, chapter_id, kwargs["time"], conf=None)
-      cv2.imwrite(os.path.join(peek_dir, f"{os.path.basename(chapter_id)}_{next_track_index}.jpg"), img)
-      next_track_index += 1
-  return next_track_index
 
-def save_monospecies_output(video_path, frame_results, out_folder, next_track_index, **kwargs):
-  """
-  In this case, the user specifies that all sharks are of the same species. Therefore
-  we don't need the tracker, and will just save the frame with MaxN
-  """
-  video_name = os.path.basename(video_path)
-  curr_maxn_detections = [f for f in os.listdir(out_folder) if f.endswith(f"{video_name}.jpg")]
-  assert len(curr_maxn_detections) <= 1, "Must have at most one MaxN detection"
-  curr_maxn = 0 if len(curr_maxn_detections) == 0 else int(curr_maxn_detections[0].split("-")[0])
 
-  new_maxn = len(frame_results[0].boxes.xyxy.cpu().tolist())
-  if new_maxn > curr_maxn:
-    if len(curr_maxn_detections) > 0:
-      os.remove(os.path.join(out_folder, curr_maxn_detections[0]))
-    plot = frame_results[0].plot(line_width=2)
-    img = annotate_image(plot, video_path, kwargs["time"], conf=None)
-    cv2.imwrite(os.path.join(out_folder, f"{new_maxn}-{video_name}.jpg"), img)
-
-  return next_track_index
-    
-
-def extract_frame_results(frame_results):
+def extract_frame_results(frame_results, tracking):
     boxes = frame_results.boxes.xyxy.cpu().tolist()
     tracks = frame_results.boxes.id
     track_ids = tracks.int().cpu().tolist() if tracks is not None else []
     confidences = frame_results.boxes.conf.cpu().tolist()
     classes = frame_results.boxes.cls.cpu().tolist()
-    plot = frame_results.plot(conf=False, labels=False, line_width=1)
 
-    return zip(boxes, track_ids, confidences, classes), plot
+    return zip(boxes, confidences, classes, track_ids) if tracking else zip(boxes, confidences, classes)
 
-def save_analyst_output(video_path, model_results, out_folder, next_track_index, **kwargs):
-  data = []
-  max_conf_images = {}
+def extract_sightings(video_path, frame_results, frame_id, time, tracking=False):
+    track_results = extract_frame_results(frame_results, tracking)
 
-  orig_shape = None
-
-  for frame_id, frame_results in enumerate(model_results):
-      time = format_time(frame_id / kwargs["fps"])
-
-      if orig_shape is None:
-        orig_shape = frame_results.orig_shape
-
-      track_results, frame_plot = extract_frame_results(frame_results)
-      for box, preprocess_track_id, confidence, cls in track_results:
+    frame_results_rows = []
+    
+    for box, confidence, cls, *rest in track_results:
+          preprocess_track_id = next(iter(rest), "N/A")
           track_metadata = f"{video_path}/{preprocess_track_id}"
           row = {
               "video_path": video_path,
@@ -78,18 +41,31 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
               "ymin": box[1],
               "xmax": box[2],
               "ymax": box[3],
-              "h": orig_shape[0],
-              "w": orig_shape[1],
+              "h": frame_results.orig_shape[0],
+              "w": frame_results.orig_shape[1],
               "confidence": confidence,
               "class": classes_mapping[int(cls)],
               "track_metadata": track_metadata,
               "preprocess_track_id": preprocess_track_id,
           }
-          data.append(row)
-          if track_metadata not in max_conf_images or max_conf_images[track_metadata]["confidence"] < confidence:
-              max_conf_images[track_metadata] = {
-                  "confidence": confidence,
-                  "image": frame_plot,
+          frame_results_rows.append(row)
+
+    return frame_results_rows
+
+def save_analyst_output(video_path, model_results, out_folder, next_track_index, **kwargs):
+  data = []
+  max_conf_images = {}
+
+  for frame_id, frame_results in enumerate(model_results):
+          time = format_time(frame_id / kwargs["fps"])
+          sightings = extract_sightings(video_path, frame_results, frame_id, time, tracking=True)
+          data += sightings
+
+          for row in sightings:
+            if row["track_metadata"] not in max_conf_images or max_conf_images[row["track_metadata"]]["confidence"] < row["confidence"]:
+              max_conf_images[row["track_metadata"]] = {
+                  "confidence": row["confidence"],
+                  "image": frame_results.plot(conf=False, labels=False, line_width=1),
               }
 
   results_df = pd.DataFrame(data)
@@ -115,6 +91,44 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
 
   return next_track_index
 
+def save_peek_output(video_path, frame_results, out_folder, next_track_index, **kwargs):
+  # Save peek frames
+  peek_dir = os.path.join(out_folder, "peek_frames")
+  os.makedirs(peek_dir, exist_ok=True)
+  if len(frame_results[0].boxes.xyxy.cpu().tolist()) > 0:
+      plot = frame_results[0].plot(line_width=2)
+      img = annotate_image(plot, video_path, kwargs["time"], conf=None)
+      cv2.imwrite(os.path.join(peek_dir, f"{os.path.basename(video_path)}_{next_track_index}.jpg"), img)
+      next_track_index += 1
+
+      # Save sightings in csv
+      sightings = extract_sightings(video_path, frame_results[0], kwargs["frame_id"], kwargs["time"])
+      df = pd.DataFrame(sightings)
+      out_path = os.path.join(out_folder, "output.csv")
+      concat_df(df, out_path)
+
+  return next_track_index
+
+def save_monospecies_output(video_path, frame_results, out_folder, next_track_index, **kwargs):
+  """
+  In this case, the user specifies that all sharks are of the same species. Therefore
+  we don't need the tracker, and will just save the frame with MaxN
+  """
+  video_name = os.path.basename(video_path)
+  curr_maxn_detections = [f for f in os.listdir(out_folder) if f.endswith(f"{video_name}.jpg")]
+  assert len(curr_maxn_detections) <= 1, "Must have at most one MaxN detection"
+  curr_maxn = 0 if len(curr_maxn_detections) == 0 else int(curr_maxn_detections[0].split("-")[0])
+
+  new_maxn = len(frame_results[0].boxes.xyxy.cpu().tolist())
+  if new_maxn > curr_maxn:
+    if len(curr_maxn_detections) > 0:
+      os.remove(os.path.join(out_folder, curr_maxn_detections[0]))
+    plot = frame_results[0].plot(line_width=2)
+    img = annotate_image(plot, video_path, kwargs["time"], conf=None)
+    cv2.imwrite(os.path.join(out_folder, f"{new_maxn}-{video_name}.jpg"), img)
+
+  return next_track_index
+    
 def concat_df(df, output_path):
     if os.path.exists(output_path):
         existing_df = pd.read_csv(output_path)
