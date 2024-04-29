@@ -7,7 +7,7 @@ from utils.time_processor import format_time
 from image_processor import draw_bbox, annotate_image
 
 
-SHARKTRACK_COLUMNS = ["chapter_path", "frame", "time", "track_metadata", "track_id", "xmin", "ymin", "xmax", "ymax", "confidence", "class"]
+SHARKTRACK_COLUMNS = ["video_path", "video_directory", "video_name", "frame", "time", "cumulative_time", "xmin", "ymin", "xmax", "ymax", "w", "h", "confidence", "class", "track_metadata", "track_id"]
 
 classes_mapping = ['elasmobranch']
 
@@ -21,12 +21,12 @@ def save_peek_output(chapter_id, frame_results, out_folder, next_track_index, **
       next_track_index += 1
   return next_track_index
 
-def save_monospecies_output(chapter_id, frame_results, out_folder, next_track_index, **kwargs):
+def save_monospecies_output(video_path, frame_results, out_folder, next_track_index, **kwargs):
   """
   In this case, the user specifies that all sharks are of the same species. Therefore
   we don't need the tracker, and will just save the frame with MaxN
   """
-  video_name = os.path.basename(chapter_id)
+  video_name = os.path.basename(video_path)
   curr_maxn_detections = [f for f in os.listdir(out_folder) if f.endswith(f"{video_name}.jpg")]
   assert len(curr_maxn_detections) <= 1, "Must have at most one MaxN detection"
   curr_maxn = 0 if len(curr_maxn_detections) == 0 else int(curr_maxn_detections[0].split("-")[0])
@@ -36,7 +36,7 @@ def save_monospecies_output(chapter_id, frame_results, out_folder, next_track_in
     if len(curr_maxn_detections) > 0:
       os.remove(os.path.join(out_folder, curr_maxn_detections[0]))
     plot = frame_results[0].plot(line_width=2)
-    img = annotate_image(plot, chapter_id, kwargs["time"], conf=None)
+    img = annotate_image(plot, video_path, kwargs["time"], conf=None)
     cv2.imwrite(os.path.join(out_folder, f"{new_maxn}-{video_name}.jpg"), img)
 
   return next_track_index
@@ -52,33 +52,28 @@ def extract_frame_results(frame_results):
 
     return zip(boxes, track_ids, confidences, classes), plot
 
-def save_tracker_output(chapter_id, chapter_results, out_folder, next_track_index, **kwargs):
-  """
-  Turns ultralytics.Results into MOT format
-  Postprocesses the results
-  Saves Maximum Detection Confidence images
-  """
+def save_analyst_output(video_path, model_results, out_folder, next_track_index, **kwargs):
   data = []
   max_conf_images = {}
 
   orig_shape = None
 
-  for frame_id, frame_results in enumerate(chapter_results):
+  for frame_id, frame_results in enumerate(model_results):
       time = format_time(frame_id / kwargs["fps"])
 
       if orig_shape is None:
         orig_shape = frame_results.orig_shape
 
       track_results, frame_plot = extract_frame_results(frame_results)
-
-      for box, chapter_track_id, confidence, cls in track_results:
-          track_metadata = f"{chapter_id}/{chapter_track_id}"
+      for box, preprocess_track_id, confidence, cls in track_results:
+          track_metadata = f"{video_path}/{preprocess_track_id}"
           row = {
-              "chapter_path": chapter_id,
+              "video_path": video_path,
+              "video_directory": os.path.dirname(video_path).split("/")[-1],
+              "video_name": os.path.basename(video_path),
               "frame": frame_id,
               "time": time,
-              "track_metadata": track_metadata,
-              "chapter_track_id": chapter_track_id,
+              "cumulative_time": "N/A",
               "xmin": box[0],
               "ymin": box[1],
               "xmax": box[2],
@@ -87,6 +82,8 @@ def save_tracker_output(chapter_id, chapter_results, out_folder, next_track_inde
               "w": orig_shape[1],
               "confidence": confidence,
               "class": classes_mapping[int(cls)],
+              "track_metadata": track_metadata,
+              "preprocess_track_id": preprocess_track_id,
           }
           data.append(row)
           if track_metadata not in max_conf_images or max_conf_images[track_metadata]["confidence"] < confidence:
@@ -103,6 +100,7 @@ def save_tracker_output(chapter_id, chapter_results, out_folder, next_track_inde
 
     if not postprocessed_results.empty:
       postprocessed_results = postprocessed_results[SHARKTRACK_COLUMNS]
+      assert set(postprocessed_results.columns) == set(SHARKTRACK_COLUMNS)
       concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
       write_max_conf(postprocessed_results, max_conf_images, out_folder, kwargs["fps"])
       new_next_track_index = postprocessed_results["track_id"].max() + 1
@@ -112,7 +110,7 @@ def save_tracker_output(chapter_id, chapter_results, out_folder, next_track_inde
   print(f"Found {tracks_found} tracks!")
 
   # save a new row in the overview.csv file
-  overview_row = {"chapter_path": chapter_id, "tracks_found": tracks_found}
+  overview_row = {"video_path": video_path, "tracks_found": tracks_found}
   concat_df(pd.DataFrame([overview_row]), os.path.join(out_folder, "overview.csv"))
 
   return next_track_index
@@ -147,7 +145,7 @@ def postprocess(results, fps, next_track_index):
     # Set CopyOnWrite, according to https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy:~:text=2%0A40%20%203-,Returning%20a%20view%20versus%20a%20copy,-%23
     pd.options.mode.copy_on_write = True
     filtered_results = results.loc[~false_positive]
-    filtered_results["track_id"] = filtered_results.groupby("chapter_track_id").ngroup(ascending=True) + next_track_index
+    filtered_results["track_id"] = filtered_results.groupby("preprocess_track_id").ngroup(ascending=True) + next_track_index
 
     return filtered_results
 
@@ -164,7 +162,7 @@ def write_max_conf(poostprocessed_results, max_conf_image, out_folder, fps):
 
   # 2. For each of it, edit the plot by making the track more visible and save it
   for _, row in max_conf_detections_df.iterrows():
-    video = row["chapter_path"]
+    video = os.path.join(row["video_directory"], row["video_name"])
     time = row["time"]
     confidence = row["confidence"]
     plot = max_conf_image[row["track_metadata"]]["image"]
