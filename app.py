@@ -83,7 +83,7 @@ class Model():
           **self.model_args
         )
         time = format_time(float(frame.pts * video_stream.time_base))
-        self.save_results(video_path, frame_results, **{"time": time})
+        self.save_results(video_path, frame_results, **{"time": time, "frame_id": frame_idx})
         
   def track_video(self, video_path):
     """
