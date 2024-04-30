@@ -178,8 +178,14 @@ def main(**kwargs):
 
   
   if os.path.exists(output_path):
-    print("Error: Output directory already exists! Please provide a new output directory")
-    return
+    rm = None
+    while not (rm == "y" or rm == "n"):
+        rm = input("Output directory already exists! Replace it? (y/n)").strip().lower()
+        if rm == "y":
+          shutil.rmtree(output_path)
+        elif rm == "n":
+          print("Error: Output directory already exists! Please provide a new output directory")
+          return
   os.makedirs(output_path)
 
   model = Model(
@@ -189,7 +195,7 @@ def main(**kwargs):
   )
 
   if kwargs["live"]:
-    model.live_track(video_path)
+    model.live_track(video_path, output_path)
   else:
     model.run()
 
