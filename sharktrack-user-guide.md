@@ -61,14 +61,13 @@ Follow the below instructions to download the model. Alternatively, if you are f
 3. Unzip the downloaded folder and
     - If on **Windows**:
         - Open the extracted `sharktrack` folder
-        - If you use anaconda:
+        - If you use Python from the Command Prompt
+            - Replace the text in the [address bar](https://uis.georgetown.edu/wp-content/uploads/2019/05/win10-fileexplorer-addrbar.png) with `cmd` and hit Enter
+        - Alternatively, if you use `anaconda`:
             - Click on the [address bar](https://uis.georgetown.edu/wp-content/uploads/2019/05/win10-fileexplorer-addrbar.png)
             - Click "Copy address" in the address bar
             - Open the Anaconda Prompt
             - Run `cd {the address you just copied}`
-        - If you use Python from the Command Prompt
-            - Click on the [address bar](https://uis.georgetown.edu/wp-content/uploads/2019/05/win10-fileexplorer-addrbar.png)
-            - Replace the text with `cmd` and hit Enter
         - This sholuld show you the Command/Anaconda Prompt application
     - If on **Mac**:
         - Right-click on the `sharktrack` folder
@@ -128,6 +127,7 @@ python app.py --input <path_to_video_folder>
 
 #### Additional Arguments
 The additional input arguments below provide additional functionality
+
 - `--input` Path to the video folder. SharkTrack takes a folder of arbitrary depth as input and processes all .mp4 videos in it.
 - `--stereo_prefix` Run the model only on video whose filename starts with a specific prefix. For example, you can run `python app.py --stereo_prefix L` to only process videos starting with "L" (useful for Stereo-BRUVS).
 - `--limit` Limit of videos to process (default=1000)
