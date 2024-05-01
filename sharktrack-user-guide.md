@@ -4,9 +4,9 @@
 ## Contents
 
 * <a href="#overview">Overview</a>
-* <a href="#our-ask-to-sharktrack-user">Our Ask to SharkTrack user</a>
 * <a href="#quick-tutorial">Quick Tutorial</a>
-* <a href="#step-by-step">Detailed Guide</a>
+* <a href="#installing-sharktrack">Installing SharkTrack</a>
+* <a href="#running-the-model">Running the model</a>
 * <a href="#sharktrackpeek-mode">SharkTrack Peek Mode</a>
 * <a href="#how-fastaccurate-is-sharktrack">How Fast and Accurate is SharkTrack?</a>
 * <a href="#next-steps">Next Steps</a>
@@ -16,49 +16,27 @@ This page provides a guide on running the SharkTrack ML model on your BRUVS vide
 
 > If you already have an output and want to comput MaxN, jump to [this guide](./annotation-pipelines.md)
 
-<img src="./static/test-output/detections/11.jpg" width=400/>
+<img src="./static/test_output/videos/val1_difficult2/11.jpg" width=400/>
 
 *An example of SharkTrack output detection. Learn more [here](./annotation-pipelines.md#step-0-understand-the-output)*
 
 
-## Our Ask to SharkTrack user
+### Our Ask to SharkTrack user
 SharkTrack is free, and it makes us super-happy when people use it, so we put it out there as a downloadable model that is easy to use. That means we don't know who's using it unless you contact us, so please please [email us](mailto:fppvrn@gmail.com?subject=SharkTrackUser) and star this repo if you find it useful!
 
-## Quick Tutorial
-If you don't have experience with Python or you find any error with the following instructions, move to the [Step by Step](#step-by-step) guide.
-1. Clone SharkTrack
-    ```bash
-    git clone https://github.com/filippovarini/sharktrack.git
-    cd sharktrack
-    ```
-2. Setup Virtual Environment
-    ```bash
-    python -m venv venv
-    source venv/bin/activate
-    pip install -r requirements.txt
-    ```
-    If it fails, replace the first line with this command instead `python3 -m venv venv`.
-    See [troubleshooting](#troubleshooting) for problems
-3. Run the model
-    ```bash
-    python app.py
-    ```
-    This will run the model against the example video in `./input_videos`
-
-## Step By Step
+## Installing SharkTrack
 If you don't have experience with Python, the following steps might be the hardest to setup the model. If you think your organisation would benefit from near-instant BRUVS analysis, please consider this challenge as an investment in the future. Don't hesitate to post any problems you might encounter [here](https://github.com/filippovarini/sharktrack/issues).
 
 ### Pre-Requirements
-To run sharktrack, you will need to have installed Python 3.9 or above. You can check that by opening your "Command Prompt" application on Windows or "Terminal" on Mac and running `python -V`. *Note: on Mac the older version might be saved as `python3 -V`*
+- Python 3.9 and above. 
+    - [How to check the version](https://www.redswitches.com/blog/check-python-version/#:~:text=installed%20Python%20version.-,How%20to%20Check%20Python%20Version%20in%20Windows,-Follow%20these%20steps) 
+    - If you don't, install it [here](https://www.python.org/downloads/)
 
-If you don't have python or the version is outdated, please install it [here](https://www.python.org/downloads/). Make sure to check the box to add Python to the system path when installing it.
 
 ### Downloading the model
-Follow the below instructions to download the model. Alternatively, if you are familiar with `git`, skip to [here](#quick-tutorial).
-
 1. Download the model from [here](https://github.com/filippovarini/sharktrack/releases) by double-clicking on the latest "source code". Dowload the zipfile only!
-2. Unzip the folder and extract `sharktrack`. We suggest moving the downloaded folder to the Desktop or any place where it is easier to find.
-3. Unzip the downloaded folder and
+2. Unzip the folder to extract `sharktrack`
+3. Move `sharktrack` to the Desktop and:
     - If on **Windows**:
         - Open the extracted `sharktrack` folder
         - If you use Python from the Command Prompt
@@ -69,7 +47,7 @@ Follow the below instructions to download the model. Alternatively, if you are f
             - Open the Anaconda Prompt
             - Run `cd {the address you just copied}`
         - This sholuld show you the Command/Anaconda Prompt application
-    - If on **Mac**:
+    - If on **Mac/Linux**:
         - Right-click on the `sharktrack` folder
         - Click "New Terminal at Folder" (sometimes this is under Services)
         - This should show you the Terminal application
@@ -104,38 +82,59 @@ Now you have the downloaded the model and you have the Terminal application open
         ```
     
 *If you encounter any problem, check out the [troubleshooting](#troubleshooting) section.*
-### Running the Model
+
+## Running SharkTrack
 
 You now are ready to run SharkTrack! 
 
 The quickiest way to do so, is moving your videos in the `./input_videos` folder which is inside sharktrack.
 
-Then, you can run the following command. It is fine if it takes some time to initialise!
-```bash
-python app.py
-```
+Then, running the following commands
+- **If you use Anaconda**
+    ```
+    conda activate sharktrack
+    python app.py
+    ```
 
-Alternatively, if you don't want to move the videos, you can tell SharkTrack to find them by running
-
-```bash
-python app.py --input <path_to_video_folder>
-```
+- **Otherwise, on Windows**
+    ```
+    venv\Scripts\activate.bat
+    python app.py
+    ```
+- **Or Mac/Linux**
+    ```
+    python -m venv venv
+    python app.py
+    ```
 
 > After the model finishes running, it will show how many tracks it found! You can now check the results in the output folder. Now it is time to **Generate MaxN**. Move to the [next page for instructions](./annotation-pipelines.md).
 
 > ⏰ The model takes 0.75% video time to run on CPU. If you need a faster model, check the [SharkTrack Peek Mode](#sharktrackpeek-mode)
 
-#### Additional Arguments
-The additional input arguments below provide additional functionality
+### Configuration
+In python, you can configure by adding arguments to the "command":
+```bash
+python app.py --arg1 {val1} --arg2 {val2} --arg3
+```
+Here, `arg1`, `arg2` is the name of the argument and `val1` and `val2` their respective value. 
+`arg3` doesn't require a value, it's just a configuration (like `--peek` below).
 
-- `--input` Path to the video folder. SharkTrack takes a folder of arbitrary depth as input and processes all .mp4 videos in it.
-- `--stereo_prefix` Run the model only on video whose filename starts with a specific prefix. For example, you can run `python app.py --stereo_prefix L` to only process videos starting with "L" (useful for Stereo-BRUVS).
-- `--limit` Limit of videos to process (default=1000)
-- `--conf` Set custom confidence threshold, default=0.25. (i.e. `python app.py --conf 0.8`) 
-- `--output` Path to output folder (default=`./output`)
+Below is a list of arguments you can use:
+
+- `--input {vale}` Path to the video folder. SharkTrack takes a folder of arbitrary depth as input and processes all .mp4 videos in it.
+- `--stereo_prefix {value}` Run the model only on video whose filename starts with a specific prefix (useful for Stereo-BRUVS).
+- `--limit {value}` Limit of videos to process (default=1000)
+- `--conf {value}` Set custom confidence threshold, default=0.25.
+- `--output {value}` Path to output folder (default=`./outputs`)
+- `--imgsz {value}` Select the image size the model processes. Default 640. Lower is faster but lower accuracy and vice versa.
 - `--peek` Run the model in [peek mode](#sharktrackpeek-mode)
-- `--imgsz` Select the image size the model processes. Default 640. Lower is faster but lower accuracy and vice versa.
 - `--live` output a tracked video like [this](https://drive.google.com/file/d/1b_74wdPXyJPe2P-m1c45jjsV2C5Itr-R/view?usp=sharing). ⚠️ Requires to provide the full video path with the `--input` argument (i.e. `python app.py --live --input input_folder/sample.mp4`)
+
+Example:
+```bash
+python app.py --input G:\BRUVS_2023 --peek  --stereo_prefix L
+```
+*This runs SharkTrack peek mode on all videos from G:\BRUVS_2023 starting with "L"*
 
 ## SharkTrackPeek Mode
 You can use SharkTrack to extract interesting frames in the video, without tracking Elasmobranchs. 
