@@ -23,3 +23,8 @@ def generate_output_path(user_output_path, input_path):
 
   return output_path
 
+def convert_to_abs_path(path):
+  if path and not os.path.isabs(path):
+    path = os.path.abspath(path)
+  return path
+
