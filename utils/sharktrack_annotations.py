@@ -5,19 +5,13 @@ import os
 sys.path.append("utils")
 from time_processor import format_time
 from image_processor import draw_bbox, annotate_image
+from path_resolver import compute_frames_output_path, remove_input_prefix_from_video_path
 
 
-SHARKTRACK_COLUMNS = ["video_path", "video_directory", "video_name", "frame", "time", "cumulative_time", "xmin", "ymin", "xmax", "ymax", "w", "h", "confidence", "class", "track_metadata", "track_id"]
+SHARKTRACK_COLUMNS = ["video_path", "video_name", "frame", "time", "cumulative_time", "xmin", "ymin", "xmax", "ymax", "w", "h", "confidence", "class", "track_metadata", "track_id"]
 
 classes_mapping = ['elasmobranch']
    
-def compute_frames_output_path(video_path, input, output_path):
-  frames_output = video_path.split(input)[1]
-  if frames_output.startswith("/"):
-    frames_output = frames_output[1:]
-  extract_name = os.path.splitext(frames_output)[0]
-  return os.path.join(output_path, extract_name)
-
 def extract_frame_results(frame_results, tracking):
     boxes = frame_results.boxes.xyxy.cpu().tolist()
     tracks = frame_results.boxes.id
@@ -27,17 +21,18 @@ def extract_frame_results(frame_results, tracking):
 
     return zip(boxes, confidences, classes, track_ids) if tracking else zip(boxes, confidences, classes)
 
-def extract_sightings(video_path, frame_results, frame_id, time, tracking=False):
+def extract_sightings(video_path, input_path, frame_results, frame_id, time, tracking=False):
     track_results = extract_frame_results(frame_results, tracking)
 
     frame_results_rows = []
+
+    relative_video_path = remove_input_prefix_from_video_path(video_path, input_path)
     
     for box, confidence, cls, *rest in track_results:
           preprocess_track_id = next(iter(rest), "N/A")
           track_metadata = f"{video_path}/{preprocess_track_id}"
           row = {
-              "video_path": video_path,
-              "video_directory": os.path.dirname(video_path).split("/")[-1],
+              "video_path": relative_video_path,
               "video_name": os.path.basename(video_path),
               "frame": frame_id,
               "time": time,
@@ -51,8 +46,14 @@ def extract_sightings(video_path, frame_results, frame_id, time, tracking=False)
               "confidence": confidence,
               "class": classes_mapping[int(cls)],
               "track_metadata": track_metadata,
-              "preprocess_track_id": preprocess_track_id,
+              "track_id": preprocess_track_id,
           }
+
+          directories = os.path.dirname(relative_video_path).split(os.path.sep)
+          for i, directory in enumerate(directories):
+             if directory:
+              row[f"directory{i+1}"] = directory
+
           frame_results_rows.append(row)
 
     return frame_results_rows
@@ -63,7 +64,7 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
 
   for frame_id, frame_results in enumerate(model_results):
           time = format_time(frame_id / kwargs["fps"])
-          sightings = extract_sightings(video_path, frame_results, frame_id, time, tracking=True)
+          sightings = extract_sightings(video_path, kwargs["input"], frame_results, frame_id, time, tracking=True)
           data += sightings
 
           for row in sightings:
@@ -81,7 +82,7 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
 
     if not postprocessed_results.empty:
       postprocessed_results = postprocessed_results[SHARKTRACK_COLUMNS]
-      assert set(postprocessed_results.columns) == set(SHARKTRACK_COLUMNS)
+      assert all([c in postprocessed_results.columns for c in SHARKTRACK_COLUMNS])
       concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
       frame_output_path = compute_frames_output_path(video_path, kwargs["input"], out_folder)
       write_max_conf(postprocessed_results, max_conf_images, frame_output_path, kwargs["fps"])
@@ -109,7 +110,7 @@ def save_peek_output(video_path, frame_results, out_folder, next_track_index, **
       next_track_index += 1
 
       # Save sightings in csv
-      sightings = extract_sightings(video_path, frame_results[0], kwargs["frame_id"], kwargs["time"])
+      sightings = extract_sightings(video_path, kwargs["input"], frame_results[0], kwargs["frame_id"], kwargs["time"])
       df = pd.DataFrame(sightings)
       out_path = os.path.join(out_folder, "output.csv")
       concat_df(df, out_path)
@@ -147,7 +148,7 @@ def postprocess(results, fps, next_track_index):
     # Set CopyOnWrite, according to https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy:~:text=2%0A40%20%203-,Returning%20a%20view%20versus%20a%20copy,-%23
     pd.options.mode.copy_on_write = True
     filtered_results = results.loc[~false_positive]
-    filtered_results["track_id"] = filtered_results.groupby("preprocess_track_id").ngroup(ascending=True) + next_track_index
+    filtered_results["track_id"] = filtered_results.groupby("track_id").ngroup(ascending=True) + next_track_index
 
     return filtered_results
 
@@ -161,7 +162,7 @@ def write_max_conf(poostprocessed_results, max_conf_image, out_folder, fps):
   max_conf_detections_df = poostprocessed_results.loc[max_conf_detections_idx]
 
   for _, row in max_conf_detections_df.iterrows():
-    video = os.path.join(row["video_directory"], row["video_name"])
+    video = os.path.join(row["video_path"])
     time = row["time"]
     confidence = row["confidence"]
     plot = max_conf_image[row["track_metadata"]]["image"]
