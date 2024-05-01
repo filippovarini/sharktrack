@@ -1,6 +1,6 @@
 import unittest
 import os
-from path_resolver import generate_output_path, default_output
+from path_resolver import generate_output_path, default_output, compute_frames_output_path
 import shutil
 
 class TestGenerateCorrectOutput(unittest.TestCase):
@@ -21,6 +21,11 @@ class TestGenerateCorrectOutput(unittest.TestCase):
         self.assertEqual(generate_output_path(None, "/abs/path/to/run1"), os.path.join(default_output, "run1_processedv2"))
         for path in paths_to_create:
             shutil.rmtree(path)
+
+    def test__compute_frames_output_path_correctly(self):
+        self.assertEqual(compute_frames_output_path("input_videos/sample.mp4", "input_videos/sample.mp4", "outputs/sample"), "outputs/sample/")
+        self.assertEqual(compute_frames_output_path("input_videos/sample.mp4", "input_videos/", "outputs/input_videos"), "outputs/input_videos/sample")
+        self.assertEqual(compute_frames_output_path("input_videos/hello/sample.mp4", "input_videos/", "outputs/input_videos"), "outputs/input_videos/hello/sample")
     
     
 
