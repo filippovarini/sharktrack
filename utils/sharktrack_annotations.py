@@ -83,7 +83,8 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
       postprocessed_results = postprocessed_results[SHARKTRACK_COLUMNS]
       assert set(postprocessed_results.columns) == set(SHARKTRACK_COLUMNS)
       concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
-      write_max_conf(postprocessed_results, max_conf_images, out_folder, kwargs["fps"])
+      frame_output_path = compute_frames_output_path(video_path, kwargs["input"], out_folder)
+      write_max_conf(postprocessed_results, max_conf_images, frame_output_path, kwargs["fps"])
       new_next_track_index = postprocessed_results["track_id"].max() + 1
       tracks_found = new_next_track_index - next_track_index
       next_track_index = new_next_track_index
@@ -154,14 +155,11 @@ def write_max_conf(poostprocessed_results, max_conf_image, out_folder, fps):
   """
   Saves annotated images with the maximum confidence detection for each track
   """
-  det_folder = os.path.join(out_folder, "detections")
-  os.makedirs(det_folder, exist_ok=True)
+  os.makedirs(out_folder, exist_ok=True)
 
   max_conf_detections_idx = poostprocessed_results.groupby("track_metadata")["confidence"].idxmax()
   max_conf_detections_df = poostprocessed_results.loc[max_conf_detections_idx]
 
-
-  # 2. For each of it, edit the plot by making the track more visible and save it
   for _, row in max_conf_detections_df.iterrows():
     video = os.path.join(row["video_directory"], row["video_name"])
     time = row["time"]
@@ -171,11 +169,9 @@ def write_max_conf(poostprocessed_results, max_conf_image, out_folder, fps):
 
     img = annotate_image(plot, video, time, confidence)
 
-    # 3. Make focused track more visible
     max_conf_bbox = row[["xmin", "ymin", "xmax", "ymax"]].values
     img = draw_bbox(img, max_conf_bbox)
 
-    # save
     output_image_id = f"{row['track_id']}.jpg"
-    output_path = os.path.join(det_folder, output_image_id)
+    output_path = os.path.join(out_folder, output_image_id)
     cv2.imwrite(output_path, img)
