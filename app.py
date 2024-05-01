@@ -1,4 +1,4 @@
-from utils.sharktrack_annotations import save_analyst_output, save_peek_output, save_monospecies_output
+from utils.sharktrack_annotations import save_analyst_output, save_peek_output
 from utils.path_resolver import generate_output_path, convert_to_abs_path
 from utils.time_processor import format_time
 from scripts.reformat_gopro import valid_video
@@ -38,10 +38,6 @@ class Model():
       self.inference_type = self.keyframe_detection
       self.model_args["imgsz"] = kwargs["imgsz"]
       self.save_output = save_peek_output
-    elif kwargs["monospecies"]:
-      self.inference_type = self.keyframe_detection
-      self.model_args["imgsz"] = kwargs["imgsz"]
-      self.save_output = save_monospecies_output
     else:
       self.inference_type = self.track_video
       self.fps = 5
@@ -193,7 +189,6 @@ if __name__ == "__main__":
   parser.add_argument("--imgsz", type=int, default=640, help="Image size the model processes. Default 640. Lower is faster but lower accuracy and vice versa.")
   parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
   parser.add_argument("--output", type=str, default=None, help="Output directory for the results")
-  parser.add_argument("--monospecies", action="store_true", help="All elasmobranchs are of the same species")
   parser.add_argument("--peek", action="store_true", help="Use peek mode: 5x faster but only finds interesting frames, without tracking/computing MaxN")
   parser.add_argument("--live", action="store_true", help="Show live tracking video for debugging purposes")
   args = parser.parse_args()
