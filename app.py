@@ -1,4 +1,5 @@
 from utils.sharktrack_annotations import save_analyst_output, save_peek_output, save_monospecies_output
+from utils.path_resolver import generate_output_path
 from utils.time_processor import format_time
 from scripts.reformat_gopro import valid_video
 from argparse import ArgumentParser
@@ -165,48 +166,33 @@ class Model():
       return
 
     return processed_videos
-  
-def convert_abs_path(path):
-  if path and not os.path.isabs(path):
-    path = os.path.abspath(path)
-  return path
+
 
 
 def main(**kwargs):
-  video_path = convert_abs_path(kwargs["input"])
-  output_path = convert_abs_path(kwargs["output"])
-
-  
-  if os.path.exists(output_path):
-    rm = None
-    while not (rm == "y" or rm == "n"):
-        rm = input("Output directory already exists! Replace it? (y/n)").strip().lower()
-        if rm == "y":
-          shutil.rmtree(output_path)
-        elif rm == "n":
-          print("Error: Output directory already exists! Please provide a new output directory")
-          return
+  input_path = os.path.normpath(kwargs["input"]) if kwargs["input"] else "input_videos"
+  output_path = generate_output_path(kwargs["output"], input_path)
   os.makedirs(output_path)
 
   model = Model(
-    video_path,
+    input_path,
     output_path,
     **kwargs
   )
 
   if kwargs["live"]:
-    model.live_track(video_path, output_path)
+    model.live_track(input_path, output_path)
   else:
     model.run()
 
 if __name__ == "__main__":
   parser = ArgumentParser()
-  parser.add_argument("--input", type=str, default="input_videos", help="Path to the video folder")
+  parser.add_argument("--input", type=str, default=None, help="Path to the video folder")
   parser.add_argument("--stereo_prefix", type=str, help="Prefix to filter stereo BRUVS")
   parser.add_argument("--limit", type=int, default=1000, help="Maximum videos to process")
   parser.add_argument("--imgsz", type=int, default=640, help="Image size the model processes. Default 640. Lower is faster but lower accuracy and vice versa.")
   parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
-  parser.add_argument("--output", type=str, default="./output", help="Output directory for the results")
+  parser.add_argument("--output", type=str, default=None, help="Output directory for the results")
   parser.add_argument("--monospecies", action="store_true", help="All elasmobranchs are of the same species")
   parser.add_argument("--peek", action="store_true", help="Use peek mode: 5x faster but only finds interesting frames, without tracking/computing MaxN")
   parser.add_argument("--live", action="store_true", help="Show live tracking video for debugging purposes")
