@@ -3,15 +3,20 @@ import sys
 import cv2
 import os
 sys.path.append("utils")
-from utils.time_processor import format_time
+from time_processor import format_time
 from image_processor import draw_bbox, annotate_image
 
 
 SHARKTRACK_COLUMNS = ["video_path", "video_directory", "video_name", "frame", "time", "cumulative_time", "xmin", "ymin", "xmax", "ymax", "w", "h", "confidence", "class", "track_metadata", "track_id"]
 
 classes_mapping = ['elasmobranch']
-
-
+   
+def compute_frames_output_path(video_path, input, output_path):
+  frames_output = video_path.split(input)[1]
+  if frames_output.startswith("/"):
+    frames_output = frames_output[1:]
+  extract_name = os.path.splitext(frames_output)[0]
+  return os.path.join(output_path, extract_name)
 
 def extract_frame_results(frame_results, tracking):
     boxes = frame_results.boxes.xyxy.cpu().tolist()
@@ -93,12 +98,13 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
 
 def save_peek_output(video_path, frame_results, out_folder, next_track_index, **kwargs):
   # Save peek frames
-  peek_dir = os.path.join(out_folder, "peek_frames")
-  os.makedirs(peek_dir, exist_ok=True)
+  frames_save_dir = compute_frames_output_path(video_path, kwargs["input"], out_folder)
+  os.makedirs(frames_save_dir, exist_ok=True)
+
   if len(frame_results[0].boxes.xyxy.cpu().tolist()) > 0:
       plot = frame_results[0].plot(line_width=2)
       img = annotate_image(plot, video_path, kwargs["time"], conf=None)
-      cv2.imwrite(os.path.join(peek_dir, f"{os.path.basename(video_path)}_{next_track_index}.jpg"), img)
+      cv2.imwrite(os.path.join(frames_save_dir, f"{next_track_index}.jpg"), img)
       next_track_index += 1
 
       # Save sightings in csv

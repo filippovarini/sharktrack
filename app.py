@@ -1,5 +1,5 @@
 from utils.sharktrack_annotations import save_analyst_output, save_peek_output, save_monospecies_output
-from utils.path_resolver import generate_output_path
+from utils.path_resolver import generate_output_path, convert_to_abs_path
 from utils.time_processor import format_time
 from scripts.reformat_gopro import valid_video
 from argparse import ArgumentParser
@@ -59,6 +59,7 @@ class Model():
     return frame_skip
 
   def save_results(self, video_path, yolo_results, **kwargs):
+    kwargs["input"] = self.input_path
     next_track_index = self.save_output(video_path, yolo_results, self.output_path, self.next_track_index, **kwargs)
     assert next_track_index is not None, f"Error saving results for {video_path}"
     self.next_track_index = next_track_index
@@ -142,7 +143,6 @@ class Model():
     cap.release()
     cv2.destroyAllWindows()
 
-
   def run(self):
     self.input_path = self.input_path
     processed_videos = []
@@ -168,9 +168,9 @@ class Model():
     return processed_videos
 
 
-
 def main(**kwargs):
   input_path = os.path.normpath(kwargs["input"]) if kwargs["input"] else "input_videos"
+  input_path = convert_to_abs_path(input_path)
   output_path = generate_output_path(kwargs["output"], input_path)
   os.makedirs(output_path)
 
