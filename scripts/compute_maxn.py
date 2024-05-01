@@ -1,13 +1,16 @@
 from argparse import ArgumentParser
 import pandas as pd
 import os
+from pathlib import Path
 
 def get_labeled_detections(output_path: str):
-    predefined_detection_folder = "detections"
-    detections_path = os.path.join(output_path, predefined_detection_folder)
-    assert os.path.exists(detections_path), f"To clean annotations locally you must have './detections' folder in the output path but {detections_path} doesn't exist!"
+    predefined_output_csv = "output.csv"
+    output_csv_path = os.path.join(output_path, predefined_output_csv)
+    assert os.path.exists(output_csv_path), f"To clean annotations locally you must have './detections' folder in the output path but {output_csv_path} doesn't exist!"
 
-    valid_detections = [f for f in os.listdir(detections_path) if f.endswith(".jpg")]
+    valid_detections = [f.name for f in Path(output_path).rglob("*jpg")]
+    assert len(valid_detections) == len(set(valid_detections)), "Detections don't have unique (track_id, species)"
+
     labeled_detections = {}
     for d in valid_detections:
         try:
@@ -30,10 +33,10 @@ def clean_annotations_locally(sharktrack_df, labeled_detections):
 
 def compute_species_max_n(original_output, labeled_detections):
     cleaned_annotations = clean_annotations_locally(original_output, labeled_detections)
-    frame_box_cnt = cleaned_annotations.groupby(["video_path", "video_directory", "video_name", "frame", "class"], as_index=False).agg(time=("time", "first"), n=("track_id", "count"), tracks_in_maxn=("track_id", lambda x: list(x)))
+    frame_box_cnt = cleaned_annotations.groupby(["video_path", "video_name", "frame", "class"], as_index=False).agg(time=("time", "first"), n=("track_id", "count"), tracks_in_maxn=("track_id", lambda x: list(x)))
 
     # for each chapter, species, get the max n and return video, species, max_n, chapter, time when that happens
-    max_n = frame_box_cnt.sort_values("n", ascending=False).groupby(["video_path", "video_directory", "video_name", "class"], as_index=False).head(1)
+    max_n = frame_box_cnt.sort_values("n", ascending=False).groupby(["video_path", "video_name", "class"], as_index=False).head(1)
     max_n = max_n.sort_values(["video_path", "n"], ascending=[True, False])
     max_n = max_n.reset_index(drop=True)
 
