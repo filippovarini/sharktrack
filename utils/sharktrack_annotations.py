@@ -8,7 +8,7 @@ from image_processor import draw_bbox, annotate_image
 from path_resolver import compute_frames_output_path, remove_input_prefix_from_video_path
 
 
-SHARKTRACK_COLUMNS = ["video_path", "video_name", "frame", "time", "cumulative_time", "xmin", "ymin", "xmax", "ymax", "w", "h", "confidence", "class", "track_metadata", "track_id"]
+SHARKTRACK_COLUMNS = ["video_path", "video_name", "frame", "time", "xmin", "ymin", "xmax", "ymax", "w", "h", "confidence", "class", "track_metadata", "track_id"]
 
 classes_mapping = ['elasmobranch']
    
@@ -21,22 +21,23 @@ def extract_frame_results(frame_results, tracking):
 
     return zip(boxes, confidences, classes, track_ids) if tracking else zip(boxes, confidences, classes)
 
-def extract_sightings(video_path, input_path, frame_results, frame_id, time, tracking=False):
-    track_results = extract_frame_results(frame_results, tracking)
+def extract_sightings(video_path, input_path, frame_results, frame_id, time, **kwargs):
+    is_tracking = kwargs.get("tracking", False)
+    track_results = extract_frame_results(frame_results, is_tracking)
 
     frame_results_rows = []
 
     relative_video_path = remove_input_prefix_from_video_path(video_path, input_path)
     
     for box, confidence, cls, *rest in track_results:
-          preprocess_track_id = next(iter(rest), "N/A")
+          preprocess_track_id = next(iter(rest)) if is_tracking else kwargs["track_id"]
           track_metadata = f"{video_path}/{preprocess_track_id}"
           row = {
               "video_path": relative_video_path,
               "video_name": os.path.basename(video_path),
               "frame": frame_id,
               "time": time,
-              "cumulative_time": "N/A",
+              "track_id": preprocess_track_id,
               "xmin": box[0],
               "ymin": box[1],
               "xmax": box[2],
@@ -46,7 +47,6 @@ def extract_sightings(video_path, input_path, frame_results, frame_id, time, tra
               "confidence": confidence,
               "class": classes_mapping[int(cls)],
               "track_metadata": track_metadata,
-              "track_id": preprocess_track_id,
           }
 
           directories = os.path.dirname(relative_video_path).split(os.path.sep)
@@ -64,7 +64,7 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
 
   for frame_id, frame_results in enumerate(model_results):
           time = format_time(frame_id / kwargs["fps"])
-          sightings = extract_sightings(video_path, kwargs["input"], frame_results, frame_id, time, tracking=True)
+          sightings = extract_sightings(video_path, kwargs["input"], frame_results, frame_id, time, **{"tracking":True})
           data += sightings
 
           for row in sightings:
@@ -107,13 +107,14 @@ def save_peek_output(video_path, frame_results, out_folder, next_track_index, **
       plot = frame_results[0].plot(line_width=2)
       img = annotate_image(plot, video_path, kwargs["time"], conf=None)
       cv2.imwrite(os.path.join(frames_save_dir, f"{next_track_index}.jpg"), img)
-      next_track_index += 1
 
       # Save sightings in csv
-      sightings = extract_sightings(video_path, kwargs["input"], frame_results[0], kwargs["frame_id"], kwargs["time"])
+      sightings = extract_sightings(video_path, kwargs["input"], frame_results[0], kwargs["frame_id"], kwargs["time"], **{"track_id": next_track_index})
       df = pd.DataFrame(sightings)
       out_path = os.path.join(out_folder, "output.csv")
       concat_df(df, out_path)
+
+      next_track_index += 1
 
   return next_track_index
 

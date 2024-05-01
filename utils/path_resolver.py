@@ -11,15 +11,13 @@ def generate_output_path(user_output_path, input_path):
   else:
     # automatically create output
     output_name = os.path.basename(input_path).split(".")[0] + "_processed"
-    output_path = os.path.join(default_output, output_name)
+    original_output_path = os.path.join(default_output, output_name)
+    output_path = original_output_path
 
     i = 0
     while os.path.exists(output_path):
-      if i > 0:
-        # remove previous version
-        output_path = output_path[:-2]
       i += 1
-      output_path += f"v{i}"
+      output_path = original_output_path + f"v{i}"
 
   return output_path
 
