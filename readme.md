@@ -96,9 +96,9 @@ This software was written and supported by the efforts of
 
 ## Collaborations
 ### License & Citation
-This repository is licensed with the [MIT license](https://opensource.org/license/mit). If you use MegaDetector in a publication, please cite:
+This repository is licensed with the [MIT license](https://opensource.org/license/mit). If you use SharkTrack in a publication, please cite:
 
-Varini, F. et al (2024). SharkTrack. Github. Available at
+Varini, F. et al (2024). SharkTrack. GitHub. Available at
 https://github.com/filippovarini/sharktrack
 
 
