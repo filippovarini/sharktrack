@@ -10,7 +10,7 @@ from path_resolver import compute_frames_output_path, remove_input_prefix_from_v
 
 SHARKTRACK_COLUMNS = ["video_path", "video_name", "frame", "time", "xmin", "ymin", "xmax", "ymax", "w", "h", "confidence", "class", "track_metadata", "track_id"]
 
-classes_mapping = ['elasmobranch']
+classes_mapping = ["elasmobranch"]
    
 def extract_frame_results(frame_results, tracking):
     boxes = frame_results.boxes.xyxy.cpu().tolist()
@@ -105,7 +105,7 @@ def save_peek_output(video_path, frame_results, out_folder, next_track_index, **
 
   if len(frame_results[0].boxes.xyxy.cpu().tolist()) > 0:
       plot = frame_results[0].plot(line_width=2)
-      img = annotate_image(plot, video_path, kwargs["time"], conf=None)
+      img = annotate_image(plot, video_path, kwargs["time"], next_track_index)
       cv2.imwrite(os.path.join(frames_save_dir, f"{next_track_index}.jpg"), img)
 
       # Save sightings in csv
@@ -168,11 +168,11 @@ def write_max_conf(poostprocessed_results, max_conf_image, out_folder, fps):
     plot = max_conf_image[row["track_metadata"]]["image"]
     assert confidence == max_conf_image[row["track_metadata"]]["confidence"]
 
-    img = annotate_image(plot, video, time, confidence)
+    img = annotate_image(plot, video, time, row["track_id"])
 
     max_conf_bbox = row[["xmin", "ymin", "xmax", "ymax"]].values
     img = draw_bbox(img, max_conf_bbox)
 
-    output_image_id = f"{row['track_id']}.jpg"
+    output_image_id = f"{row["track_id"]}.jpg"
     output_path = os.path.join(out_folder, output_image_id)
     cv2.imwrite(output_path, img)
