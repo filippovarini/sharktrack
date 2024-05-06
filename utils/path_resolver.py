@@ -33,8 +33,10 @@ def remove_input_prefix_from_video_path(video_path, input):
     frames_output = frames_output[1:]
   return frames_output
    
-def compute_frames_output_path(video_path, input, output_path):
+def compute_frames_output_path(video_path, input, output_path, chapters=False):
   frames_output = remove_input_prefix_from_video_path(video_path, input)
   extract_name = os.path.splitext(frames_output)[0]
+  if chapters:
+    extract_name = os.path.dirname(extract_name)
   return os.path.join(output_path, extract_name)
 
