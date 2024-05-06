@@ -84,7 +84,7 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
       postprocessed_results = postprocessed_results[SHARKTRACK_COLUMNS]
       assert all([c in postprocessed_results.columns for c in SHARKTRACK_COLUMNS])
       concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
-      frame_output_path = compute_frames_output_path(video_path, kwargs["input"], out_folder)
+      frame_output_path = compute_frames_output_path(video_path, kwargs["input"], out_folder, kwargs["is_chapters"])
       write_max_conf(postprocessed_results, max_conf_images, frame_output_path, kwargs["fps"])
       new_next_track_index = postprocessed_results["track_id"].max() + 1
       tracks_found = new_next_track_index - next_track_index
@@ -100,7 +100,7 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
 
 def save_peek_output(video_path, frame_results, out_folder, next_track_index, **kwargs):
   # Save peek frames
-  frames_save_dir = compute_frames_output_path(video_path, kwargs["input"], out_folder)
+  frames_save_dir = compute_frames_output_path(video_path, kwargs["input"], out_folder, kwargs["is_chapters"])
   os.makedirs(frames_save_dir, exist_ok=True)
 
   if len(frame_results[0].boxes.xyxy.cpu().tolist()) > 0:
@@ -117,7 +117,6 @@ def save_peek_output(video_path, frame_results, out_folder, next_track_index, **
       next_track_index += 1
 
   return next_track_index
-
 
 def concat_df(df, output_path):
     if os.path.exists(output_path):

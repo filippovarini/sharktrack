@@ -6,7 +6,7 @@
 * <a href="#overview">Overview</a>
 * <a href="#quick-tutorial">Quick Tutorial</a>
 * <a href="#installing-sharktrack">Installing SharkTrack</a>
-* <a href="#running-the-model">Running the model</a>
+* <a href="#running-sharktrack">Running SharkTrack</a>
 * <a href="#sharktrackpeek-mode">SharkTrack Peek Mode</a>
 * <a href="#how-fastaccurate-is-sharktrack">How Fast and Accurate is SharkTrack?</a>
 * <a href="#next-steps">Next Steps</a>
@@ -128,6 +128,7 @@ Below is a list of arguments you can use:
 - `--output {value}` Path to output folder (default=`./outputs`)
 - `--imgsz {value}` Select the image size the model processes. Default 640. Lower is faster but lower accuracy and vice versa.
 - `--peek` Run the model in [peek mode](#sharktrackpeek-mode)
+- `--chapters` Use if your videos are broken into chapters. The model aggregates the chapter information into one single video
 - `--live` output a tracked video like [this](https://drive.google.com/file/d/1b_74wdPXyJPe2P-m1c45jjsV2C5Itr-R/view?usp=sharing). ⚠️ Requires to provide the full video path with the `--input` argument (i.e. `python app.py --live --input input_folder/sample.mp4`)
 
 Example:

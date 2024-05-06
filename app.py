@@ -17,6 +17,7 @@ class Model():
     self.input_path = input_path
     self.max_video_cnt = kwargs["limit"]
     self.stereo_prefix = kwargs["stereo_prefix"]
+    self.is_chapters = kwargs["chapters"]
     self.output_path = output_path
 
     self.model_path = "models/sharktrack.pt"
@@ -56,6 +57,7 @@ class Model():
 
   def save_results(self, video_path, yolo_results, **kwargs):
     kwargs["input"] = self.input_path
+    kwargs["is_chapters"] = self.is_chapters
     next_track_index = self.save_output(video_path, yolo_results, self.output_path, self.next_track_index, **kwargs)
     assert next_track_index is not None, f"Error saving results for {video_path}"
     self.next_track_index = next_track_index
@@ -190,6 +192,7 @@ if __name__ == "__main__":
   parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
   parser.add_argument("--output", type=str, default=None, help="Output directory for the results")
   parser.add_argument("--peek", action="store_true", help="Use peek mode: 5x faster but only finds interesting frames, without tracking/computing MaxN")
+  parser.add_argument("--chapters", action="store_true", help="Aggreagate chapter information into a single video")
   parser.add_argument("--live", action="store_true", help="Show live tracking video for debugging purposes")
   args = parser.parse_args()
 
