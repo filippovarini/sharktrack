@@ -18,8 +18,8 @@ _ORIGINAL_CSV = """video_path,video_directory,video_name,frame,time,track_metada
 2020_RS_004/100GOPRO/GH044053.MP4,2020_RS_004/100GOPRO,GH044053.MP4,2533,08:26:60,2020_RS_004/100GOPRO/GH044053.MP4/85,2,1042.4000244140625,1030.4923095703125,1744.7578125,1251.965087890625,0.3137611448764801,elasmobranch
 """
 
-_OUTPUT_MAXN = """video_path,video_directory,video_name,frame,class,time,n,tracks_in_maxn
-2020_RS_004/100GOPRO/GH044053.MP4,2020_RS_004/100GOPRO,GH044053.MP4,732,elasmobranch,02:26:40,1,[0]
+_OUTPUT_MAXN = """video_path,video_name,frame,class,time,n,tracks_in_maxn
+2020_RS_004/100GOPRO/GH044053.MP4,GH044053.MP4,732,elasmobranch,02:26:40,1,[0]
 """
 
 class TestComputeSpeciesMaxN(unittest.TestCase):
