@@ -1,6 +1,6 @@
 import unittest
 import os
-from path_resolver import generate_output_path, default_output, compute_frames_output_path
+from path_resolver import generate_output_path, default_output, compute_frames_output_path, sort_files
 import shutil
 
 class TestGenerateCorrectOutput(unittest.TestCase):
@@ -28,6 +28,12 @@ class TestGenerateCorrectOutput(unittest.TestCase):
         self.assertEqual(compute_frames_output_path("input_videos/sample.mp4", "input_videos/", "outputs/input_videos"), "outputs/input_videos/sample")
         self.assertEqual(compute_frames_output_path("input_videos/hello/sample.mp4", "input_videos/", "outputs/input_videos"), "outputs/input_videos/hello/sample")
         self.assertEqual(compute_frames_output_path("input_videos/hello/sample.mp4", "input_videos/", "outputs/input_videos", chapters=True), "outputs/input_videos/hello")
+
+    def test__sort_files_correctly(self):
+        files_list_1 = [f"LG0{n}01.MP4" for n in range(12, 0, -1)]
+        self.assertEqual(sort_files(files_list_1), files_list_1[::-1])
+        files_list_2 = [f"test{'x' * n}" for n in range(10)]
+        self.assertEqual(sort_files(files_list_2), files_list_2)
     
     
 

@@ -1,4 +1,5 @@
 import os
+import re
 
 default_output = "outputs"
 
@@ -39,4 +40,11 @@ def compute_frames_output_path(video_path, input, output_path, chapters=False):
   if chapters:
     extract_name = os.path.dirname(extract_name)
   return os.path.join(output_path, extract_name)
+
+def sort_files(files):
+  def extract_num(f):
+    res = int(next(iter(re.findall(r"\d+", f)), 0))
+    return res
+
+  return sorted(files, key=extract_num)
 
