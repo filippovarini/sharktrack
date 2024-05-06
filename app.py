@@ -1,5 +1,5 @@
 from utils.sharktrack_annotations import save_analyst_output, save_peek_output
-from utils.path_resolver import generate_output_path, convert_to_abs_path
+from utils.path_resolver import generate_output_path, convert_to_abs_path, sort_files
 from utils.time_processor import format_time
 from scripts.reformat_gopro import valid_video
 from argparse import ArgumentParser
@@ -150,6 +150,7 @@ class Model():
       processed_videos.append(self.input_path)
     else:
       for (root, _, files) in os.walk(self.input_path):
+        files = sort_files(files)
         for file in files:
           if len(processed_videos) == self.max_video_cnt:
             break
