@@ -1,7 +1,7 @@
 from utils.sharktrack_annotations import save_analyst_output, save_peek_output, extract_sightings
 from utils.path_resolver import generate_output_path, convert_to_abs_path, sort_files
 from utils.time_processor import ms_to_string
-from utils.video_iterators import stride_iterator
+from utils.video_iterators import stride_iterator, keyframe_iterator
 from scripts.reformat_gopro import valid_video
 from argparse import ArgumentParser
 from ultralytics import YOLO
@@ -74,20 +74,14 @@ class Model():
 
     model = YOLO(self.model_path)
 
-    content = av.datasets.curated(video_path)
-    with av.open(content) as container:
-      video_stream = container.streams.video[0]         # take only video stream
-      video_stream.codec_context.skip_frame = 'NONKEY'  # and only keyframes (1fps)
-      frame_idx = 0
-      for frame in container.decode(video_stream):
-        frame_idx += 1
-        print(f"  processing frame {frame_idx}...", end="\r")
-        frame_results = model(
-          source=frame.to_image(),
+    video_iterator = keyframe_iterator(video_path)
+    for frame, time, frame_idx in video_iterator:
+      print(f"  processing frame {frame_idx}...", end="\r")
+      frame_results = model(
+          source=frame,
           **self.model_args
         )
-        time = ms_to_string(round(frame.pts * video_stream.time_base) * 1000)
-        self.save_results(video_path, frame_results, **{"time": time, "frame_id": frame_idx})
+      self.save_results(video_path, frame_results, **{"time": time, "frame_id": frame_idx})
         
   def track_video(self, video_path):
     """
