@@ -46,7 +46,7 @@ def extract_sightings(video_path, input_path, frame_results, frame_id, time, **k
               "h": frame_results.orig_shape[0],
               "w": frame_results.orig_shape[1],
               "confidence": confidence,
-              "class": classes_mapping[int(cls)],
+              "label": classes_mapping[int(cls)],
               "track_metadata": track_metadata,
           }
 
@@ -72,6 +72,7 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
       concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
 
       frame_output_path = compute_frames_output_path(video_path, kwargs["input"], out_folder, kwargs["is_chapters"])
+      frame_output_path.mkdir(exist_ok=True)
       write_max_conf(postprocessed_results, frame_output_path, kwargs["input"])
 
       new_next_track_index = postprocessed_results["track_id"].max() + 1
@@ -89,12 +90,12 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
 def save_peek_output(video_path, frame_results, out_folder, next_track_index, **kwargs):
   # Save peek frames
   frames_save_dir = compute_frames_output_path(video_path, kwargs["input"], out_folder, kwargs["is_chapters"])
-  os.makedirs(frames_save_dir, exist_ok=True)
+  frames_save_dir.mkdir(exist_ok=True)
 
   if len(frame_results[0].boxes.xyxy.cpu().tolist()) > 0:
       plot = frame_results[0].plot(line_width=2)
       img = annotate_image(plot, video_path, kwargs["time"], next_track_index)
-      cv2.imwrite(os.path.join(frames_save_dir, f"{next_track_index}.jpg"), img)
+      cv2.imwrite(str(frames_save_dir / f"{next_track_index}.jpg"), img)
 
       # Save sightings in csv
       sightings = extract_sightings(video_path, kwargs["input"], frame_results[0], kwargs["frame_id"], kwargs["time"], **{"track_id": next_track_index})
@@ -140,12 +141,10 @@ def postprocess(results, fps, next_track_index):
 
     return filtered_results
 
-def write_max_conf(poostprocessed_results: pd.DataFrame, out_folder, video_path_prefix):
+def write_max_conf(poostprocessed_results: pd.DataFrame, out_folder: Path, video_path_prefix):
   """
   Saves annotated images with the maximum confidence detection for each track
   """
-  os.makedirs(out_folder, exist_ok=True)
-
   max_conf_detections_idx = poostprocessed_results.groupby("track_metadata")["confidence"].idxmax()
   max_conf_detections_df = poostprocessed_results.loc[max_conf_detections_idx]
 
@@ -159,5 +158,5 @@ def write_max_conf(poostprocessed_results: pd.DataFrame, out_folder, video_path_
     img = annotate_image(plot, video_short_path, time, row["track_id"])
 
     output_image_id = f"{row['track_id']}.jpg"
-    output_path = os.path.join(out_folder, output_image_id)
+    output_path = str(out_folder / output_image_id)
     cv2.imwrite(output_path, img)
