@@ -1,9 +1,11 @@
-from utils.sharktrack_annotations import save_analyst_output, save_peek_output
+from utils.sharktrack_annotations import save_analyst_output, save_peek_output, extract_sightings
 from utils.path_resolver import generate_output_path, convert_to_abs_path, sort_files
 from utils.time_processor import ms_to_string
+from utils.video_iterators import stride_iterator
 from scripts.reformat_gopro import valid_video
 from argparse import ArgumentParser
 from ultralytics import YOLO
+import pandas as pd
 import av.datasets
 import shutil
 import torch
@@ -96,17 +98,21 @@ class Model():
     model = YOLO(self.model_path)
     
     vid_stride = self._get_frame_skip(video_path)
-    vid_fps = cv2.VideoCapture(video_path).get(cv2.CAP_PROP_FPS)
 
+    video_iterator = stride_iterator(video_path, vid_stride)
 
-    results = model.track(
-      video_path,
-      **self.model_args,
-      vid_stride=vid_stride,
-      stream=True,
-    )
+    sightings = []
 
-    self.save_results(video_path, results, **{"fps": self.fps, "vid_stride": vid_stride, "vid_fps": vid_fps})
+    for frame, time, frame_idx in video_iterator:
+      results = model.track(
+        frame,
+        **self.model_args,
+        stream=True
+      )
+      sightings += extract_sightings(video_path, self.input_path, next(results), frame_idx, ms_to_string(time), **{"tracking": True})
+    
+    sightings_df = pd.DataFrame(sightings)
+    self.save_results(video_path, sightings_df, **{"fps": self.fps, "input": self.input_path})
 
   def live_track(self, video_path, output_folder='./output'):
     """
