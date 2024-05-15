@@ -2,9 +2,10 @@ import pandas as pd
 import sys
 import cv2
 import os
+from pathlib import Path
 sys.path.append("utils")
-from time_processor import ms_to_string
-from image_processor import draw_bbox, annotate_image
+from time_processor import string_to_ms
+from image_processor import draw_bboxes, annotate_image, extract_frame_at_time
 from path_resolver import compute_frames_output_path, remove_input_prefix_from_video_path
 
 
@@ -59,23 +60,7 @@ def extract_sightings(video_path, input_path, frame_results, frame_id, time, **k
     return frame_results_rows
 
 def save_analyst_output(video_path, model_results, out_folder, next_track_index, **kwargs):
-  data = []
-  max_conf_images = {}
-
-  for frame_id, frame_results in enumerate(model_results):
-          time_ms = frame_id * kwargs["vid_stride"] / kwargs["vid_fps"] * 1000
-          time = ms_to_string(time_ms)
-          sightings = extract_sightings(video_path, kwargs["input"], frame_results, frame_id, time, **{"tracking":True})
-          data += sightings
-
-          for row in sightings:
-            if row["track_metadata"] not in max_conf_images or max_conf_images[row["track_metadata"]]["confidence"] < row["confidence"]:
-              max_conf_images[row["track_metadata"]] = {
-                  "confidence": row["confidence"],
-                  "image": frame_results.plot(conf=False, labels=False, line_width=1),
-              }
-
-  results_df = pd.DataFrame(data)
+  results_df = model_results
   tracks_found = 0
 
   if not results_df.empty:
@@ -85,8 +70,10 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
       postprocessed_results = postprocessed_results[SHARKTRACK_COLUMNS]
       assert all([c in postprocessed_results.columns for c in SHARKTRACK_COLUMNS])
       concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
+
       frame_output_path = compute_frames_output_path(video_path, kwargs["input"], out_folder, kwargs["is_chapters"])
-      write_max_conf(postprocessed_results, max_conf_images, frame_output_path, kwargs["fps"])
+      write_max_conf(postprocessed_results, frame_output_path, kwargs["input"])
+
       new_next_track_index = postprocessed_results["track_id"].max() + 1
       tracks_found = new_next_track_index - next_track_index
       next_track_index = new_next_track_index
@@ -153,7 +140,7 @@ def postprocess(results, fps, next_track_index):
 
     return filtered_results
 
-def write_max_conf(poostprocessed_results, max_conf_image, out_folder, fps):
+def write_max_conf(poostprocessed_results: pd.DataFrame, out_folder, video_path_prefix):
   """
   Saves annotated images with the maximum confidence detection for each track
   """
@@ -163,16 +150,13 @@ def write_max_conf(poostprocessed_results, max_conf_image, out_folder, fps):
   max_conf_detections_df = poostprocessed_results.loc[max_conf_detections_idx]
 
   for _, row in max_conf_detections_df.iterrows():
-    video = os.path.join(row["video_path"])
+    video_short_path = os.path.join(row["video_path"])
+    video_path = Path(video_path_prefix) / video_short_path
     time = row["time"]
-    confidence = row["confidence"]
-    plot = max_conf_image[row["track_metadata"]]["image"]
-    assert confidence == max_conf_image[row["track_metadata"]]["confidence"]
+    image = extract_frame_at_time(str(video_path), string_to_ms(time))
+    plot = draw_bboxes(image, [row[["xmin", "ymin", "xmax", "ymax"]].values])
 
-    img = annotate_image(plot, video, time, row["track_id"])
-
-    max_conf_bbox = row[["xmin", "ymin", "xmax", "ymax"]].values
-    img = draw_bbox(img, max_conf_bbox)
+    img = annotate_image(plot, video_short_path, time, row["track_id"])
 
     output_image_id = f"{row['track_id']}.jpg"
     output_path = os.path.join(out_folder, output_image_id)

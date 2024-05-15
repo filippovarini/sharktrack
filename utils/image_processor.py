@@ -2,15 +2,18 @@ import cv2
 import numpy as np
 
 
-def draw_bbox(image, bbox, color=(0, 255, 0)):
+def draw_bboxes(image, bboxes, color=(0, 255, 0)):
     """
     """
     img = image.copy()
     thickness = 2
-    bbox = np.array(bbox).astype(int)
-    pt1, pt2 = (bbox[0], bbox[1]), (bbox[2], bbox[3])
-    img = cv2.rectangle(img, pt1, pt2, color, thickness)
-    return img
+    for bbox in bboxes:
+        bbox = np.array(bbox).astype(int)
+        pt1, pt2 = (bbox[0], bbox[1]), (bbox[2], bbox[3])
+        img = cv2.rectangle(img, pt1, pt2, color, thickness)
+        return img
+
+
 
 def annotate_image(img, chapter_path, time, track_id):
     padding_height = 100  # You can adjust the height as needed
@@ -36,4 +39,5 @@ def extract_frame_at_time(video_path: str, time_ms: int):
     vidcap = cv2.VideoCapture(video_path)
     vidcap.set(cv2.CAP_PROP_POS_MSEC, time_ms)
     ret, frame = vidcap.read()
-    return ret, frame
+    assert ret, f"Can't read {video_path} at time {time_ms} ms"
+    return frame
