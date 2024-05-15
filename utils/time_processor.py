@@ -1,35 +1,46 @@
-from datetime import timedelta
-
-def format_time(seconds):
+def ms_to_string(milliseconds):
     """
-    Formats seconds to mm:ss:ms
-    if 0 m, show 00 instead of 0
-    ms should only be 2 digits
+    Formats milliseconds to hh:mm:ss:ms
+    where:
+    - hh is hours with leading zero if less than 10
+    - mm is minutes with leading zero if less than 10
+    - ss is seconds with leading zero if less than 10
+    - ms is the two highest digits of the milliseconds
     """
-    # Convert seconds to a timedelta
-    td = timedelta(seconds=seconds)
-
-    # Extract minutes, seconds, and milliseconds
-    minutes = int(td.total_seconds() // 60)
-    hours = 0
-    if minutes > 60:
-        hours = minutes // 60
-        minutes = minutes % 60
-    seconds = int(td.total_seconds() % 60)
-    milliseconds = int(td.microseconds / 10000)  # Convert microseconds to milliseconds and round to 2 digits
-
-    # Format the time string
-    time_str = f"{hours:02}h:{minutes:02}m:{seconds:02}s"
+    seconds = milliseconds // 1000
+    milliseconds = int(milliseconds % 1000)
+    minutes = int(seconds // 60)
+    hours = int(minutes // 60)
+    minutes = int(minutes % 60)
+    seconds = int(seconds % 60)
+    time_str = f"{hours:02}h:{minutes:02}m:{seconds:02}s:{milliseconds:03}ms"
     return time_str
 
-def unformat_time(time_str):
-    """
-    Unformats time from mm:ss:ms to milliseconds
-    """
-    # Extract minutes, seconds, and milliseconds
-    minutes, seconds, milliseconds = map(int, time_str.split(':'))
-    milliseconds *= 10 # time_str has 2 digits for milliseconds, convert to 3 digits
 
-    # Convert to milliseconds
-    total_milliseconds = (minutes * 60 + seconds) * 1000 + milliseconds
+def string_to_ms(time_str):
+    """
+    Parses a time string formatted as "hh:mm:ss:ms" back into total milliseconds.
+    
+    - hh is hours
+    - mm is minutes
+    - ss is seconds
+    - ms is the two highest digits of the milliseconds
+    
+    Parameters:
+        time_str (str): The time string to parse.
+    
+    Returns:
+        int: The total number of milliseconds represented by the time string.
+    """
+    parts = time_str.split(':')
+    hours = int(parts[0].strip('h'))
+    minutes = int(parts[1].strip('m'))
+    seconds = int(parts[2].strip('s'))
+    milliseconds = int(parts[3].strip('ms'))
+
+    total_milliseconds = (hours * 3600000) 
+    total_milliseconds += (minutes * 60000)
+    total_milliseconds += (seconds * 1000) 
+    total_milliseconds += (milliseconds)
+
     return total_milliseconds

@@ -3,7 +3,7 @@ import sys
 import cv2
 import os
 sys.path.append("utils")
-from time_processor import format_time
+from time_processor import ms_to_string
 from image_processor import draw_bbox, annotate_image
 from path_resolver import compute_frames_output_path, remove_input_prefix_from_video_path
 
@@ -63,7 +63,8 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
   max_conf_images = {}
 
   for frame_id, frame_results in enumerate(model_results):
-          time = format_time(frame_id / kwargs["fps"])
+          time_ms = frame_id * kwargs["vid_stride"] / kwargs["vid_fps"] * 1000
+          time = ms_to_string(time_ms)
           sightings = extract_sightings(video_path, kwargs["input"], frame_results, frame_id, time, **{"tracking":True})
           data += sightings
 
