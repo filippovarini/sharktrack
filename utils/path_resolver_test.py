@@ -13,6 +13,10 @@ class TestGenerateCorrectOutput(unittest.TestCase):
         self.assertEqual(generate_output_path(None, "run1"), os.path.join(default_output, "run1_processed"))
         self.assertEqual(generate_output_path(None, "/abs/path/to/run1"), os.path.join(default_output, "run1_processed"))
         self.assertEqual(generate_output_path(None, "/abs/path/to/run1/video.mp4"), os.path.join(default_output, "video_processed"))
+
+        self.assertEqual(generate_output_path(None, "run1", "expert_annotations"), os.path.join(default_output, "run1_processed", "expert_annotations"))
+        self.assertEqual(generate_output_path(None, "/abs/path/to/run1", "expert_annotations"), os.path.join(default_output, "run1_processed", "expert_annotations"))
+        self.assertEqual(generate_output_path(None, "/abs/path/to/run1/video.mp4", "expert_annotations"), os.path.join(default_output, "video_processed", "expert_annotations"))
         
         paths_to_create = [os.path.join(default_output, "run1_processed"), os.path.join(default_output, "run1_processedv1")]
         os.makedirs(paths_to_create[0], exist_ok=True)
