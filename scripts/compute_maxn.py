@@ -22,12 +22,10 @@ def get_maxn_confidence(labeled_detections):
 
     return completed_annotations / len(labeled_detections)
 
-def get_labeled_detections(output_path: str):
-    predefined_output_csv = "output.csv"
-    output_csv_path = os.path.join(output_path, predefined_output_csv)
-    assert os.path.exists(output_csv_path), f"To clean annotations locally you must have './detections' folder in the output path but {output_csv_path} doesn't exist!"
+def get_labeled_detections(internal_results_path: str, output_csv_path: str):
+    assert os.path.exists(output_csv_path), f"{output_csv_path} doesn't exist! Please provide the path to the top folder of the BRUVS study you want to analyise. It should contain a directory called 'internal_ "
 
-    valid_detections = [f.name for f in Path(output_path).rglob("*jpg")]
+    valid_detections = [f.name for f in Path(internal_results_path).rglob("*jpg")]
     assert len(valid_detections) == len(set(valid_detections)), "Detections don't have unique (track_id, species)"
 
     labeled_detections = {}
@@ -93,17 +91,22 @@ def save_maxn_frames(cleaned_output: pd.DataFrame, maxn: pd.DataFrame, videos_pa
 @click.option("--chapters",  is_flag=True, default=False, show_default=True, prompt="Are your videos split in chapters?", help="Aggreagate chapter information into a single video")
 def main(path, videos, chapters):
     final_analysis_folder = "analysed"
+    internal_results_folder = "internal_results"
+    predefined_output_csv = "output.csv"
+
     maxn_filename = "maxn.csv"
     analysis_path = Path(path) / final_analysis_folder
     analysis_path.mkdir(exist_ok=True)
 
-    if not os.path.exists(path):
-        print(f"Output path {path} does not exist")
+    internal_results_path = Path(path) / internal_results_folder
+    original_output_path = internal_results_path / "output.csv"
+    if not internal_results_path.exists():
+        f"Please provide the path to the folder containing the {internal_results_path} subfolder"
         return
+
     print(f"Computing MaxN from annotations cleaned locally...")
-    original_output_path = os.path.join(path, "output.csv")
     original_output = get_original_output(original_output_path)
-    labeled_detections = get_labeled_detections(path)
+    labeled_detections = get_labeled_detections(internal_results_path, original_output_path)
     maxn_confidence = get_maxn_confidence(labeled_detections)
 
     cleaned_annotations = clean_annotations_locally(original_output, labeled_detections)
