@@ -1,6 +1,6 @@
 from utils.sharktrack_annotations import save_analyst_output, save_peek_output
 from utils.path_resolver import generate_output_path, convert_to_abs_path, sort_files
-from utils.time_processor import format_time
+from utils.time_processor import ms_to_string
 from scripts.reformat_gopro import valid_video
 from argparse import ArgumentParser
 from ultralytics import YOLO
@@ -12,6 +12,7 @@ import os
 import av
 import torch
 import click
+import traceback
 
 class Model():
   def __init__(self, input_path, output_path, **kwargs):
@@ -42,7 +43,7 @@ class Model():
       self.save_output = save_peek_output
     else:
       self.inference_type = self.track_video
-      self.fps = 5
+      self.fps = 3
       self.model_args["tracker"] = "trackers/tracker_3fps.yaml"
       self.model_args["persist"] = True
       self.model_args["imgsz"] = kwargs["imgsz"]
@@ -83,7 +84,7 @@ class Model():
           source=frame.to_image(),
           **self.model_args
         )
-        time = format_time(float(frame.pts * video_stream.time_base))
+        time = ms_to_string(round(frame.pts * video_stream.time_base) * 1000)
         self.save_results(video_path, frame_results, **{"time": time, "frame_id": frame_idx})
         
   def track_video(self, video_path):
@@ -93,15 +94,19 @@ class Model():
     """
     print(f"Processing video: {video_path} on device {self.model_args['device']}. Might take some time...")
     model = YOLO(self.model_path)
+    
+    vid_stride = self._get_frame_skip(video_path)
+    vid_fps = cv2.VideoCapture(video_path).get(cv2.CAP_PROP_FPS)
+
 
     results = model.track(
       video_path,
       **self.model_args,
-      vid_stride=self._get_frame_skip(video_path),
+      vid_stride=vid_stride,
       stream=True,
     )
 
-    self.save_results(video_path, results, **{"fps": self.fps})
+    self.save_results(video_path, results, **{"fps": self.fps, "vid_stride": vid_stride, "vid_fps": vid_fps})
 
   def live_track(self, video_path, output_folder='./output'):
     """
@@ -163,6 +168,7 @@ class Model():
               processed_videos.append(video_path)
             except:
               print(f"***ERROR*** failed to process video {video_path} . Make sure it is a valid, uncorrupted video")  
+              traceback.print_exc()
 
     if len(processed_videos) == 0:
       print("No BRUVS videos found in the given folder")
