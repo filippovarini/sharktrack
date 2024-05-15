@@ -6,7 +6,6 @@ import click
 import sys
 import cv2
 import traceback
-
 sys.path.append("utils")
 from image_processor import extract_frame_at_time, draw_bboxes
 from time_processor import string_to_ms
@@ -75,17 +74,23 @@ def save_maxn_frames(cleaned_output: pd.DataFrame, maxn: pd.DataFrame, videos_pa
         try:
             time_ms = string_to_ms(row["time"])
             frame = extract_frame_at_time(str(video_path), time_ms)
-            bboxes = cleaned_output.loc[(cleaned_output["time"] == row["time"]) & (cleaned_output["video_path"] == video_relative_path), ["xmin", "ymin", "xmax", "ymax"]].values
-            plot = draw_bboxes(frame, bboxes)
+            maxn_sightings = cleaned_output[(cleaned_output["time"] == row["time"]) & (cleaned_output["video_path"] == video_relative_path)]
+            bboxes = maxn_sightings[["xmin", "ymin", "xmax", "ymax"]].values
+            labels = maxn_sightings[["label"]].values
+            plot = draw_bboxes(frame, bboxes, labels)
             cv2.imwrite(f"{label}{idx}.jpg", plot)
         except:
+            traceback.print_exc()
             print(f"Failed reading video {video_path}. \n You provided video path {videos_path}, please make sure you provide only the root path that joins with relative path{video_relative_path}")
             return
 
 @click.command()
-@click.option("--path", "-p", type=str, required=True, help="Path to the output folder of sharktrack")
+@click.option("--path", "-p", type=str, required=True, prompt="Provide path to original output", help="Path to the output folder of sharktrack")
 @click.option("--videos", "-v", type=str, default="N/A", show_default=True, prompt="Path to original videos (to compute maxn screenshots)", help="Path to the folder that contains all videos, to extract MaxN")
 def main(path, videos):
+    final_analysis_folder = "analysed"
+    maxn_filename = "maxn.csv"
+
     if not os.path.exists(path):
         print(f"Output path {path} does not exist")
         return
@@ -99,9 +104,10 @@ def main(path, videos):
     cleaned_annotations.to_csv(original_output_path)
     maxn = compute_species_max_n(cleaned_annotations)
 
-    max_n_path = os.path.join(path, "maxn.csv")
-    maxn.to_csv(max_n_path, index=False)
-    print(f"MaxN computed! Check in the folder {path}/maxn.csv")
+    max_n_path = Path(path) / final_analysis_folder / maxn_filename
+    max_n_path.parent.mkdir(exist_ok=True, parents=True)
+    maxn.to_csv(str(max_n_path), index=False)
+    print(f"MaxN computed! Check in the folder {max_n_path}")
     print(f"MaxN confidence achieved {int(maxn_confidence*100)}%")
 
     if videos == "N/A":

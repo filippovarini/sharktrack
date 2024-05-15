@@ -2,15 +2,26 @@ import cv2
 import numpy as np
 
 
-def draw_bboxes(image, bboxes, color=(0, 255, 0)):
+def draw_bboxes(image, bboxes, labels=None, color=(0, 255, 0), font=cv2.FONT_HERSHEY_SIMPLEX, font_scale=0.5, font_thickness=1):
     """
     """
+    if labels is not None:
+        assert len(labels) == len(bboxes), f"There must be same number of labels {len(labels)} and boxes {len(bboxes)}"
+
     img = image.copy()
     thickness = 2
-    for bbox in bboxes:
+    for i in range(len(bboxes)):
+        bbox = bboxes[i]
         bbox = np.array(bbox).astype(int)
         pt1, pt2 = (bbox[0], bbox[1]), (bbox[2], bbox[3])
         img = cv2.rectangle(img, pt1, pt2, color, thickness)
+
+        if labels is not None:
+            label = str(labels[i])
+            label_size = cv2.getTextSize(label, font, font_scale, font_thickness)[0]
+            label_pt = (pt1[0], pt1[1] - label_size[1] - 4 if pt1[1] - label_size[1] - 4 > 0 else pt1[1] + label_size[1] + 4) # draw above or below based on position of individual
+            cv2.putText(img, label, label_pt, font, font_scale, color, font_thickness)
+
     return img
 
 def annotate_image(img, chapter_path, time, track_id):
