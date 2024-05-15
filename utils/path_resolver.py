@@ -4,7 +4,7 @@ from pathlib import Path
 
 default_output = "outputs"
 
-def generate_output_path(user_output_path, input_path):
+def generate_output_path(user_output_path, input_path, annotation_folder=None):
   if user_output_path:
     output_path = user_output_path
     if os.path.exists(output_path):
@@ -20,6 +20,9 @@ def generate_output_path(user_output_path, input_path):
     while os.path.exists(output_path):
       i += 1
       output_path = original_output_path + f"v{i}"
+
+  if annotation_folder:
+    output_path = os.path.join(output_path, annotation_folder)
 
   return output_path
 
