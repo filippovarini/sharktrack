@@ -4,13 +4,14 @@ from utils.time_processor import format_time
 from scripts.reformat_gopro import valid_video
 from argparse import ArgumentParser
 from ultralytics import YOLO
+import av.datasets
 import shutil
 import torch
 import cv2
 import os
 import av
 import torch
-import av.datasets
+import click
 
 class Model():
   def __init__(self, input_path, output_path, **kwargs):
@@ -169,10 +170,20 @@ class Model():
 
     return processed_videos
 
-
+@click.command()
+@click.option("--input", "-i", type=str, default="./input_videos", show_default=True, required=True, prompt="Input path", help="Path to the video folder")
+@click.option("--stereo_prefix", type=str, help="Prefix to filter stereo BRUVS")
+@click.option("--limit", type=int, default=1000, help="Maximum videos to process")
+@click.option("--imgsz", type=int, default=640, help="Image size the model processes. Default 640. Lower is faster but lower accuracy and vice versa.")
+@click.option("--conf", type=float, default=0.25, help="Confidence threshold")
+@click.option("--output", "-o", type=str, default=None, help="Output directory for the results")
+@click.option("--peek",  is_flag=True, default=False, show_default=True, prompt="Run peek version?", help="Use peek mode: 5x faster but only finds interesting frames, without tracking/computing MaxN")
+@click.option("--chapters",  is_flag=True, default=False, show_default=True, prompt="Are your videos split in chapters?", help="Aggreagate chapter information into a single video")
+@click.option("--live",  is_flag=True, default=False, help="Show live tracking video for debugging purposes")
 def main(**kwargs):
-  input_path = os.path.normpath(kwargs["input"]) if kwargs["input"] else "input_videos"
+  input_path = os.path.normpath(kwargs["input"])
   input_path = convert_to_abs_path(input_path)
+  print(input_path)
   output_path = generate_output_path(kwargs["output"], input_path)
   os.makedirs(output_path)
 
@@ -188,19 +199,6 @@ def main(**kwargs):
     model.run()
 
 if __name__ == "__main__":
-  parser = ArgumentParser()
-  parser.add_argument("--input", type=str, default=None, help="Path to the video folder")
-  parser.add_argument("--stereo_prefix", type=str, help="Prefix to filter stereo BRUVS")
-  parser.add_argument("--limit", type=int, default=1000, help="Maximum videos to process")
-  parser.add_argument("--imgsz", type=int, default=640, help="Image size the model processes. Default 640. Lower is faster but lower accuracy and vice versa.")
-  parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
-  parser.add_argument("--output", type=str, default=None, help="Output directory for the results")
-  parser.add_argument("--peek", action="store_true", help="Use peek mode: 5x faster but only finds interesting frames, without tracking/computing MaxN")
-  parser.add_argument("--chapters", action="store_true", help="Aggreagate chapter information into a single video")
-  parser.add_argument("--live", action="store_true", help="Show live tracking video for debugging purposes")
-  args = parser.parse_args()
-
   # avoid duplicate libraries exception caused by numpy installation
   os.environ["KMP_DUPLICATE_LIB_OK"]="True"
-
-  main(**vars(args))
+  main()
