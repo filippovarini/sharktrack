@@ -17,17 +17,17 @@ def max():
 
 def evaluate_maxn(pred, target):
     """
-    Assumption: MaxN in SharkTrack format: chapter_path, class, n
+    Assumption: MaxN in SharkTrack format: chapter_path, label, n
     Convert target MaxN to that format before evaluating it
     """
-    required_cols = ["chapter_path", "class", "n"]
+    required_cols = ["chapter_path", "label", "n"]
     assert [c in pred.columns and c in target.columns for c in required_cols], f"Both pred and target MaxN file must have cols {required_cols}"
 
-    evaluation = pd.merge(pred, target, on=["chapter_path", "class"], how="outer", suffixes=("_pred", "_target"), validate="one_to_one")
+    evaluation = pd.merge(pred, target, on=["chapter_path", "label"], how="outer", suffixes=("_pred", "_target"), validate="one_to_one")
     evaluation.fillna(0, inplace=True)
 
-    # assert no chapter_path, class duplicates
-    assert evaluation[["chapter_path", "class"]].duplicated().sum() == 0, "chapter_path, class duplicates found in evaluation"
+    # assert no chapter_path, label duplicates
+    assert evaluation[["chapter_path", "label"]].duplicated().sum() == 0, "chapter_path, label duplicates found in evaluation"
     
     evaluation["MaxN_Error"] = abs(evaluation["n_pred"] - evaluation["n_target"])
     evaluation["MaxNAcc"] = evaluation["n_target"] / (evaluation["n_target"] + evaluation["MaxN_Error"])

@@ -3,6 +3,17 @@ import pandas as pd
 import os
 from pathlib import Path
 
+def detection_is_unlabeled(d):
+    return d.split(".")[0].isnumeric()
+
+def get_maxn_confidence(labeled_detections):
+    completed_annotations = 0
+    for k, v in labeled_detections.items():
+        if v:
+            completed_annotations += 1
+
+    return completed_annotations / len(labeled_detections)
+
 def get_labeled_detections(output_path: str):
     predefined_output_csv = "output.csv"
     output_csv_path = os.path.join(output_path, predefined_output_csv)
@@ -13,12 +24,15 @@ def get_labeled_detections(output_path: str):
 
     labeled_detections = {}
     for d in valid_detections:
+        if detection_is_unlabeled(d):
+            labeled_detections[d] = None
         try:
             track_id = int(d.split("-")[0])
             label = d.split("-", maxsplit=1)[1].replace(".jpg", "")
             labeled_detections[track_id] = label
         except:
             raise Exception("All files in ./detections should be '{TRACK_ID}-{CLASS}.jpg' but there is failing file: " + d)
+
     return labeled_detections
     
 def get_original_output(output_path):
@@ -28,15 +42,15 @@ def get_original_output(output_path):
 
 def clean_annotations_locally(sharktrack_df, labeled_detections):
     filtered_sharktrack_df = sharktrack_df[sharktrack_df["track_id"].isin(labeled_detections.keys())]
-    filtered_sharktrack_df.loc[:, "class"] = filtered_sharktrack_df["track_id"].apply(lambda k: labeled_detections[k])
+    filtered_sharktrack_df.loc[:, "label"] = filtered_sharktrack_df.apply(lambda row: labeled_detections.get(row.track_id, row.label))
     return filtered_sharktrack_df
 
 def compute_species_max_n(original_output, labeled_detections):
     cleaned_annotations = clean_annotations_locally(original_output, labeled_detections)
-    frame_box_cnt = cleaned_annotations.groupby(["video_path", "video_name", "frame", "class"], as_index=False).agg(time=("time", "first"), n=("track_id", "count"), tracks_in_maxn=("track_id", lambda x: list(x)))
+    frame_box_cnt = cleaned_annotations.groupby(["video_path", "video_name", "frame", "label"], as_index=False).agg(time=("time", "first"), n=("track_id", "count"), tracks_in_maxn=("track_id", lambda x: list(x)))
 
     # for each chapter, species, get the max n and return video, species, max_n, chapter, time when that happens
-    max_n = frame_box_cnt.sort_values("n", ascending=False).groupby(["video_path", "video_name", "class"], as_index=False).head(1)
+    max_n = frame_box_cnt.sort_values("n", ascending=False).groupby(["video_path", "video_name", "label"], as_index=False).head(1)
     max_n = max_n.sort_values(["video_path", "n"], ascending=[True, False])
     max_n = max_n.reset_index(drop=True)
 
@@ -50,6 +64,7 @@ def main(output_path):
     print(f"Computing MaxN from annotations cleaned locally...")
     original_output = get_original_output(output_path)
     labeled_detections = get_labeled_detections(output_path)
+    maxn_confidence = get_maxn_confidence(labeled_detections)
     max_n = compute_species_max_n(original_output, labeled_detections)
 
     max_n_path = os.path.join(output_path, "maxn.csv")

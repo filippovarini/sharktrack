@@ -9,7 +9,7 @@ from image_processor import draw_bboxes, annotate_image, extract_frame_at_time
 from path_resolver import compute_frames_output_path, remove_input_prefix_from_video_path
 
 
-SHARKTRACK_COLUMNS = ["video_path", "video_name", "frame", "time", "xmin", "ymin", "xmax", "ymax", "w", "h", "confidence", "class", "track_metadata", "track_id"]
+SHARKTRACK_COLUMNS = ["video_path", "video_name", "frame", "time", "xmin", "ymin", "xmax", "ymax", "w", "h", "confidence", "label", "track_metadata", "track_id"]
 
 classes_mapping = ["elasmobranch"]
    
