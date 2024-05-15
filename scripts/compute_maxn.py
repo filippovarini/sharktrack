@@ -25,13 +25,14 @@ def get_labeled_detections(output_path: str):
     labeled_detections = {}
     for d in valid_detections:
         if detection_is_unlabeled(d):
-            labeled_detections[d] = None
-        try:
-            track_id = int(d.split("-")[0])
-            label = d.split("-", maxsplit=1)[1].replace(".jpg", "")
-            labeled_detections[track_id] = label
-        except:
-            raise Exception("All files in ./detections should be '{TRACK_ID}-{CLASS}.jpg' but there is failing file: " + d)
+            labeled_detections[int(d.split(".")[0])] = None
+        else:
+            try:
+                track_id = int(d.split("-")[0])
+                label = d.split("-", maxsplit=1)[1].replace(".jpg", "")
+                labeled_detections[track_id] = label
+            except:
+                raise Exception("All files in ./detections should be '{TRACK_ID}-{CLASS}.jpg' but there is failing file: " + d)
 
     return labeled_detections
     
@@ -42,7 +43,10 @@ def get_original_output(output_path):
 
 def clean_annotations_locally(sharktrack_df, labeled_detections):
     filtered_sharktrack_df = sharktrack_df[sharktrack_df["track_id"].isin(labeled_detections.keys())]
-    filtered_sharktrack_df.loc[:, "label"] = filtered_sharktrack_df.apply(lambda row: labeled_detections.get(row.track_id, row.label))
+    if len(filtered_sharktrack_df) == 0:
+        print("output csv empty!")
+        return
+    filtered_sharktrack_df.loc[:, "label"] = filtered_sharktrack_df.apply((lambda row: labeled_detections[row.track_id] or row.label), axis=1)
     return filtered_sharktrack_df
 
 def compute_species_max_n(original_output, labeled_detections):
@@ -55,7 +59,6 @@ def compute_species_max_n(original_output, labeled_detections):
     max_n = max_n.reset_index(drop=True)
 
     return max_n
-
 
 def main(output_path):
     if not os.path.exists(output_path):
@@ -70,6 +73,7 @@ def main(output_path):
     max_n_path = os.path.join(output_path, "maxn.csv")
     max_n.to_csv(max_n_path, index=False)
     print(f"MaxN computed! Check in the folder {output_path}/maxn.csv")
+    print(f"MaxN confidence achieved {int(maxn_confidence*100)}%")
 
 
 if __name__ == "__main__":
