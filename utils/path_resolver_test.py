@@ -23,11 +23,11 @@ class TestGenerateCorrectOutput(unittest.TestCase):
             shutil.rmtree(path)
 
     def test__compute_frames_output_path_correctly(self):
-        self.assertEqual(compute_frames_output_path("input_videos/sample.mp4", "input_videos/sample.mp4", "outputs/sample"), "outputs/sample/")
-        self.assertEqual(compute_frames_output_path("input_videos/sample.mp4", "input_videos/", "outputs/input_videos", chapters=True), "outputs/input_videos/")
-        self.assertEqual(compute_frames_output_path("input_videos/sample.mp4", "input_videos/", "outputs/input_videos"), "outputs/input_videos/sample")
-        self.assertEqual(compute_frames_output_path("input_videos/hello/sample.mp4", "input_videos/", "outputs/input_videos"), "outputs/input_videos/hello/sample")
-        self.assertEqual(compute_frames_output_path("input_videos/hello/sample.mp4", "input_videos/", "outputs/input_videos", chapters=True), "outputs/input_videos/hello")
+        self.assertEqual(str(compute_frames_output_path("input_videos/sample.mp4", "input_videos/sample.mp4", "outputs/sample")), "outputs/sample")
+        self.assertEqual(str(compute_frames_output_path("input_videos/sample.mp4", "input_videos/", "outputs/input_videos", chapters=True)), "outputs/input_videos")
+        self.assertEqual(str(compute_frames_output_path("input_videos/sample.mp4", "input_videos/", "outputs/input_videos")), "outputs/input_videos/sample")
+        self.assertEqual(str(compute_frames_output_path("input_videos/hello/sample.mp4", "input_videos/", "outputs/input_videos")), "outputs/input_videos/hello/sample")
+        self.assertEqual(str(compute_frames_output_path("input_videos/hello/sample.mp4", "input_videos/", "outputs/input_videos", chapters=True)), "outputs/input_videos/hello")
 
     def test__sort_files_correctly(self):
         files_list_1 = [f"LG0{n}01.MP4" for n in range(12, 0, -1)]
