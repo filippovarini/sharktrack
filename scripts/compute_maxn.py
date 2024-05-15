@@ -2,6 +2,14 @@ from argparse import ArgumentParser
 import pandas as pd
 import os
 from pathlib import Path
+import click
+import sys
+import cv2
+import traceback
+
+sys.path.append("utils")
+from image_processor import extract_frame_at_time, draw_bboxes
+from time_processor import string_to_ms
 
 def detection_is_unlabeled(d):
     return d.split(".")[0].isnumeric()
@@ -36,8 +44,7 @@ def get_labeled_detections(output_path: str):
 
     return labeled_detections
     
-def get_original_output(output_path):
-    original_output_path = os.path.join(output_path, "output.csv")
+def get_original_output(original_output_path):
     assert os.path.exists(original_output_path), f"No output.csv file found in {original_output_path}. output.csv represents the unclean output from sharktrack and is required to clean the annotations."
     return pd.read_csv(original_output_path)
 
@@ -49,35 +56,61 @@ def clean_annotations_locally(sharktrack_df, labeled_detections):
     filtered_sharktrack_df.loc[:, "label"] = filtered_sharktrack_df.apply((lambda row: labeled_detections[row.track_id] or row.label), axis=1)
     return filtered_sharktrack_df
 
-def compute_species_max_n(original_output, labeled_detections):
-    cleaned_annotations = clean_annotations_locally(original_output, labeled_detections)
+def compute_species_max_n(cleaned_annotations):
     frame_box_cnt = cleaned_annotations.groupby(["video_path", "video_name", "frame", "label"], as_index=False).agg(time=("time", "first"), n=("track_id", "count"), tracks_in_maxn=("track_id", lambda x: list(x)))
 
-    # for each chapter, species, get the max n and return video, species, max_n, chapter, time when that happens
-    max_n = frame_box_cnt.sort_values("n", ascending=False).groupby(["video_path", "video_name", "label"], as_index=False).head(1)
-    max_n = max_n.sort_values(["video_path", "n"], ascending=[True, False])
-    max_n = max_n.reset_index(drop=True)
+    # for each chapter, species, get the max n and return video, species, maxn, chapter, time when that happens
+    maxn = frame_box_cnt.sort_values("n", ascending=False).groupby(["video_path", "video_name", "label"], as_index=False).head(1)
+    maxn = maxn.sort_values(["video_path", "n"], ascending=[True, False])
+    maxn = maxn.reset_index(drop=True)
 
-    return max_n
+    return maxn
 
-def main(output_path):
-    if not os.path.exists(output_path):
-        print(f"Output path {output_path} does not exist")
+def save_maxn_frames(cleaned_output: pd.DataFrame, maxn: pd.DataFrame, videos_path: Path):
+    for idx, row in maxn.iterrows():
+        video_relative_path = row["video_path"]
+        label = row["label"]
+        video_path = videos_path / video_relative_path
+        print(f"Extracting MaxN Frame for {video_path}, {label=}")
+        try:
+            time_ms = string_to_ms(row["time"])
+            frame = extract_frame_at_time(str(video_path), time_ms)
+            bboxes = cleaned_output.loc[(cleaned_output["time"] == row["time"]) & (cleaned_output["video_path"] == video_relative_path), ["xmin", "ymin", "xmax", "ymax"]].values
+            plot = draw_bboxes(frame, bboxes)
+            cv2.imwrite(f"{label}{idx}.jpg", plot)
+        except:
+            print(f"Failed reading video {video_path}. \n You provided video path {videos_path}, please make sure you provide only the root path that joins with relative path{video_relative_path}")
+            return
+
+@click.command()
+@click.option("--path", "-p", type=str, required=True, help="Path to the output folder of sharktrack")
+@click.option("--videos", "-v", type=str, default="N/A", show_default=True, prompt="Path to original videos (to compute maxn screenshots)", help="Path to the folder that contains all videos, to extract MaxN")
+def main(path, videos):
+    if not os.path.exists(path):
+        print(f"Output path {path} does not exist")
         return
     print(f"Computing MaxN from annotations cleaned locally...")
-    original_output = get_original_output(output_path)
-    labeled_detections = get_labeled_detections(output_path)
+    original_output_path = os.path.join(path, "output.csv")
+    original_output = get_original_output(original_output_path)
+    labeled_detections = get_labeled_detections(path)
     maxn_confidence = get_maxn_confidence(labeled_detections)
-    max_n = compute_species_max_n(original_output, labeled_detections)
 
-    max_n_path = os.path.join(output_path, "maxn.csv")
-    max_n.to_csv(max_n_path, index=False)
-    print(f"MaxN computed! Check in the folder {output_path}/maxn.csv")
+    cleaned_annotations = clean_annotations_locally(original_output, labeled_detections)
+    cleaned_annotations.to_csv(original_output_path)
+    maxn = compute_species_max_n(cleaned_annotations)
+
+    max_n_path = os.path.join(path, "maxn.csv")
+    maxn.to_csv(max_n_path, index=False)
+    print(f"MaxN computed! Check in the folder {path}/maxn.csv")
     print(f"MaxN confidence achieved {int(maxn_confidence*100)}%")
+
+    if videos == "N/A":
+        # extract the frame from each maxn and annotate it with output.csv
+        print("Provide the path to the original videos to compute MaxN screenshots")
+    else:
+        videos_path = Path(videos)
+        save_maxn_frames(cleaned_annotations, maxn, videos_path)
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser.add_argument("--path", type=str, default="./output", help="Path to the output folder of sharktrack")
-    args = parser.parse_args()
-    main(args.path)
+    main()
