@@ -31,3 +31,9 @@ def annotate_image(img, chapter_path, time, track_id):
     cv2.putText(new_image, f"Time: {time}", (10, img.shape[0] + 90), font, font_scale, font_color, line_type)
 
     return new_image
+
+def extract_frame_at_time(video_path: str, time_ms: int):
+    vidcap = cv2.VideoCapture(video_path)
+    vidcap.set(cv2.CAP_PROP_POS_MSEC, time_ms)
+    ret, frame = vidcap.read()
+    return ret, frame
