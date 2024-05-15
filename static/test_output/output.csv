@@ -1,4 +1,4 @@
-video_path,video_name,frame,time,xmin,ymin,xmax,ymax,w,h,confidence,class,track_metadata,track_id
+video_path,video_name,frame,time,xmin,ymin,xmax,ymax,w,h,confidence,label,track_metadata,track_id
 videos/val1_medium1.mp4,val1_medium1.mp4,8,00h:00m:01s,314.3326110839844,1.8484028577804563,539.572021484375,58.93066787719727,1280,720,0.6771993041038513,elasmobranch,/vol/biomedic3/bglocker/ugproj2324/fv220/datasets/frame_extraction_raw/val1/videos/val1_medium1.mp4/1,0
 videos/val1_medium1.mp4,val1_medium1.mp4,9,00h:00m:01s,334.7913513183594,2.387523651123047,576.9716796875,64.22864532470703,1280,720,0.663457989692688,elasmobranch,/vol/biomedic3/bglocker/ugproj2324/fv220/datasets/frame_extraction_raw/val1/videos/val1_medium1.mp4/1,0
 videos/val1_medium1.mp4,val1_medium1.mp4,10,00h:00m:02s,317.1444396972656,2.704437494277954,615.5577392578125,68.88345336914062,1280,720,0.6208025813102722,elasmobranch,/vol/biomedic3/bglocker/ugproj2324/fv220/datasets/frame_extraction_raw/val1/videos/val1_medium1.mp4/1,0
