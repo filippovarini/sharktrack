@@ -80,7 +80,7 @@ def save_maxn_frames(cleaned_output: pd.DataFrame, maxn: pd.DataFrame, videos_pa
             frame = extract_frame_at_time(str(video_path), time_ms)
             maxn_sightings = cleaned_output[(cleaned_output["time"] == row["time"]) & (cleaned_output["video_path"] == video_relative_path)]
             bboxes = maxn_sightings[["xmin", "ymin", "xmax", "ymax"]].values
-            labels = maxn_sightings[["label"]].values
+            labels = maxn_sightings["label"].values
             plot = draw_bboxes(frame, bboxes, labels)
             plot = annotate_image(plot, f"Video: {video_relative_path}", f"Time: {row["time"]}", f"MaxN: {row['n']}")
             frames_folder = compute_frames_output_path(video_relative_path, input=None, output_path=analysis_output_path, chapters=chapters)
