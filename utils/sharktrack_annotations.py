@@ -52,9 +52,9 @@ def extract_sightings(video_path, input_path, frame_results, frame_id, time, **k
           }
 
           directories = Path(relative_video_path).parent.parts
-          for i, directory in enumerate(directories):
-             if directory:
-              row[f"directory{i+1}"] = directory
+          for i, folder in enumerate(directories):
+             if folder:
+              row[f"folder{i+1}"] = folder
 
           frame_results_rows.append(row)
 
@@ -68,7 +68,7 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
     postprocessed_results = postprocess(results_df, kwargs["fps"], next_track_index)
 
     if not postprocessed_results.empty:
-      directory_columns = [c for c in postprocessed_results.columns if c.startswith("directory")]
+      directory_columns = [c for c in postprocessed_results.columns if c.startswith("folder")]
       postprocessed_results = postprocessed_results[SHARKTRACK_COLUMNS + directory_columns]
       assert all([c in postprocessed_results.columns for c in SHARKTRACK_COLUMNS])
 
