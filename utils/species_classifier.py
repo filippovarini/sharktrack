@@ -16,6 +16,9 @@ class SpeciesClassifier:
             return cls(classifier_path)
 
     def __init__(self, classifier_path: str):
+        # Hyperparameters
+        self.confidence_threshold = 0.5
+        
         classifier_path = Path(classifier_path)
         model_path = classifier_path / "classifier.pt"
         class_mapping_path = classifier_path / "class_mapping.txt"
@@ -63,4 +66,7 @@ class SpeciesClassifier:
             confidences, preds = torch.max(outputs, 1)
 
         predicted_class = self.classes[preds.item()]
-        return confidences.item(), predicted_class
+        confidence = confidences.item()
+        if confidence < self.confidence_threshold:
+            predicted_class = None
+        return confidence, predicted_class
