@@ -54,14 +54,17 @@ def clean_annotations_locally(sharktrack_df, labeled_detections):
     filtered_sharktrack_df.loc[:, "label"] = filtered_sharktrack_df.apply((lambda row: labeled_detections[row.track_id] or row.label), axis=1)
     return filtered_sharktrack_df
 
-def compute_species_maxn(cleaned_annotations,):
+def compute_species_maxn(cleaned_annotations, chapter):
     groupby_columns = ["video_path", "video_name", "frame", "label"]
-    groupby_columns += [c for c in cleaned_annotations.columns if c.startswith("folder")]
-    aggregations = {{"time": ("time", "first"), "n":("track_id", "count"), "tracks_in_maxn":("track_id", lambda x: list(x))}}
-    frame_box_cnt = cleaned_annotations.groupby(groupby_columns, as_index=False, dropna=False).agg(**aggregations)
+    directory_columns = [c for c in cleaned_annotations.columns if c.startswith("folder")]
+    aggregations = {"time": ("time", "first"), "n":("track_id", "count"), "tracks_in_maxn":("track_id", lambda x: list(x))}
+    frame_box_cnt = cleaned_annotations.groupby(groupby_columns + directory_columns, as_index=False, dropna=False).agg(**aggregations)
 
     # for each chapter, species, get the max n and return video, species, maxn, chapter, time when that happens
-    maxn = frame_box_cnt.sort_values("n", ascending=False).groupby(["video_path", "video_name", "label"], as_index=False).head(1)
+    if chapter: 
+        maxn = frame_box_cnt.groupby(directory_columns + ["label"], as_index=False).apply(lambda grp: grp.nlargest(1, "n"))
+    else:
+        maxn = frame_box_cnt.groupby(["video_path", "video_name", "label"], as_index=False).apply(lambda grp: grp.nlargest(1, "n"))
     maxn = maxn.sort_values(["video_path", "n"], ascending=[True, False])
     maxn = maxn.reset_index(drop=True)
 
@@ -115,7 +118,7 @@ def main(path, videos, chapters):
 
     cleaned_annotations = clean_annotations_locally(original_output, labeled_detections)
     cleaned_annotations.to_csv(original_output_path)
-    maxn = compute_species_maxn(cleaned_annotations)
+    maxn = compute_species_maxn(cleaned_annotations, chapters)
 
     maxn_path = analysis_path / maxn_filename
     maxn.to_csv(str(maxn_path), index=False)
