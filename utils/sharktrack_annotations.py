@@ -168,7 +168,7 @@ def write_max_conf(postprocessed_results: pd.DataFrame, out_folder: Path, video_
 
     plot = draw_bboxes(image, [row[["xmin", "ymin", "xmax", "ymax"]].values], [label])
 
-    img = annotate_image(plot, video_short_path, time, row["track_id"])
+    img = annotate_image(plot,  f"Video: {video_short_path}", f"Track ID: {row["track_id"]}", f"Time: {time}")
 
     imagefile_suffix = f"-{label}" if classified else ''
     output_image_id = f"{row['track_id']}{imagefile_suffix}.jpg"
