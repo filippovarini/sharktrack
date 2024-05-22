@@ -7,7 +7,7 @@ import sys
 import cv2
 import traceback
 sys.path.append("utils")
-from image_processor import extract_frame_at_time, draw_bboxes
+from image_processor import extract_frame_at_time, draw_bboxes, annotate_image
 from time_processor import string_to_ms
 from path_resolver import compute_frames_output_path
 
@@ -78,6 +78,7 @@ def save_maxn_frames(cleaned_output: pd.DataFrame, maxn: pd.DataFrame, videos_pa
             bboxes = maxn_sightings[["xmin", "ymin", "xmax", "ymax"]].values
             labels = maxn_sightings[["label"]].values
             plot = draw_bboxes(frame, bboxes, labels)
+            plot = annotate_image(plot, f"Video: {video_relative_path}", f"Time: {row["time"]}", f"MaxN: {row['n']}")
             frames_folder = compute_frames_output_path(video_relative_path, input=None, output_path=analysis_output_path, chapters=chapters)
             frames_folder.mkdir(exist_ok=True, parents=True)
             image_filename = frames_folder / (label + ".jpg")
