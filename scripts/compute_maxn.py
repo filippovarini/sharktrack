@@ -54,10 +54,11 @@ def clean_annotations_locally(sharktrack_df, labeled_detections):
     filtered_sharktrack_df.loc[:, "label"] = filtered_sharktrack_df.apply((lambda row: labeled_detections[row.track_id] or row.label), axis=1)
     return filtered_sharktrack_df
 
-def compute_species_maxn(cleaned_annotations):
+def compute_species_maxn(cleaned_annotations,):
     groupby_columns = ["video_path", "video_name", "frame", "label"]
-    directory_column_aggregations = {c:(c, "first") for c in cleaned_annotations.columns if c.startswith("folder")} # add directory for folder-level MaxN computation
-    frame_box_cnt = cleaned_annotations.groupby(groupby_columns, as_index=False).agg(time=("time", "first"), n=("track_id", "count"), tracks_in_maxn=("track_id", lambda x: list(x)), **directory_column_aggregations)
+    groupby_columns += [c for c in cleaned_annotations.columns if c.startswith("folder")]
+    aggregations = {{"time": ("time", "first"), "n":("track_id", "count"), "tracks_in_maxn":("track_id", lambda x: list(x))}}
+    frame_box_cnt = cleaned_annotations.groupby(groupby_columns, as_index=False, dropna=False).agg(**aggregations)
 
     # for each chapter, species, get the max n and return video, species, maxn, chapter, time when that happens
     maxn = frame_box_cnt.sort_values("n", ascending=False).groupby(["video_path", "video_name", "label"], as_index=False).head(1)
