@@ -5,3 +5,4 @@ scripts/__pycache__/*
 test.ipynb
 outputs/*
 .DS_Store
+models/species_classifiers

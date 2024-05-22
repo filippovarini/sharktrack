@@ -22,6 +22,7 @@ class Model():
     self.max_video_cnt = kwargs["limit"]
     self.stereo_prefix = kwargs["stereo_prefix"]
     self.is_chapters = kwargs["chapters"]
+    self.species_classifier = kwargs["species_classifier"]
     self.output_path = output_path
 
     self.model_path = "models/sharktrack.pt"
@@ -61,6 +62,7 @@ class Model():
 
   def save_results(self, video_path, yolo_results, **kwargs):
     kwargs["input"] = self.input_path
+    kwargs["species_classifier"] = self.species_classifier
     kwargs["is_chapters"] = self.is_chapters
     next_track_index = self.save_output(video_path, yolo_results, self.output_path, self.next_track_index, **kwargs)
     assert next_track_index is not None, f"Error saving results for {video_path}"
@@ -183,6 +185,7 @@ class Model():
 @click.option("--imgsz", type=int, default=640, help="Image size the model processes. Default 640. Lower is faster but lower accuracy and vice versa.")
 @click.option("--conf", type=float, default=0.25, help="Confidence threshold")
 @click.option("--output", "-o", type=str, default=None, help="Output directory for the results")
+@click.option("--species_classifier", "-sc", type=str, default=None, help="Path to species classifier")
 @click.option("--peek",  is_flag=True, default=False, show_default=True, prompt="Run peek version?", help="Use peek mode: 5x faster but only finds interesting frames, without tracking/computing MaxN")
 @click.option("--chapters",  is_flag=True, default=False, show_default=True, prompt="Are your videos split in chapters?", help="Aggreagate chapter information into a single video")
 @click.option("--live",  is_flag=True, default=False, help="Show live tracking video for debugging purposes")
@@ -191,7 +194,6 @@ def main(**kwargs):
 
   input_path = os.path.normpath(kwargs["input"])
   input_path = convert_to_abs_path(input_path)
-  print(input_path)
   output_path = generate_output_path(kwargs["output"], input_path, annotation_folder)
   os.makedirs(output_path)
 
