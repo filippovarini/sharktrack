@@ -52,8 +52,8 @@ def extract_sightings(video_path, input_path, frame_results, frame_id, time, **k
               "track_metadata": track_metadata,
           }
 
-          directories = Path(relative_video_path).parent.parts
-          for i, folder in enumerate(directories):
+          folders = Path(relative_video_path).parent.parts
+          for i, folder in enumerate(folders):
              if folder:
               row[f"folder{i+1}"] = folder
 
