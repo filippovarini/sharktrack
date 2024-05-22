@@ -2,15 +2,30 @@ import cv2
 import numpy as np
 
 
-def draw_bboxes(image, bboxes, labels=None, color=(0, 255, 0), font=cv2.FONT_HERSHEY_SIMPLEX, font_scale=0.5, font_thickness=1):
+def construct_label_color_mapping(labels, colors):
+    if labels is None:
+        return None
+    label_color_mapping = {}
+    for l in labels:
+        if l not in label_color_mapping:
+            label_color_mapping[l] = colors[len(label_color_mapping) % len(colors)]
+    
+    return label_color_mapping
+
+
+def draw_bboxes(image, bboxes, labels=None, font=cv2.FONT_HERSHEY_SIMPLEX, font_scale=0.7, font_thickness=2):
     """
     """
+    colors = [(242, 73, 248), (0, 255, 0), (144, 43, 147), (241, 70, 106), (255, 0, 0), (164, 102, 71)]
+    color_mapping =  construct_label_color_mapping(labels, colors)
     if labels is not None:
         assert len(labels) == len(bboxes), f"There must be same number of labels {len(labels)} and boxes {len(bboxes)}"
 
     img = image.copy()
     thickness = 2
+    
     for i in range(len(bboxes)):
+        color = color_mapping[labels[i]] if labels is not None else colors[0]
         bbox = bboxes[i]
         bbox = np.array(bbox).astype(int)
         pt1, pt2 = (bbox[0], bbox[1]), (bbox[2], bbox[3])
