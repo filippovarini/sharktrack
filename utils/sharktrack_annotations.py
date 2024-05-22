@@ -155,16 +155,18 @@ def write_max_conf(postprocessed_results: pd.DataFrame, out_folder: Path, video_
     video_path = Path(video_path_prefix) / video_short_path
     time = row["time"]
     image = extract_frame_at_time(str(video_path), string_to_ms(time))
+    label = row["label"]
 
     if species_classifier:
       confidence, species = species_classifier(row, image)
+      label = species
       postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "species"] = species
       postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "classification_confidence"] = confidence
 
-    plot = draw_bboxes(image, [row[["xmin", "ymin", "xmax", "ymax"]].values])
+    plot = draw_bboxes(image, [row[["xmin", "ymin", "xmax", "ymax"]].values], [label])
 
     img = annotate_image(plot, video_short_path, time, row["track_id"])
 
-    output_image_id = f"{row['track_id']}.jpg"
+    output_image_id = f"{row['track_id']}-{label}.jpg"
     output_path = str(out_folder / output_image_id)
     cv2.imwrite(output_path, img)
