@@ -24,7 +24,7 @@ def draw_bboxes(image, bboxes, labels=None, color=(0, 255, 0), font=cv2.FONT_HER
 
     return img
 
-def annotate_image(img, chapter_path, time, track_id):
+def annotate_image(img, text1, text2, text3):
     padding_height = 100  # You can adjust the height as needed
     new_width = img.shape[1]
     new_height = img.shape[0] + padding_height
@@ -38,9 +38,9 @@ def annotate_image(img, chapter_path, time, track_id):
     line_type = 2
 
     # Position the text on the white padding
-    cv2.putText(new_image, f"Video: {chapter_path}", (10, img.shape[0] + 30), font, font_scale, font_color, line_type)
-    cv2.putText(new_image, f"Track ID: {track_id}", (10, img.shape[0] + 60), font, font_scale, font_color, line_type)
-    cv2.putText(new_image, f"Time: {time}", (10, img.shape[0] + 90), font, font_scale, font_color, line_type)
+    cv2.putText(new_image, text1, (10, img.shape[0] + 30), font, font_scale, font_color, line_type)
+    cv2.putText(new_image, text2, (10, img.shape[0] + 60), font, font_scale, font_color, line_type)
+    cv2.putText(new_image, text3, (10, img.shape[0] + 90), font, font_scale, font_color, line_type)
 
     return new_image
 
