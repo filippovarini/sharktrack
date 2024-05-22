@@ -7,6 +7,7 @@ sys.path.append("utils")
 from time_processor import string_to_ms
 from image_processor import draw_bboxes, annotate_image, extract_frame_at_time
 from path_resolver import compute_frames_output_path, remove_input_prefix_from_video_path
+from species_classifier import SpeciesClassifier
 
 
 SHARKTRACK_COLUMNS = ["video_path", "video_name", "frame", "time", "xmin", "ymin", "xmax", "ymax", "w", "h", "confidence", "label", "track_metadata", "track_id"]
@@ -69,12 +70,13 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
     if not postprocessed_results.empty:
       postprocessed_results = postprocessed_results[SHARKTRACK_COLUMNS]
       assert all([c in postprocessed_results.columns for c in SHARKTRACK_COLUMNS])
-      concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
 
       frame_output_path = compute_frames_output_path(video_path, kwargs["input"], out_folder, kwargs["is_chapters"])
       frame_output_path.mkdir(exist_ok=True)
-      write_max_conf(postprocessed_results, frame_output_path, kwargs["input"])
+      species_classifier = SpeciesClassifier.build_species_classifier(kwargs["species_classifier"])
+      write_max_conf(postprocessed_results, frame_output_path, kwargs["input"], species_classifier)
 
+      concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
       new_next_track_index = postprocessed_results["track_id"].max() + 1
       tracks_found = new_next_track_index - next_track_index
       next_track_index = new_next_track_index
@@ -141,18 +143,24 @@ def postprocess(results, fps, next_track_index):
 
     return filtered_results
 
-def write_max_conf(poostprocessed_results: pd.DataFrame, out_folder: Path, video_path_prefix):
+def write_max_conf(postprocessed_results: pd.DataFrame, out_folder: Path, video_path_prefix: str, species_classifier: SpeciesClassifier = None):
   """
   Saves annotated images with the maximum confidence detection for each track
   """
-  max_conf_detections_idx = poostprocessed_results.groupby("track_metadata")["confidence"].idxmax()
-  max_conf_detections_df = poostprocessed_results.loc[max_conf_detections_idx]
+  max_conf_detections_idx = postprocessed_results.groupby("track_metadata")["confidence"].idxmax()
+  max_conf_detections_df = postprocessed_results.loc[max_conf_detections_idx]
 
   for _, row in max_conf_detections_df.iterrows():
     video_short_path = os.path.join(row["video_path"])
     video_path = Path(video_path_prefix) / video_short_path
     time = row["time"]
     image = extract_frame_at_time(str(video_path), string_to_ms(time))
+
+    if species_classifier:
+      confidence, species = species_classifier(row, image)
+      postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "species"] = species
+      postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "classification_confidence"] = confidence
+
     plot = draw_bboxes(image, [row[["xmin", "ymin", "xmax", "ymax"]].values])
 
     img = annotate_image(plot, video_short_path, time, row["track_id"])
