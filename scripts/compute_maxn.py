@@ -55,7 +55,9 @@ def clean_annotations_locally(sharktrack_df, labeled_detections):
     return filtered_sharktrack_df
 
 def compute_species_maxn(cleaned_annotations):
-    frame_box_cnt = cleaned_annotations.groupby(["video_path", "video_name", "frame", "label"], as_index=False).agg(time=("time", "first"), n=("track_id", "count"), tracks_in_maxn=("track_id", lambda x: list(x)))
+    groupby_columns = ["video_path", "video_name", "frame", "label"]
+    directory_column_aggregations = {c:(c, "first") for c in cleaned_annotations.columns if c.startswith("folder")} # add directory for folder-level MaxN computation
+    frame_box_cnt = cleaned_annotations.groupby(groupby_columns, as_index=False).agg(time=("time", "first"), n=("track_id", "count"), tracks_in_maxn=("track_id", lambda x: list(x)), **directory_column_aggregations)
 
     # for each chapter, species, get the max n and return video, species, maxn, chapter, time when that happens
     maxn = frame_box_cnt.sort_values("n", ascending=False).groupby(["video_path", "video_name", "label"], as_index=False).head(1)
@@ -77,7 +79,7 @@ def save_maxn_frames(cleaned_output: pd.DataFrame, maxn: pd.DataFrame, videos_pa
             labels = maxn_sightings[["label"]].values
             plot = draw_bboxes(frame, bboxes, labels)
             frames_folder = compute_frames_output_path(video_relative_path, input=None, output_path=analysis_output_path, chapters=chapters)
-            frames_folder.mkdir(exist_ok=True)
+            frames_folder.mkdir(exist_ok=True, parents=True)
             image_filename = frames_folder / (label + ".jpg")
             cv2.imwrite(str(image_filename), plot)
         except:
@@ -101,7 +103,7 @@ def main(path, videos, chapters):
     internal_results_path = Path(path) / internal_results_folder
     original_output_path = internal_results_path / "output.csv"
     if not internal_results_path.exists():
-        f"Please provide the path to the folder containing the {internal_results_path} subfolder"
+        print(f"**Error** Please provide the path to the folder containing the {internal_results_path} subfolder")
         return
 
     print(f"Computing MaxN from annotations cleaned locally...")
