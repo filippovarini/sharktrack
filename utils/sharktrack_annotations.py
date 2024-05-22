@@ -51,7 +51,7 @@ def extract_sightings(video_path, input_path, frame_results, frame_id, time, **k
               "track_metadata": track_metadata,
           }
 
-          directories = os.path.dirname(relative_video_path).split(os.path.sep)
+          directories = Path(relative_video_path).parent.parts
           for i, directory in enumerate(directories):
              if directory:
               row[f"directory{i+1}"] = directory
@@ -68,11 +68,12 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
     postprocessed_results = postprocess(results_df, kwargs["fps"], next_track_index)
 
     if not postprocessed_results.empty:
-      postprocessed_results = postprocessed_results[SHARKTRACK_COLUMNS]
+      directory_columns = [c for c in postprocessed_results.columns if c.startswith("directory")]
+      postprocessed_results = postprocessed_results[SHARKTRACK_COLUMNS + directory_columns]
       assert all([c in postprocessed_results.columns for c in SHARKTRACK_COLUMNS])
 
       frame_output_path = compute_frames_output_path(video_path, kwargs["input"], out_folder, kwargs["is_chapters"])
-      frame_output_path.mkdir(exist_ok=True)
+      frame_output_path.mkdir(exist_ok=True, parents=True)
       write_max_conf(postprocessed_results, frame_output_path, kwargs["input"], kwargs.get("species_classifier", None))
 
       concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
