@@ -73,8 +73,7 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
 
       frame_output_path = compute_frames_output_path(video_path, kwargs["input"], out_folder, kwargs["is_chapters"])
       frame_output_path.mkdir(exist_ok=True)
-      species_classifier = SpeciesClassifier.build_species_classifier(kwargs["species_classifier"])
-      write_max_conf(postprocessed_results, frame_output_path, kwargs["input"], species_classifier)
+      write_max_conf(postprocessed_results, frame_output_path, kwargs["input"], kwargs.get("species_classifier", None))
 
       concat_df(postprocessed_results, os.path.join(out_folder, "output.csv"))
       new_next_track_index = postprocessed_results["track_id"].max() + 1

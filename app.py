@@ -2,19 +2,17 @@ from utils.sharktrack_annotations import save_analyst_output, save_peek_output, 
 from utils.path_resolver import generate_output_path, convert_to_abs_path, sort_files
 from utils.time_processor import ms_to_string
 from utils.video_iterators import stride_iterator, keyframe_iterator
+from utils.species_classifier import SpeciesClassifier
 from scripts.reformat_gopro import valid_video
-from argparse import ArgumentParser
 from ultralytics import YOLO
 import pandas as pd
-import av.datasets
+import traceback
 import shutil
+import torch
+import click
 import torch
 import cv2
 import os
-import av
-import torch
-import click
-import traceback
 
 class Model():
   def __init__(self, input_path, output_path, **kwargs):
@@ -22,7 +20,7 @@ class Model():
     self.max_video_cnt = kwargs["limit"]
     self.stereo_prefix = kwargs["stereo_prefix"]
     self.is_chapters = kwargs["chapters"]
-    self.species_classifier = kwargs["species_classifier"]
+    self.species_classifier = SpeciesClassifier.build_species_classifier(kwargs["species_classifier"])
     self.output_path = output_path
 
     self.model_path = "models/sharktrack.pt"
