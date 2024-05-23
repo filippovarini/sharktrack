@@ -153,26 +153,25 @@ def write_max_conf(postprocessed_results: pd.DataFrame, out_folder: Path, video_
   max_conf_detections_df = postprocessed_results.loc[max_conf_detections_idx]
 
   for _, row in max_conf_detections_df.iterrows():
-    video_short_path = os.path.join(row["video_path"])
+    video_short_path = row["video_path"]
     video_path = Path(video_path_prefix) / video_short_path
     time = row["time"]
     image = extract_frame_at_time(str(video_path), string_to_ms(time))
     label = row["label"]
-    classified = False
+    accepted_classification_confidence = None
 
     if species_classifier:
       confidence, species = species_classifier(row, image)
       if species:
-        classified = True
+        accepted_classification_confidence = confidence
         label = species
         postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "label"] = species
         postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "classification_confidence"] = confidence
 
-    plot = draw_bboxes(image, [row[["xmin", "ymin", "xmax", "ymax"]].values], [label])
+    img = draw_bboxes(image, [row[["xmin", "ymin", "xmax", "ymax"]].values], [label + f": {(accepted_classification_confidence or row["confidence"]):.2f*100}%"])
+    img = annotate_image(img,  f"Video: {video_short_path or row["video_name"]}", f"Track ID: {row["track_id"]}", f"Time: {time}")
 
-    img = annotate_image(plot,  f"Video: {video_short_path}", f"Track ID: {row["track_id"]}", f"Time: {time}")
-
-    imagefile_suffix = f"-{label}" if classified else ''
+    imagefile_suffix = f"-{label}" if accepted_classification_confidence else ''
     output_image_id = f"{row['track_id']}{imagefile_suffix}.jpg"
     output_path = str(out_folder / output_image_id)
     cv2.imwrite(output_path, img)
