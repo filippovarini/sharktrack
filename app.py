@@ -6,7 +6,6 @@ from utils.species_classifier import SpeciesClassifier
 from scripts.reformat_gopro import valid_video
 from ultralytics import YOLO
 import pandas as pd
-import traceback
 import shutil
 import torch
 import click
@@ -163,12 +162,8 @@ class Model():
           stereo_filter = self.stereo_prefix is None or file.startswith(self.stereo_prefix)
           if valid_video(file) and stereo_filter:
             video_path = os.path.join(root, file)
-            try:
-              self.inference_type(video_path)
-              processed_videos.append(video_path)
-            except:
-              print(f"***ERROR*** failed to process video {video_path} . Make sure it is a valid, uncorrupted video")  
-              traceback.print_exc()
+            self.inference_type(video_path)
+            processed_videos.append(video_path)
 
     if len(processed_videos) == 0:
       print("No BRUVS videos found in the given folder")
