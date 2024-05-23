@@ -9,6 +9,9 @@ import cv2
 import time
 import threading
 from queue import Queue
+from multiprocess_video_iterator import stride_iterator
+
+stride_iterator = stride_iterator
 
 def frame_producer(video_path, vid_stride, frame_queue):
     vidcap = cv2.VideoCapture(video_path, cv2.CAP_FFMPEG)
@@ -27,7 +30,7 @@ def frame_producer(video_path, vid_stride, frame_queue):
     vidcap.release()
     frame_queue.put(None)
 
-def stride_iterator(video_path, vid_stride):
+def stride_iterator_queue(video_path, vid_stride):
     print("Using stride iterator with queue")
     frame_queue = Queue(maxsize=100)
     producer_thread = threading.Thread(target=frame_producer, args=(video_path, vid_stride, frame_queue))
