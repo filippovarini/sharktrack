@@ -8,6 +8,7 @@ from time_processor import string_to_ms
 from image_processor import draw_bboxes, annotate_image, extract_frame_at_time
 from path_resolver import compute_frames_output_path, remove_input_prefix_from_video_path
 from species_classifier import SpeciesClassifier
+import time as t
 
 
 SHARKTRACK_COLUMNS = ["video_path", "video_name", "frame", "time", "xmin", "ymin", "xmax", "ymax", "w", "h", "confidence", "label", "track_metadata", "track_id"]
@@ -147,6 +148,7 @@ def write_max_conf(postprocessed_results: pd.DataFrame, out_folder: Path, video_
   """
   Saves annotated images with the maximum confidence detection for each track
   """
+  start_time = t.time()
   max_conf_detections_idx = postprocessed_results.groupby("track_metadata")["confidence"].idxmax()
   max_conf_detections_df = postprocessed_results.loc[max_conf_detections_idx]
 
@@ -174,3 +176,5 @@ def write_max_conf(postprocessed_results: pd.DataFrame, out_folder: Path, video_
     output_image_id = f"{row['track_id']}{imagefile_suffix}.jpg"
     output_path = str(out_folder / output_image_id)
     cv2.imwrite(output_path, img)
+  elapsed_time = t.time() - start_time
+  print(f" species classification time: {elapsed_time:.2f} seconds")
