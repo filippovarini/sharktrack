@@ -62,7 +62,6 @@ class SpeciesClassifier:
         with torch.no_grad():
             outputs = self.model(patch)
             outputs = F.softmax(outputs, dim=1)
-            print(f"Outputs scores for track_id {row["track_id"]}")
             
             confidences, preds = torch.max(outputs, 1)
 
