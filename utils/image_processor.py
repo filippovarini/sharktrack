@@ -13,7 +13,7 @@ def construct_label_color_mapping(labels, colors):
     return label_color_mapping
 
 
-def draw_bboxes(image, bboxes, labels=None, font=cv2.FONT_HERSHEY_SIMPLEX, font_scale=0.7, font_thickness=2):
+def draw_bboxes(image, bboxes, labels=None, track_ids=None, font=cv2.FONT_HERSHEY_SIMPLEX, font_scale=0.7, font_thickness=2):
     """
     """
     colors = [(242, 73, 248), (0, 255, 0), (144, 43, 147), (241, 70, 106), (255, 0, 0), (164, 102, 71)]
@@ -33,6 +33,8 @@ def draw_bboxes(image, bboxes, labels=None, font=cv2.FONT_HERSHEY_SIMPLEX, font_
 
         if labels is not None:
             label = str(labels[i])
+            if track_ids is not None:
+                label = f"{track_ids[i]}: {label}"
             label_size = cv2.getTextSize(label, font, font_scale, font_thickness)[0]
             label_pt = (pt1[0], pt1[1] - label_size[1] - 4 if pt1[1] - label_size[1] - 4 > 0 else pt1[1] + label_size[1] + 4) # draw above or below based on position of individual
             cv2.putText(img, label, label_pt, font, font_scale, color, font_thickness)
