@@ -168,7 +168,7 @@ def write_max_conf(postprocessed_results: pd.DataFrame, out_folder: Path, video_
         postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "label"] = species
         postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "classification_confidence"] = confidence
 
-    img = draw_bboxes(image, [row[["xmin", "ymin", "xmax", "ymax"]].values], [label + f": {(accepted_classification_confidence or row["confidence"]):.2f*100}%"])
+    img = draw_bboxes(image, [row[["xmin", "ymin", "xmax", "ymax"]].values], [label + f": {(accepted_classification_confidence or row["confidence"])*100:.0f}%"])
     img = annotate_image(img,  f"Video: {video_short_path or row["video_name"]}", f"Track ID: {row["track_id"]}", f"Time: {time}")
 
     imagefile_suffix = f"-{label}" if accepted_classification_confidence else ''
