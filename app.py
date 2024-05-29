@@ -1,4 +1,4 @@
-from utils.sharktrack_annotations import save_analyst_output, save_peek_output, extract_sightings
+from utils.sharktrack_annotations import save_analyst_output, save_peek_output, extract_sightings, resume_previous_run
 from utils.path_resolver import generate_output_path, convert_to_abs_path, sort_files
 from utils.time_processor import ms_to_string
 from utils.video_iterators import stride_iterator, keyframe_iterator
@@ -49,7 +49,7 @@ class Model():
       self.model_args["imgsz"] = kwargs["imgsz"]
       self.save_output = save_analyst_output
       
-    self.next_track_index = 0
+    self.next_track_index, self.processed_videos = resume_previous_run(output_path)
   
   def _get_frame_skip(self, video_path):
     cap = cv2.VideoCapture(video_path)  
@@ -148,28 +148,31 @@ class Model():
 
   def run(self):
     self.input_path = self.input_path
-    processed_videos = []
 
     if valid_video(self.input_path):
       self.inference_type(self.input_path)
-      processed_videos.append(self.input_path)
+      self.processed_videos.add(self.input_path)
     else:
       for (root, _, files) in os.walk(self.input_path):
         files = sort_files(files)
         for file in files:
-          if len(processed_videos) == self.max_video_cnt:
+          if len(self.processed_videos) == self.max_video_cnt:
+            print(f"Reached Maximum BRUVS count you specified of {self.max_video_cnt}. This includes the videos processed in previous ran for the same output folder")
             break
           stereo_filter = self.stereo_prefix is None or file.startswith(self.stereo_prefix)
+          video_path = os.path.join(root, file)
           if valid_video(file) and stereo_filter:
-            video_path = os.path.join(root, file)
+            if video_path in self.processed_videos:
+              print(f"Video already processed in previous run {video_path}")
+              continue
             self.inference_type(video_path)
-            processed_videos.append(video_path)
+            self.processed_videos.add(video_path)
 
-    if len(processed_videos) == 0:
+    if len(self.processed_videos) == 0:
       print("No BRUVS videos found in the given folder")
       return
 
-    return processed_videos
+    return self.processed_videos
 
 @click.command()
 @click.option("--input", "-i", type=str, default="./input_videos", show_default=True, required=True, prompt="Input path", help="Path to the video folder")
@@ -179,7 +182,8 @@ class Model():
 @click.option("--conf", type=float, default=0.25, help="Confidence threshold")
 @click.option("--output", "-o", type=str, default=None, help="Output directory for the results")
 @click.option("--species_classifier", "-sc", type=str, default=None, help="Path to species classifier")
-@click.option("--peek",  is_flag=True, default=False, show_default=True, prompt="Run peek version?", help="Use peek mode: 5x faster but only finds interesting frames, without tracking/computing MaxN")
+@click.option("--peek",  is_flag=True, default=False, show_default=True, help="Use peek mode: 5x faster but only finds interesting frames, without tracking/computing MaxN")
+@click.option("--resume",  is_flag=True, default=False, show_default=True, help="Resume BRUVS running SharkTrack")
 @click.option("--chapters",  is_flag=True, default=False, show_default=True, prompt="Are your videos split in chapters?", help="Aggreagate chapter information into a single video")
 @click.option("--live",  is_flag=True, default=False, help="Show live tracking video for debugging purposes")
 def main(**kwargs):
@@ -187,8 +191,10 @@ def main(**kwargs):
 
   input_path = os.path.normpath(kwargs["input"])
   input_path = convert_to_abs_path(input_path)
-  output_path = generate_output_path(kwargs["output"], input_path, annotation_folder)
-  os.makedirs(output_path)
+  output_path = generate_output_path(kwargs["output"], input_path, annotation_folder, kwargs["resume"])
+  if output_path is None:
+    return
+  os.makedirs(output_path, exist_ok=True)
 
   model = Model(
     input_path,
