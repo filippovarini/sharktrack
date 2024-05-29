@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 sys.path.append("utils")
 from time_processor import string_to_ms
+from config import configs
 from image_processor import draw_bboxes, annotate_image, extract_frame_at_time
 from path_resolver import compute_frames_output_path, remove_input_prefix_from_video_path
 from species_classifier import SpeciesClassifier
@@ -158,21 +159,19 @@ def write_max_conf(postprocessed_results: pd.DataFrame, out_folder: Path, video_
     time = row["time"]
     image = extract_frame_at_time(str(video_path), string_to_ms(time))
     label = row["label"]
-    accepted_classification_confidence = None
+    confidence = row["confidence"]
 
     if species_classifier:
       confidence, species = species_classifier(row, image)
-      if species:
-        accepted_classification_confidence = confidence
-        label = species
-        postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "label"] = species
-        postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "classification_confidence"] = confidence
+      if not species:
+        label = configs["unclassifiable"]
+      postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "label"] = label
+      postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "classification_confidence"] = confidence
 
-    img = draw_bboxes(image, [row[["xmin", "ymin", "xmax", "ymax"]].values], [label + f": {(accepted_classification_confidence or row["confidence"])*100:.0f}%"])
+    img = draw_bboxes(image, [row[["xmin", "ymin", "xmax", "ymax"]].values], [label + f": {(confidence or row["confidence"])*100:.0f}%"])
     img = annotate_image(img,  f"Video: {video_short_path or row["video_name"]}", f"Track ID: {row["track_id"]}", f"Time: {time}")
 
-    imagefile_suffix = f"-{label}" if accepted_classification_confidence else ''
-    output_image_id = f"{row['track_id']}{imagefile_suffix}.jpg"
+    output_image_id = f"{row['track_id']}-{label}.jpg"
     output_path = str(out_folder / output_image_id)
     cv2.imwrite(output_path, img)
   elapsed_time = t.time() - start_time

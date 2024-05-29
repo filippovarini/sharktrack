@@ -10,9 +10,7 @@ sys.path.append("utils")
 from image_processor import extract_frame_at_time, draw_bboxes, annotate_image
 from time_processor import string_to_ms
 from path_resolver import compute_frames_output_path
-
-def detection_is_unlabeled(d):
-    return d.split(".")[0].isnumeric()
+from config import configs
 
 def get_maxn_confidence(labeled_detections):
     completed_annotations = 0
@@ -30,12 +28,15 @@ def get_labeled_detections(internal_results_path: str, output_csv_path: str):
 
     labeled_detections = {}
     for d in valid_detections:
-        if detection_is_unlabeled(d):
+        if d.split(".")[0].isnumeric():
+            # not classified
             labeled_detections[int(d.split(".")[0])] = None
         else:
             try:
                 track_id = int(d.split("-")[0])
                 label = d.split("-", maxsplit=1)[1].replace(".jpg", "")
+                if label == configs["unclassifiable"]:
+                    label = None
                 labeled_detections[track_id] = label
             except:
                 raise Exception("All files in ./detections should be '{TRACK_ID}-{CLASS}.jpg' but there is failing file: " + d)
