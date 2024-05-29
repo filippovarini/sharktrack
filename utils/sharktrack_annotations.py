@@ -85,9 +85,8 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
   
   print(f"Found {tracks_found} tracks!")
 
-  # save a new row in the overview.csv file
   overview_row = {"video_path": video_path, "tracks_found": tracks_found}
-  concat_df(pd.DataFrame([overview_row]), os.path.join(out_folder, "overview.csv"))
+  concat_df(pd.DataFrame([overview_row]), os.path.join(out_folder, configs["overview_filename"]))
 
   return next_track_index
 
@@ -175,3 +174,17 @@ def write_max_conf(postprocessed_results: pd.DataFrame, out_folder: Path, video_
     cv2.imwrite(output_path, img)
   elapsed_time = t.time() - start_time
   print(f" species classification time: {elapsed_time:.2f} seconds")
+
+
+def resume_previous_run(output_path: Path):
+  processed_videos = set()
+  tracks_found = 0
+  try:
+    df = pd.read_csv(os.path.join(output_path, "internal_results", configs["overview_filename"]))
+    processed_videos = set(df["video_path"].values.tolist())
+    tracks_found = df["tracks_found"].sum()
+  except Exception as e:
+    print(f"Overview filename not existing")
+  
+  return tracks_found, processed_videos
+      

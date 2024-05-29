@@ -6,6 +6,7 @@ import shutil
 class TestGenerateCorrectOutput(unittest.TestCase):
     def test__manage_user_provided_output(self):
         self.assertFalse(generate_output_path("outputs", None))
+        self.assertTrue(generate_output_path("outputs", None, None, resume=True))
         self.assertTrue(generate_output_path("new_output_directory", None))
         self.assertTrue(generate_output_path("new_output_directory/file.jpg", None))
 
