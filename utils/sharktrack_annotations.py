@@ -163,8 +163,7 @@ def write_max_conf(postprocessed_results: pd.DataFrame, out_folder: Path, video_
 
     if species_classifier:
       confidence, species = species_classifier(row, image)
-      if not species:
-        label = configs["unclassifiable"]
+      label = species or configs["unclassifiable"]
       postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "label"] = label
       postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "classification_confidence"] = confidence
 

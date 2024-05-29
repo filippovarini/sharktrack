@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from torchvision import models, transforms
+from torchvision import models
+from torchvision.transforms import v2
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
@@ -17,7 +18,7 @@ class SpeciesClassifier:
 
     def __init__(self, classifier_path: str):
         # Hyperparameters
-        self.confidence_threshold = 0.5
+        self.confidence_threshold = 0.45
         
         classifier_path = Path(classifier_path)
         model_path = classifier_path / "classifier.pt"
@@ -40,11 +41,12 @@ class SpeciesClassifier:
         self.model.eval()
         
         # Transformations to make the input valid to the model
-        self.transform = transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        average_patch_size = (200, 400)
+        self.transform = v2.Compose([
+            v2.Resize(average_patch_size),
+            v2.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            v2.ToImage(),
+            v2.ToDtype(torch.float32, scale=True)
         ])
 
     def __call__(self, row: pd.Series, image: np.array) -> str:
