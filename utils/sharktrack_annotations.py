@@ -166,8 +166,8 @@ def write_max_conf(postprocessed_results: pd.DataFrame, out_folder: Path, video_
       postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "label"] = label
       postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "classification_confidence"] = confidence
 
-    img = draw_bboxes(image, [row[["xmin", "ymin", "xmax", "ymax"]].values], [label + f": {(confidence or row["confidence"])*100:.0f}%"])
-    img = annotate_image(img,  f"Video: {video_short_path or row["video_name"]}", f"Track ID: {row["track_id"]}", f"Time: {time}")
+    img = draw_bboxes(image, [row[["xmin", "ymin", "xmax", "ymax"]].values], [label + f": {(confidence or row['confidence'])*100:.0f}%"])
+    img = annotate_image(img,  f"Video: {video_short_path or row['video_name']}", f"Track ID: {row['track_id']}", f"Time: {time}")
 
     output_image_id = f"{row['track_id']}-{label}.jpg"
     output_path = str(out_folder / output_image_id)
@@ -184,7 +184,7 @@ def resume_previous_run(output_path: Path):
     processed_videos = set(df["video_path"].values.tolist())
     tracks_found = df["tracks_found"].sum()
   except Exception as e:
-    print(f"Overview filename not existing")
+    print("Overview filename not existing")
   
   return tracks_found, processed_videos
       
