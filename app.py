@@ -122,8 +122,9 @@ class Model():
     FILE_OUTPUT = os.path.join(output_folder, f"{filename.split('.')[0]}_tracked.avi")
     frame_width = int(cap.get(3))
     frame_height = int(cap.get(4))
+    fps = cap.get(cv2.CAP_PROP_FPS)
 
-    out = cv2.VideoWriter(FILE_OUTPUT, cv2.VideoWriter_fourcc('M','J','P','G'), self.fps, (frame_width, frame_height))
+    out = cv2.VideoWriter(FILE_OUTPUT, cv2.VideoWriter_fourcc('M','J','P','G'), fps, (frame_width, frame_height))
 
     model = YOLO(self.model_path)
 
@@ -148,6 +149,7 @@ class Model():
 
   def run(self):
     self.input_path = self.input_path
+    videos_already_processed = len(self.processed_videos)
 
     if valid_video(self.input_path):
       self.inference_type(self.input_path)
@@ -168,7 +170,7 @@ class Model():
             self.inference_type(video_path)
             self.processed_videos.add(video_path)
 
-    if len(self.processed_videos) == 0:
+    if len(self.processed_videos) == videos_already_processed:
       print("No BRUVS videos found in the given folder")
       return
 
