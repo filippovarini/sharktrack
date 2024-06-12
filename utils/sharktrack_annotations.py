@@ -166,7 +166,7 @@ def write_max_conf(postprocessed_results: pd.DataFrame, out_folder: Path, video_
       postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "label"] = label
       postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "classification_confidence"] = confidence
 
-    img = draw_bboxes(image, [row[["xmin", "ymin", "xmax", "ymax"]].values], [label + f": {(confidence or row['confidence'])*100:.0f}%"])
+    img = draw_bboxes(image, [row[["xmin", "ymin", "xmax", "ymax"]].values], [f"{row['track_id']}: {(confidence or row['confidence'])*100:.0f}%"])
     img = annotate_image(img,  f"Video: {video_short_path or row['video_name']}", f"Track ID: {row['track_id']}", f"Time: {time}")
 
     output_image_id = f"{row['track_id']}-{label}.jpg"
@@ -180,11 +180,12 @@ def resume_previous_run(output_path: Path):
   processed_videos = set()
   tracks_found = 0
   try:
-    df = pd.read_csv(os.path.join(output_path, "internal_results", configs["overview_filename"]))
+    df = pd.read_csv(os.path.join(output_path, configs["overview_filename"]))
     processed_videos = set(df["video_path"].values.tolist())
     tracks_found = df["tracks_found"].sum()
   except Exception as e:
-    print("Overview filename not existing")
+    print(e)
+    print("Starting nnew SharkTrack analysis")
   
   return tracks_found, processed_videos
       

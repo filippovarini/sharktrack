@@ -4,13 +4,13 @@ from pathlib import Path
 
 default_output = "outputs"
 
-def generate_output_path(user_output_path, input_path, annotation_folder=None, resume=False,):
+def generate_output_path(user_output_path, input_path, annotation_folder="", resume=False,):
   if user_output_path:
     output_path = user_output_path
     if os.path.exists(output_path):
       if resume:
         print("Resuming SharkTrack run...")
-        return user_output_path
+        return os.path.join(user_output_path, annotation_folder)
       else:
         print("Output path already exists. Provide a new path or remove the --output <path> argument to automatically output in the SharkTrack folder")
         return None

@@ -15,7 +15,7 @@ from config import configs
 def get_maxn_confidence(labeled_detections):
     completed_annotations = 0
     for k, v in labeled_detections.items():
-        if v:
+        if v != configs["unclassifiable"]:
             completed_annotations += 1
 
     return completed_annotations / len(labeled_detections)
@@ -35,8 +35,6 @@ def get_labeled_detections(internal_results_path: str, output_csv_path: str):
             try:
                 track_id = int(d.split("-")[0])
                 label = d.split("-", maxsplit=1)[1].replace(".jpg", "")
-                if label == configs["unclassifiable"]:
-                    label = None
                 labeled_detections[track_id] = label
             except:
                 raise Exception("All files in ./detections should be '{TRACK_ID}-{CLASS}.jpg' but there is failing file: " + d)
@@ -63,15 +61,19 @@ def compute_species_maxn(cleaned_annotations, chapter):
 
     # for each chapter, species, get the max n and return video, species, maxn, chapter, time when that happens
     if chapter: 
-        maxn = frame_box_cnt.groupby(directory_columns + ["label"], as_index=False).apply(lambda grp: grp.nlargest(1, "n"))
+        maxn = frame_box_cnt.groupby(directory_columns + ["label"], as_index=False, dropna=False).apply(lambda grp: grp.nlargest(1, "n"))
     else:
-        maxn = frame_box_cnt.groupby(["video_path", "video_name", "label"], as_index=False).apply(lambda grp: grp.nlargest(1, "n"))
+        maxn = frame_box_cnt.groupby(["video_path", "video_name", "label"], as_index=False, dropna=False).apply(lambda grp: grp.nlargest(1, "n"))
     maxn = maxn.sort_values(["video_path", "n"], ascending=[True, False])
     maxn = maxn.reset_index(drop=True)
 
     return maxn
 
-def save_maxn_frames(cleaned_output: pd.DataFrame, maxn: pd.DataFrame, videos_path: Path, analysis_output_path: str, chapters: bool):
+def save_maxn_frames(cleaned_output: pd.DataFrame, maxn: pd.DataFrame, videos_path: Path, analysis_output_path: Path, chapters: bool):
+    # Remove previous MaxN Visualisation
+    for image in analysis_output_path.rglob("*.jpg"):
+        image.unlink()
+
     for idx, row in maxn.iterrows():
         video_relative_path = row["video_path"]
         label = row["label"]
@@ -92,7 +94,7 @@ def save_maxn_frames(cleaned_output: pd.DataFrame, maxn: pd.DataFrame, videos_pa
         except:
             traceback.print_exc()
             print(f"Failed reading video {video_path}. \n You provided video path {videos_path}, please make sure you provide only the root path that joins with relative path{video_relative_path}")
-            return
+            # return
 
 @click.command()
 @click.option("--path", "-p", type=str, required=True, prompt="Provide path to original output", help="Path to the output folder of sharktrack")
@@ -101,7 +103,6 @@ def save_maxn_frames(cleaned_output: pd.DataFrame, maxn: pd.DataFrame, videos_pa
 def main(path, videos, chapters):
     final_analysis_folder = "analysed"
     internal_results_folder = "internal_results"
-    predefined_output_csv = "output.csv"
 
     maxn_filename = "maxn.csv"
     analysis_path = Path(path) / final_analysis_folder
@@ -119,7 +120,6 @@ def main(path, videos, chapters):
     maxn_confidence = get_maxn_confidence(labeled_detections)
 
     cleaned_annotations = clean_annotations_locally(original_output, labeled_detections)
-    cleaned_annotations.to_csv(original_output_path)
     maxn = compute_species_maxn(cleaned_annotations, chapters)
 
     maxn_path = analysis_path / maxn_filename
