@@ -103,7 +103,7 @@ Then, running the following commands
     ```
 - **Or Mac/Linux**
     ```
-    python -m venv venv
+    python venv/bin/activate
     python app.py
     ```
 
