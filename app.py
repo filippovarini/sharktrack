@@ -5,6 +5,7 @@ from utils.video_iterators import stride_iterator, keyframe_iterator
 from utils.species_classifier import SpeciesClassifier
 from scripts.reformat_gopro import valid_video
 from ultralytics import YOLO
+from tqdm import tqdm
 import pandas as pd
 import shutil
 import torch
@@ -55,7 +56,8 @@ class Model():
     cap = cv2.VideoCapture(video_path)  
     actual_fps = cap.get(cv2.CAP_PROP_FPS)
     frame_skip = round(actual_fps / self.fps)
-    return frame_skip
+    tot_frames_to_process = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) / frame_skip)
+    return frame_skip, tot_frames_to_process
 
   def save_results(self, video_path, yolo_results, **kwargs):
     kwargs["input"] = self.input_path
@@ -87,16 +89,16 @@ class Model():
     Uses ultralytics built-in tracker to automatically track a video with OpenCV.
     This is faster but it fails with GoPro Audio format, requiring reformatting.
     """
-    print(f"Processing video: {video_path} on device {self.model_args['device']}. Might take some time...")
+    print(f"Processing video: {video_path} on device {self.model_args['device']}.")
     model = YOLO(self.model_path)
     
-    vid_stride = self._get_frame_skip(video_path)
+    vid_stride, tot_frames_to_process = self._get_frame_skip(video_path)
 
     video_iterator = stride_iterator(video_path, vid_stride)
 
     sightings = []
 
-    for frame, time, frame_idx in video_iterator:
+    for frame, time, frame_idx in tqdm(video_iterator, total=tot_frames_to_process):
       results = model.track(
         frame,
         **self.model_args,

@@ -165,6 +165,7 @@ def write_max_conf(postprocessed_results: pd.DataFrame, out_folder: Path, video_
       label = species or configs["unclassifiable"]
       postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "label"] = label
       postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "classification_confidence"] = confidence
+      print(f" species classification time: {elapsed_time:.2f} seconds")
 
     img = draw_bboxes(image, [row[["xmin", "ymin", "xmax", "ymax"]].values], [f"{row['track_id']}: {(confidence or row['confidence'])*100:.0f}%"])
     img = annotate_image(img,  f"Video: {video_short_path or row['video_name']}", f"Track ID: {row['track_id']}", f"Time: {time}")
@@ -173,7 +174,7 @@ def write_max_conf(postprocessed_results: pd.DataFrame, out_folder: Path, video_
     output_path = str(out_folder / output_image_id)
     cv2.imwrite(output_path, img)
   elapsed_time = t.time() - start_time
-  print(f" species classification time: {elapsed_time:.2f} seconds")
+  
 
 
 def resume_previous_run(output_path: Path):
