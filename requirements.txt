@@ -5,3 +5,4 @@ ultralytics==8.1.47
 lapx==0.5.5
 dill==0.3.8
 click
+tqdm
