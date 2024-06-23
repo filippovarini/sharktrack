@@ -185,8 +185,7 @@ def resume_previous_run(output_path: Path):
     processed_videos = set(df["video_path"].values.tolist())
     tracks_found = df["tracks_found"].sum()
   except Exception as e:
-    print(e)
-    print("Starting nnew SharkTrack analysis")
+    print("Starting new SharkTrack analysis")
   
   return tracks_found, processed_videos
       
