@@ -4,8 +4,8 @@ import os
 
 #%%
 def valid_video(video_path):
-    video_name = os.path.basename(video_path)
-    right_suffix = video_name.endswith(".mp4") or video_name.endswith(".MP4")
+    video_name = os.path.basename(video_path).lower()
+    right_suffix = video_name.endswith(".mp4") or video_name.endswith(".avi")
     right_prefix = not video_name.startswith(".")
     return right_suffix and right_prefix
 
