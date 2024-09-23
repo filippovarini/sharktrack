@@ -3,7 +3,7 @@ from utils.path_resolver import generate_output_path, convert_to_abs_path, sort_
 from utils.time_processor import ms_to_string
 from utils.video_iterators import stride_iterator, keyframe_iterator
 from utils.species_classifier import SpeciesClassifier
-from scripts.reformat_gopro import valid_video
+from utils.reformat_gopro import valid_video
 from ultralytics import YOLO
 from tqdm import tqdm
 import pandas as pd
