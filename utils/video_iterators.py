@@ -1,5 +1,6 @@
 import cv2
 import av
+import av.datasets
 
 def stride_iterator(video_path, vid_stride):
     """
