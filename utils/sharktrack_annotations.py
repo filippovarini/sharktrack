@@ -97,7 +97,11 @@ def save_peek_output(video_path, frame_results, out_folder, next_track_index, **
 
   if len(frame_results[0].boxes.xyxy.cpu().tolist()) > 0:
       plot = frame_results[0].plot(line_width=2)
-      img = annotate_image(plot, video_path, kwargs["time"], next_track_index)
+      img = annotate_image(
+        plot, 
+        f"Video: {video_path}",
+        f"Track ID: {next_track_index}",
+        f"Time: {kwargs['time']}")
       cv2.imwrite(str(frames_save_dir / f"{next_track_index}.jpg"), img)
 
       # Save sightings in csv

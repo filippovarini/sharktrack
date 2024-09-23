@@ -69,7 +69,7 @@ class Model():
 
   def keyframe_detection(self, video_path):
     """
-    Tracks keyframes using PyAv to overcome the GoPro audio format issue.
+    Tracks keyframes using PyAv for SharkTrack peek version
     """
     print(f"Processing video: {video_path} on device {self.model_args['device']}")
 
