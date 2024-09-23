@@ -1,6 +1,6 @@
 output/
 venv
-utils/__pycache__/*
+__pycache__/
 test.ipynb
 outputs/*
 .DS_Store
