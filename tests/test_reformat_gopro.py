@@ -23,7 +23,7 @@ class TestReformatGoPro(unittest.TestCase):
         output_root = "test/output_root"
         stereo_prefix = ""
 
-        video_directories = ["test_videos1", "test_videos2", "test_videos3"]
+        video_directories = ["test_videos1", "test_videos2", "test_videos1/test_videos3"]
 
         mock_video_directory = [
             (".", ["tests", "utils", "models", "trackers", "input_videos", "static", ".git", "outputs"], ["annotation-pipelines.md", ".DS_Store", "requirements.txt", "readme.md", "sharktrack-user-guide.md", ".gitignore", "app.py"]),
@@ -46,13 +46,13 @@ class TestReformatGoPro(unittest.TestCase):
         mockedMakedirs.assert_has_calls(makedirs_calls)
 
         system_calls = [
-            "ffmpeg -i {} -y -map 0:v -c copy {}".format(
+            call("ffmpeg -i {} -y -map 0:v -c copy {}".format(
                 os.path.join(videos_root, video_dir, "sample.mp4"),
                 os.path.join(output_root, video_dir, "sample.mp4")
-                ) for video_dir in video_directories
+                )) for video_dir in video_directories
         ]
         self.assertEqual(mockedSystem.call_count, 3)
-        mockedSystem.has_calls(system_calls)
+        mockedSystem.assert_has_calls(system_calls)
 
     
 
