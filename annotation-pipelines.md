@@ -106,8 +106,8 @@ You can compute MaxN locally by following the steps below:
 
 - Open the Prompt/Terminal at the `sharktrack` folder location as you did when running the model in the [User Guide](./sharktrack-user-guide.md) step.
 - Activate the virtual environment (guide [here](./sharktrack-user-guide.md#setup-environment))
-- Run `python scripts/compute_maxn.py --path <output_path>`, replacing `<output_path>` with the path of the folder that contains the `output.csv` file and all the detection folders.
-    Example: `python scripts/compute_maxn.py --path output`
+- Run `python utils/compute_maxn.py --path <output_path>`, replacing `<output_path>` with the path of the folder that contains the `output.csv` file and all the detection folders.
+    Example: `python utils/compute_maxn.py --path output`
 - You can optionally provide a path to the original videos, to output the MaxN `jpg` Frames
 - You will see a `maxn.csv` file in the SharkTrack folder
 

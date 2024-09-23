@@ -165,13 +165,13 @@ If the Command Prompt/Terminal shows you the following message
 ```
 it means that your GoPro version is incompatible with the software (if interested, learn more [here](https://stackoverflow.com/questions/78039408/cv2-ffmpeg-grabframe-packet-read-max-attempts-exceeded-error-after-exactly-rea)).
 
-Therefore, the model can't process your videos. To solve this issue, we have provided a [script](./scripts/reformat_gopro.py) to reformat the videos by removing the audio stream. 
+Therefore, the model can't process your videos. To solve this issue, we have provided a [script](./utils/reformat_gopro.py) to reformat the videos by removing the audio stream. 
 
 > **NOTE** You need to have `ffmpeg` installed. Check this by running `ffmpeg -version`. If you don't have it, download it [here](https://ffmpeg.org/download.html) by following [this](https://www.youtube.com/watch?v=22vmzTs5BoE) tutorial. Close and re-open the Prompt/Terminal once you download it.
 
 You can run it with the following command:
 ```bash
-python scripts/reformat_gopro.py --input {Original video folder path} --output {New video folder path}
+python utils/reformat_gopro.py --input {Original video folder path} --output {New video folder path}
 ```
 If the videos are Stereo-BRUVS, you can use the `--stereo_prefix` to only reformat left/right videos, as described [here](#arguments).
 
@@ -183,7 +183,7 @@ The good news is that this script is an alternative command to copy data. Theref
 1. Collect BRUVS videos
 2. When you get home, for each GoPro, connect the SD and run 
     ```bash
-    python scripts/reformat_gopro.py --input PATH_TO_SD --output COPY_DESTINATION
+    python utils/reformat_gopro.py --input PATH_TO_SD --output COPY_DESTINATION
     ```
     Ideally, use the same destination
 3. Overnight run the model on the copied data 
