@@ -191,11 +191,9 @@ class Model():
 @click.option("--chapters",  is_flag=True, default=False, show_default=True, prompt="Are your videos split in chapters?", help="Aggreagate chapter information into a single video")
 @click.option("--live",  is_flag=True, default=False, help="Show live tracking video for debugging purposes")
 def main(**kwargs):
-  annotation_folder = "internal_results"
-
   input_path = os.path.normpath(kwargs["input"])
   input_path = convert_to_abs_path(input_path)
-  output_path = generate_output_path(kwargs["output"], input_path, annotation_folder, kwargs["resume"])
+  output_path = generate_output_path(kwargs["output"], input_path, annotation_folder="internal_results", resume=kwargs["resume"])
   if output_path is None:
     return
   os.makedirs(output_path, exist_ok=True)

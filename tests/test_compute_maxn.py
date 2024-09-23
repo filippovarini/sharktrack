@@ -3,7 +3,7 @@
 import unittest
 import pandas as pd
 from io import StringIO
-from compute_maxn import compute_species_max_n
+from utils.compute_maxn import compute_species_maxn
 
 _ORIGINAL_CSV = """video_path,video_directory,video_name,frame,time,track_metadata,track_id,xmin,ymin,xmax,ymax,confidence,label
 2020_RS_004/100GOPRO/GH044053.MP4,2020_RS_004/100GOPRO,GH044053.MP4,732,02:26:40,2020_RS_004/100GOPRO/GH044053.MP4/41,0,2176.754638671875,971.7913818359376,2448.932861328125,1123.95556640625,0.7320560216903687,elasmobranch
@@ -23,12 +23,12 @@ _OUTPUT_MAXN = """video_path,video_name,frame,label,time,n,tracks_in_maxn
 """
 
 class TestComputeSpeciesMaxN(unittest.TestCase):
-    def test__compute_species_max_n__one_frame__ok(self):
+    def test__compute_species_maxn__one_frame__ok(self):
         original_output_df = pd.read_csv(StringIO(_ORIGINAL_CSV))
         labeled_detections = {0: "elasmobranch"}
         expected_result = pd.read_csv(StringIO(_OUTPUT_MAXN))
 
-        result = compute_species_max_n(original_output_df, labeled_detections)
+        result = compute_species_maxn(original_output_df, labeled_detections)
         
         self.assertEqual(result.to_csv(index=False), _OUTPUT_MAXN)
 

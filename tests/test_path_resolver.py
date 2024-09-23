@@ -1,12 +1,12 @@
 import unittest
 import os
-from path_resolver import generate_output_path, default_output, compute_frames_output_path, sort_files
+from utils.path_resolver import generate_output_path, default_output, compute_frames_output_path, sort_files
 import shutil
 
 class TestGenerateCorrectOutput(unittest.TestCase):
     def test__manage_user_provided_output(self):
         self.assertFalse(generate_output_path("outputs", None))
-        self.assertTrue(generate_output_path("outputs", None, None, resume=True))
+        self.assertTrue(generate_output_path("outputs", None, annotation_folder="", resume=True))
         self.assertTrue(generate_output_path("new_output_directory", None))
         self.assertTrue(generate_output_path("new_output_directory/file.jpg", None))
 
