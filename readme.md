@@ -93,6 +93,7 @@ This software was written and supported by the efforts of
 - [Dr Joel Gayford](https://www.sharkmeasurements.com/)
 - [Prof Ben Glocker](https://www.imperial.ac.uk/people/b.glocker)
 - [Prof Francesco Ferretti](https://ferrettigs.github.io/)
+- [Lucia Adams](https://www.linkedin.com/in/lucia-adams/)
 
 ## Collaborations
 ### License & Citation
