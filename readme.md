@@ -8,8 +8,8 @@ Here we provide a guide to learn about SharkTrack. The guide is divided in the f
 | Chapter | Description
 |--|--|
 | [Introduction to SharkTrack](./readme.md#introduction-to-sharktrack) | This page is for users who are just considering the use of AI in their workflow, and aren't even sure yet whether SharkTrack would be useful. It summarizes what we do with the model, how it can help you and how other people use it | 
-| [SharkTrack User Guide](./sharktrack-user-guide.md) | This is a guide to run SharkTrack on your data. Jump to it if you're already familiar with SharkTrack and you're ready to run it on your data (and you have some familiarity with running Python code).
-| [Annotation Pipeline](./annotation-pipelines.md) | Once you have run the model, this page illustrates how to convert the output into species-specific MaxN metriccs.
+| [SharkTrack User Guide](./sharktrack-user-guide.md) | How to download and run SharkTrack on your data. Jump to it if you're already familiar with SharkTrack and you have data it can analyse.
+| [Annotation Pipeline](./annotation-pipelines.md) | Once you have run the model, this page illustrates how to convert the output into species-specific MaxN metrics.
 
 [![watrch video](static/video_screenshot.png)](https://drive.google.com/file/d/1b_74wdPXyJPe2P-m1c45jjsV2C5Itr-R/view?usp=sharing)
 *Click on the image above to watch a demo*
@@ -101,5 +101,7 @@ Please submit any issue on [GitHub](https://github.com/filippovarini/sharktrack/
 This project welcomes contributions, as pull requests, issues, or suggestions by [email](mailto:fppvrn@gmail.com?subject=SharkTrackContribution).
 
 This is the first step of a broader effort to develop generalisable marine species classifiers. We are looking for contributors for this project. If you want to get involved in AI-driven Ocean Conservation please email us.
+
+
 ## Next Stpes
 Run the model on your BRUVS by following [this guide](./sharktrack-user-guide.md)
