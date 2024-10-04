@@ -24,9 +24,18 @@ If you don't have experience with Python, don't fear! Follow this guide step by 
 
 
 ### Pre-Requirements
-- Python 3.9 and above. 
-    - [How to check the version](https://www.redswitches.com/blog/check-python-version/#:~:text=installed%20Python%20version.-,How%20to%20Check%20Python%20Version%20in%20Windows,-Follow%20these%20steps) 
-    - If you don't, install it [here](https://www.python.org/downloads/)
+You must have Python 3.9 and above. To check the version:
+- On **Windows**:
+    - Open the Command Prompt by typing cmd in the search bar and hitting Enter.
+    - Type the following command and press Enter: `python --version`
+    - This will display the installed Python version.
+- On **macOS**:
+    - Open the Terminal (you can find it using Spotlight or under Applications > Utilities).
+    - Type the following command and press Enter: `python3 --version`
+    - This will display the installed Python 3 version.
+    - If no version is found, you have an older version than 3. To check it, type `python --version` and hit enter.
+
+> If you don't have Python 3.9 or above, install it [here](https://www.python.org/downloads/)
 
 
 ### Downloading the model
