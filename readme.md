@@ -12,7 +12,7 @@ Here we provide a guide to learn about SharkTrack. The guide is divided in the f
 | [Annotation Pipeline](./annotation-pipelines.md) | Once you have run the model, this page illustrates how to convert the output into species-specific MaxN metrics.
 
 [![watrch video](static/video_screenshot.png)](https://drive.google.com/file/d/1b_74wdPXyJPe2P-m1c45jjsV2C5Itr-R/view?usp=sharing)
-*Figure 1: Click on the image above to watch a demo*
+*Click on the image above to watch a demo*
 
 
 # Introduction to SharkTrack
@@ -31,22 +31,22 @@ SharkTrack is a Machine Learning model that uses computer vision to detect and t
 
 
 ## How does SharkTrack work?
-SharkTrack analyses BRUVS in two steps, as showed in Fig. 3:
+SharkTrack analyses BRUVS in two steps, as showed below:
+![](static/figure1.png)
+*The SharkTrack pipeline to compute MaxN, divided into Step 1 (top) and Step 2 (bottom)*
+
 ##### Step 1: Automatic Processing
 - (a) Ingests all underwater videos in a hard drive or folder
 - (b) Automatically detects elasmobranchs 
 - (c) Save sightings in a CSV
 - (d) Save a screenshot for each detected elasmobranch with video
 ![](static/example_detection.jpg)
-*Figure 2: Each detection image shows the video and time it was captured* 
+*Each detection image shows the video and time it was captured* 
 
 ##### Step 2: Manual Review
 - (e) Classify the species of detected elasmobranchs by renaming the relative screenshot filename.
 - (f) SharkTrack updates all sightings of detected elasmobranchs with the new species classification
 - (g) And outputs the species-specific MaxN
-
-![](static/figure1.png)
-*Figure 3: The SharkTrack pipeline to compute MaxN, divided into Step 1 (top) and Step 2 (bottom)*
 
 ## How it can help you?
 - 👀 **Peek Mode** After a day of sampling, run it on your laptop overnight and automatically detect where and when sharks and rays appeared in the videos.
