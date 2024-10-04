@@ -4,7 +4,7 @@
 ## Before Starting
 SharkTrack is free, and it makes us super-happy when people use it. But we don't who is using it unless you tell us!
 
-> PLEASE PLEASE FILL IN THIS [**30 SECONDS FORM**](https://forms.gle/sUeTarNqcTgxdyjU8) to tell us you are using it.
+> PLEASE PLEASE FILL IN THIS [**30 SECONDS FORM**](https://forms.gle/sUeTarNqcTgxdyjU8) to tell us you are using SharkTrack.
 
 It helps us support and spotlight you on our website! 
 
