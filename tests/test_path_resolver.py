@@ -9,6 +9,7 @@ class TestGenerateCorrectOutput(unittest.TestCase):
         self.assertTrue(generate_output_path("outputs", None, annotation_folder="", resume=True))
         self.assertTrue(generate_output_path("new_output_directory", None))
         self.assertTrue(generate_output_path("new_output_directory/file.jpg", None))
+        self.assertTrue(generate_output_path(None, "videos", "internal_results", resume=True))
 
     def test__generate_path_automatically(self):
         self.assertEqual(generate_output_path(None, "run1"), os.path.join(default_output, "run1_processed"))

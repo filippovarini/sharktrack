@@ -179,7 +179,7 @@ class Model():
     return self.processed_videos
 
 @click.command()
-@click.option("--input", "-i", type=str, default="./input_videos", show_default=True, required=True, prompt="Input path", help="Path to the video folder")
+@click.option("--input", "-i", type=str, default="./input_videos", show_default=True, required=True, prompt="Input path:", help="Path to the video folder")
 @click.option("--stereo_prefix", type=str, help="Prefix to filter stereo BRUVS")
 @click.option("--limit", type=int, default=1000, help="Maximum videos to process")
 @click.option("--imgsz", type=int, default=640, help="Image size the model processes. Default 640. Lower is faster but lower accuracy and vice versa.")
