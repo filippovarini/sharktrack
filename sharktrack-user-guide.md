@@ -1,36 +1,41 @@
 # SharkTrack User Guide
 *How to run SharkTrack on your BRUVS...*
 
-## Contents
+## Before Starting
+SharkTrack is free, and it makes us super-happy when people use it. But we don't who is using it unless you tell us!
 
-* <a href="#overview">Overview</a>
-* <a href="#quick-tutorial">Quick Tutorial</a>
-* <a href="#installing-sharktrack">Installing SharkTrack</a>
-* <a href="#running-sharktrack">Running SharkTrack</a>
-* <a href="#sharktrackpeek-mode">SharkTrack Peek Mode</a>
-* <a href="#how-fastaccurate-is-sharktrack">How Fast and Accurate is SharkTrack?</a>
-* <a href="#next-steps">Next Steps</a>
+> PLEASE PLEASE FILL IN THIS [**30 SECONDS FORM**](https://forms.gle/sUeTarNqcTgxdyjU8) to tell us you are using SharkTrack.
+
+It helps us support and spotlight you on our website! 
+
 
 ## Overview
-This page provides a guide on running the SharkTrack ML model on your BRUVS videos to detect shark in them. 
+This page guides you to download SharkTrack and run it on your videos. 
 
 > If you already have an output and want to comput MaxN, jump to [this guide](./annotation-pipelines.md)
 
-<img src="./static/test_output/videos/val1_difficult2/11.jpg" width=400/>
+This would complete the Step 1 of the BRUVS analysis process, as showed in the image below.
+![](./static/part1.png)
+*Step 1: Given a folder or hard drive with BRUVSs (a), SharkTRack automatically process the videos and detects elasmobranchs (b). It then saves all detection information in a CSV file (c) and stores a detection image for each individual elasmobranch found (d).*
 
-*An example of SharkTrack output detection. Learn more [here](./annotation-pipelines.md#step-0-understand-the-output)*
-
-
-### Our Ask to SharkTrack user
-SharkTrack is free, and it makes us super-happy when people use it, so we put it out there as a downloadable model that is easy to use. That means we don't know who's using it unless you contact us, so please please [email us](mailto:fppvrn@gmail.com?subject=SharkTrackUser) and star this repo if you find it useful!
 
 ## Installing SharkTrack
-If you don't have experience with Python, the following steps might be the hardest to setup the model. If you think your organisation would benefit from near-instant BRUVS analysis, please consider this challenge as an investment in the future. Don't hesitate to post any problems you might encounter [here](https://github.com/filippovarini/sharktrack/issues).
+If you don't have experience with Python, don't fear! Follow this guide step by step and you will have it running shortly. Don't hesitate to ask [here]([GitHub](https://github.com/filippovarini/sharktrack/issues)).
+
 
 ### Pre-Requirements
-- Python 3.9 and above. 
-    - [How to check the version](https://www.redswitches.com/blog/check-python-version/#:~:text=installed%20Python%20version.-,How%20to%20Check%20Python%20Version%20in%20Windows,-Follow%20these%20steps) 
-    - If you don't, install it [here](https://www.python.org/downloads/)
+You must have Python 3.9 and above. To check the version:
+- On **Windows**:
+    - Open the Command Prompt by typing cmd in the search bar and hitting Enter.
+    - Type the following command and press Enter: `python --version`
+    - This will display the installed Python version.
+- On **macOS**:
+    - Open the Terminal (you can find it using Spotlight or under Applications > Utilities).
+    - Type the following command and press Enter: `python3 --version`
+    - This will display the installed Python 3 version.
+    - If no version is found, you have an older version than 3. To check it, type `python --version` and hit enter.
+
+> If you don't have Python 3.9 or above, install it [here](https://www.python.org/downloads/)
 
 
 ### Downloading the model
@@ -84,10 +89,11 @@ Now you have the downloaded the model and you have the Terminal application open
 *If you encounter any problem, check out the [troubleshooting](#troubleshooting) section.*
 
 ## Running SharkTrack
+Congratulations on setting up SharkTrack, you are ready to run it!
 
-You now are ready to run SharkTrack! 
+From now on, whenever you want to run SharkTrack, jump to this section.
 
-The quickiest way to do so, is moving your videos in the `./input_videos` folder which is inside sharktrack.
+You can move your videos in the `./input_videos` folder which is inside sharktrack to process them automatically. Otherwise, you can specif the path of the folder where they are stored.
 
 Then, running the following commands
 - **If you use Anaconda**
@@ -126,10 +132,9 @@ Below is a list of arguments you can use:
 - `--limit {value}` Limit of videos to process (default=1000)
 - `--conf {value}` Set custom confidence threshold, default=0.25.
 - `--output {value}` Path to output folder (default=`./outputs`)
-- `--imgsz {value}` Select the image size the model processes. Default 640. Lower is faster but lower accuracy and vice versa.
 - `--peek` Run the model in [peek mode](#sharktrackpeek-mode)
 - `--chapters` Use if your videos are broken into chapters. The model aggregates the chapter information into one single video
-- `--live` output a tracked video like [this](https://drive.google.com/file/d/1b_74wdPXyJPe2P-m1c45jjsV2C5Itr-R/view?usp=sharing). ⚠️ Requires to provide the full video path with the `--input` argument (i.e. `python app.py --live --input input_folder/sample.mp4`)
+- `--resume` Skip videos already analysed in the provided `--output` path. Use it when resuming a SharkTrack ran which stopped early or when analysing multi-day studies in the same folder. 
 
 Example:
 ```bash
@@ -196,10 +201,8 @@ If you know of a better solution, please [email us](mailto:fppvrn@gmail.com?subj
 ## How fast/accurate is SharkTrack?
 |Mode|Feature| Inference Time | Limitations | Good for
 |--|--|--| --| --|
-|`analyst` (default)| Compute MaxN | 45m per video-hour | Slower and can't process some GoPro videos | Species-ID and MaxN
+|`analyst` (default)| Compute MaxN | 27m per video-hour | Slower and can't process videos of some GoPro versions | Species-ID and MaxN
 |`peek`| Extract interesting frames | 9m per video-hour | Doesn't support annotation and outputs many more frames to review | Extract all frames with Elasmobranch
-
-Both models achieve a classification accuracy of 0.86 which above human-level performance, according to [Ditria et al 2020](https://www.frontiersin.org/articles/10.3389/fmars.2020.00429/full).
 
 Additionally, the pipeline is designed to minimise False Positives and leverage human knowledge. That is, it has a very low confidence threshold. This ensures close to all sharks are detected, but causes 5x "garbage detections", which the user manually rejects. We found that researchers are happier to have control over the rejection of the detections, knowing that everything was captured.
 
