@@ -86,6 +86,7 @@ This software was written and supported by the efforts of
 - [Prof Ben Glocker](https://www.imperial.ac.uk/people/b.glocker)
 - [Prof Francesco Ferretti](https://ferrettigs.github.io/)
 - [Lucia Adams](https://www.linkedin.com/in/lucia-adams/)
+
 This software and related work was supported by the efforts of Filippo Varini, Joel H. Gayford, Jeremy Jenrette, Matthew J. Witt, Francesco Garzon, Francesco Ferretti, Sophie Wilday, Mark E. Bond, Michael R. Heithaus, Danielle Robinson, Devon Carter, Najee Gumbs, Vincent Webster, Ben Glocker, Fabio De Sousa Ribeiro, Rajat Rasal, Orlando Timmerman, Natalie Ng, Rui Wen Lim, Michael Sellgren, Lara Tse, Steven Chen, Maria Pia Donrelas, Manfredi Minervini, Xuen Bei (Bay) Chin, Adam Whiting, Aurora Crocini, Gabriele Bai, Stephanie Guerinfor.
 
 ## Collaborations
