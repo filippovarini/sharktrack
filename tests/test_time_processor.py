@@ -1,5 +1,5 @@
 import unittest
-from time_processor import ms_to_string, string_to_ms
+from utils.time_processor import ms_to_string, string_to_ms
 
 class TestGenerateCorrectOutput(unittest.TestCase):
     def test_ms_to_string(self):
