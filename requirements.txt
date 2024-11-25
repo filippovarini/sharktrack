@@ -1,8 +1,8 @@
-av
-opencv-python
-pandas
-ultralytics
-lapx
-dill
+ultralytics==8.1.47
+av==12.0.0
+opencv-python==4.9.0.80
+pandas==2.1.4
+lapx==0.5.5
+dill==0.3.8
 click
 tqdm
