@@ -109,7 +109,7 @@ Then, running the following commands
     ```
 - **Or Mac/Linux**
     ```
-    python venv/bin/activate
+    source venv/bin/activate
     python app.py
     ```
 
