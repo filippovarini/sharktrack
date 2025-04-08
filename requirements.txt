@@ -6,3 +6,5 @@ lapx==0.5.5
 dill==0.3.8
 click
 tqdm
+torch<2.6.0
+torchvision<0.20
