@@ -9,10 +9,18 @@ from tqdm import tqdm
 import pandas as pd
 import shutil
 import torch
+import torch.serialization
 import click
-import torch
 import cv2
 import os
+
+
+# Fix for PyTorch 2.6+ where weights_only defaults to True
+_original_torch_load = torch.load
+def _patched_torch_load(*args, **kwargs):
+  kwargs.setdefault("weights_only", False)
+  return _original_torch_load(*args, **kwargs)
+torch.load = _patched_torch_load
 
 class Model():
   def __init__(self, input_path, output_path, **kwargs):
@@ -140,14 +148,11 @@ class Model():
         annotated_frame = results[0].plot()
 
         out.write(annotated_frame)
-
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
       else:
         break
 
     cap.release()
-    cv2.destroyAllWindows()
+    out.release()
 
   def run(self):
     self.input_path = self.input_path
@@ -188,7 +193,7 @@ class Model():
 @click.option("--species_classifier", "-sc", type=str, default=None, help="Path to species classifier")
 @click.option("--peek",  is_flag=True, default=False, show_default=True, help="Use peek mode: 5x faster but only finds interesting frames, without tracking/computing MaxN")
 @click.option("--resume",  is_flag=True, default=False, show_default=True, help="Resume BRUVS running SharkTrack")
-@click.option("--chapters",  is_flag=True, default=False, show_default=True, prompt="Are your videos split in chapters?", help="Aggreagate chapter information into a single video")
+@click.option("--chapters",  is_flag=True, default=False, show_default=True, prompt="Are your videos split in GoPro chapters?", help="Aggreagate chapter information into a single video")
 @click.option("--live",  is_flag=True, default=False, help="Show live tracking video for debugging purposes")
 def main(**kwargs):
   input_path = os.path.normpath(kwargs["input"])
