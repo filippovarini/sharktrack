@@ -60,10 +60,11 @@ def compute_species_maxn(cleaned_annotations, chapter):
     frame_box_cnt = cleaned_annotations.groupby(groupby_columns + directory_columns, as_index=False, dropna=False).agg(**aggregations)
 
     # for each chapter, species, get the max n and return video, species, maxn, chapter, time when that happens
+    frame_box_cnt_sorted = frame_box_cnt.sort_values("n", ascending=False)
     if chapter: 
-        maxn = frame_box_cnt.groupby(directory_columns + ["label"], as_index=False, dropna=False).apply(lambda grp: grp.nlargest(1, "n"))
+        maxn = frame_box_cnt_sorted.groupby(directory_columns + ["label"], dropna=False).head(1)
     else:
-        maxn = frame_box_cnt.groupby(["video_path", "video_name", "label"], as_index=False, dropna=False).apply(lambda grp: grp.nlargest(1, "n"))
+        maxn = frame_box_cnt_sorted.groupby(["video_path", "video_name", "label"], dropna=False).head(1)
     maxn = maxn.sort_values(["video_path", "n"], ascending=[True, False])
     maxn = maxn.reset_index(drop=True)
 
@@ -97,9 +98,9 @@ def save_maxn_frames(cleaned_output: pd.DataFrame, maxn: pd.DataFrame, videos_pa
             # return
 
 @click.command()
-@click.option("--path", "-p", type=str, required=True, prompt="Provide path to original output", help="Path to the output folder of sharktrack")
-@click.option("--videos", "-v", type=str, default="N/A", show_default=True, prompt="Path to original videos (to compute maxn screenshots)", help="Path to the folder that contains all videos, to extract MaxN")
-@click.option("--chapters",  is_flag=True, default=False, show_default=True, prompt="Are your videos split in chapters?", help="Aggreagate chapter information into a single video")
+@click.option("--path", "-p", type=str, required=True, prompt="Provide path to original output (i.e. outputs/bruvs_2025_processed)", help="Path to the output folder of sharktrack")
+@click.option("--videos", "-v", type=str, default="N/A", show_default=True, prompt="Path to original videos (to compute maxn screenshots) (i.e. /Hard-Drive/bruvs_2025)", help="Path to the folder that contains all videos, to extract MaxN")
+@click.option("--chapters",  is_flag=True, default=False, show_default=True, prompt="Are your videos split in GoProchapters? [default: No]", help="Aggreagate chapter information into a single video")
 def main(path, videos, chapters):
     final_analysis_folder = "analysed"
     internal_results_folder = "internal_results"
