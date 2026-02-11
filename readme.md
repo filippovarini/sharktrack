@@ -1,5 +1,5 @@
 # SharkTrack
-A software that detects sharks and rays in underwater videos and computes MaxN 21 times faster, with machine learning.
+A AI-enhanced video analys pipeline that you can use to analyse underwater videos of sharks and rays 21 times faster.
 
 ## Guide Structure
 
