@@ -1,0 +1,18 @@
+# This file defines the configurations of the BoT-SORT tracker https://github.com/NirAharon/BoT-SORT
+# implemented by Ultralytics Yolo model https://docs.ultralytics.com/modes/track/
+
+tracker_type: botsort
+track_high_thresh: 0.4 # threshold for the first association
+track_low_thresh: 0.2  # threshold for the second association
+new_track_thresh: 0.4  # threshold for init new track if the detection does not match any tracks
+track_buffer: 10       # buffer to calculate the time when to remove tracks (2s in this case)
+match_thresh: 0.97     # MOST DISCRIMINATIVE Param: IoU threshold for associating a detected 
+                       # bbox with the predicted one by the tracker. As the object detector is accurate (>85% mAP), 
+                       # we have a high match_thresh to give more confidence to the detector than the tracker-prediction
+
+# BoT-SORT settings
+gmc_method: sparseOptFlow # method of global motion compensation
+# ReID model related thresh (not supported yet)
+proximity_thresh: 1
+appearance_thresh: 0.25
+with_reid: False
