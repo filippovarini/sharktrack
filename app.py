@@ -193,7 +193,7 @@ class Model():
 @click.option("--species_classifier", "-sc", type=str, default=None, help="Path to species classifier")
 @click.option("--peek",  is_flag=True, default=False, show_default=True, help="Use peek mode: 5x faster but only finds interesting frames, without tracking/computing MaxN")
 @click.option("--resume",  is_flag=True, default=False, show_default=True, help="Resume BRUVS running SharkTrack")
-@click.option("--chapters",  is_flag=True, default=False, show_default=True, prompt="Are your videos split in GoProchapters? [default: No]", help="Aggreagate chapter information into a single video")
+@click.option("--chapters",  is_flag=True, default=False, show_default=True, prompt="Are your videos split in GoPro chapters? [default: No]", help="Aggreagate chapter information into a single video")
 @click.option("--live",  is_flag=True, default=False, help="Show live tracking video for debugging purposes")
 def main(**kwargs):
   input_path = os.path.normpath(kwargs["input"])

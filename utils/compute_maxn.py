@@ -100,7 +100,7 @@ def save_maxn_frames(cleaned_output: pd.DataFrame, maxn: pd.DataFrame, videos_pa
 @click.command()
 @click.option("--path", "-p", type=str, required=True, prompt="Provide path to original output (i.e. outputs/bruvs_2025_processed)", help="Path to the output folder of sharktrack")
 @click.option("--videos", "-v", type=str, default="N/A", show_default=True, prompt="Path to original videos (to compute maxn screenshots) (i.e. /Hard-Drive/bruvs_2025)", help="Path to the folder that contains all videos, to extract MaxN")
-@click.option("--chapters",  is_flag=True, default=False, show_default=True, prompt="Are your videos split in GoProchapters? [default: No]", help="Aggreagate chapter information into a single video")
+@click.option("--chapters",  is_flag=True, default=False, show_default=True, prompt="Are your videos split in GoPro chapters? [default: No]", help="Aggreagate chapter information into a single video")
 def main(path, videos, chapters):
     final_analysis_folder = "analysed"
     internal_results_folder = "internal_results"
