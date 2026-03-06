@@ -16,3 +16,4 @@ gmc_method: sparseOptFlow # method of global motion compensation
 proximity_thresh: 1
 appearance_thresh: 0.25
 with_reid: False
+fuse_score: True

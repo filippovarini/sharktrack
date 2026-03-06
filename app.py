@@ -95,6 +95,37 @@ class Model():
   def track_video(self, video_path):
     """
     Uses ultralytics built-in tracker to automatically track a video with OpenCV.
+    Automatically performs reformatting for newer GoPro formats.
+    """
+    print(f"Processing video: {video_path} on device {self.model_args['device']}.")
+    model = YOLO(self.model_path)
+    
+    # Reformat GoPro videos that break OpenCV's FFmpeg backend
+    temp_path = video_path + ".reformatted.mp4"
+    exit_code = os.system(f"ffmpeg -i {video_path} -y -map 0:v -c copy {temp_path} -loglevel error")
+    if exit_code == 0:
+        print("Video succesfully reformatted.")
+        process_path = temp_path
+    else:
+        print(f"Could not reformat {video_path}, attempting to process original...")
+        process_path = video_path
+
+    try:
+        vid_stride, tot_frames_to_process = self._get_frame_skip(process_path)
+        video_iterator = stride_iterator(process_path, vid_stride)
+        sightings = []
+        for frame, time, frame_idx in tqdm(video_iterator, total=tot_frames_to_process):
+            results = model.track(frame, **self.model_args, stream=True)
+            sightings += extract_sightings(video_path, self.input_path, next(results), frame_idx, ms_to_string(time), **{"tracking": True})
+        sightings_df = pd.DataFrame(sightings)
+        self.save_results(video_path, sightings_df, **{"fps": self.fps, "input": self.input_path})
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+  
+  def track_video_old(self, video_path):
+    """
+    Uses ultralytics built-in tracker to automatically track a video with OpenCV.
     This is faster but it fails with GoPro Audio format, requiring reformatting.
     """
     print(f"Processing video: {video_path} on device {self.model_args['device']}.")
