@@ -1,26 +1,35 @@
+# Early startup message - print immediately before heavy imports
+import sys
+print("SharkTrack: Starting Python process...", flush=True)
+print("Loading libraries (this may take 10-30 seconds)...", flush=True)
+sys.stdout.flush()
+
 from utils.sharktrack_annotations import save_analyst_output, save_peek_output, extract_sightings, resume_previous_run
 from utils.path_resolver import generate_output_path, convert_to_abs_path, sort_files
 from utils.time_processor import ms_to_string
-from utils.video_iterators import stride_iterator, keyframe_iterator
+from utils.video_iterators import stride_iterator, keyframe_iterator, ensure_video_readable, cleanup_converted_video
 from utils.species_classifier import SpeciesClassifier
 from utils.reformat_gopro import valid_video
+from utils.deployment_detector import DeploymentDetector
 from ultralytics import YOLO
 from tqdm import tqdm
 import pandas as pd
 import shutil
 import torch
-import torch.serialization
 import click
 import cv2
 import os
 
+print("Libraries loaded successfully!", flush=True)
+sys.stdout.flush()
 
-# Fix for PyTorch 2.6+ where weights_only defaults to True
-_original_torch_load = torch.load
-def _patched_torch_load(*args, **kwargs):
-  kwargs.setdefault("weights_only", False)
-  return _original_torch_load(*args, **kwargs)
-torch.load = _patched_torch_load
+# Fix for PyTorch 2.6+ weights_only default
+import torch.serialization
+original_torch_load = torch.load
+def patched_torch_load(*args, **kwargs):
+    kwargs.setdefault('weights_only', False)
+    return original_torch_load(*args, **kwargs)
+torch.load = patched_torch_load
 
 class Model():
   def __init__(self, input_path, output_path, **kwargs):
@@ -33,6 +42,16 @@ class Model():
 
     self.model_path = "models/sharktrack.pt"
 
+    # Deployment detection settings
+    self.auto_skip_deployment = kwargs.get("auto_skip_deployment", False)
+    self.deployment_detector = None
+    if self.auto_skip_deployment:
+      print("Automatic deployment/retrieval detection: ENABLED")
+      print("   This will analyze each video to skip unstable periods")
+      self.deployment_detector = DeploymentDetector(
+        stability_threshold=kwargs.get("deployment_stability_threshold", 0.15)
+      )
+
     self.model_args = {
       "conf": kwargs["conf"],
       "iou": 0.5,
@@ -42,9 +61,9 @@ class Model():
 
     if kwargs["peek"]:
       print("NOTE: You are using the model 'peek' mode. Please be aware of the following:")
-      print("  ✅ Runs significantly faster")
-      print("  ⛔️ You won't be able to compute MaxN, but only find interesting frames")
-      print("  💡 You can safely ignore the ffmpeg warnings below")
+      print("  Runs significantly faster")
+      print("  You won't be able to compute MaxN, but only find interesting frames")
+      print("  You can safely ignore the ffmpeg warnings below")
       print("-" * 20)
       print("")
       self.inference_type = self.keyframe_detection
@@ -57,13 +76,15 @@ class Model():
       self.model_args["persist"] = True
       self.model_args["imgsz"] = kwargs["imgsz"]
       self.save_output = save_analyst_output
-      
+
     self.next_track_index, self.processed_videos = resume_previous_run(output_path)
-  
+
   def _get_frame_skip(self, video_path):
-    cap = cv2.VideoCapture(video_path)  
+    cap = cv2.VideoCapture(video_path)
     actual_fps = cap.get(cv2.CAP_PROP_FPS)
     frame_skip = round(actual_fps / self.fps)
+    if frame_skip == 0:
+        frame_skip = 1
     tot_frames_to_process = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) / frame_skip)
     return frame_skip, tot_frames_to_process
 
@@ -91,31 +112,64 @@ class Model():
           **self.model_args
         )
       self.save_results(video_path, frame_results, **{"time": time, "frame_id": frame_idx})
-        
+
   def track_video(self, video_path):
     """
     Uses ultralytics built-in tracker to automatically track a video with OpenCV.
     This is faster but it fails with GoPro Audio format, requiring reformatting.
     """
     print(f"Processing video: {video_path} on device {self.model_args['device']}.")
+
+    # Validate video is readable, reformat if necessary
+    original_video_path = video_path
+    video_path = ensure_video_readable(video_path, verbose=True)
+
+    # Detect deployment/retrieval periods if enabled
+    skip_start_frame = 0
+    skip_end_frame = float('inf')
+
+    if self.deployment_detector:
+      print("  Analyzing video stability...")
+      start_frame, end_frame, _ = self.deployment_detector.analyze_video_stability(video_path, sample_rate=2)
+      skip_start_frame = start_frame
+      skip_end_frame = end_frame
+
+      cap = cv2.VideoCapture(video_path)
+      fps = cap.get(cv2.CAP_PROP_FPS)
+      cap.release()
+
+      if fps > 0:
+        print(f"  Skipping: 0s-{start_frame/fps:.1f}s (deployment) and {end_frame/fps:.1f}s-end (retrieval)")
+
     model = YOLO(self.model_path)
-    
+
     vid_stride, tot_frames_to_process = self._get_frame_skip(video_path)
 
     video_iterator = stride_iterator(video_path, vid_stride)
 
     sightings = []
+    skipped_frames = 0
 
     for frame, time, frame_idx in tqdm(video_iterator, total=tot_frames_to_process):
+      # Skip frames outside stable period
+      if self.deployment_detector and (frame_idx < skip_start_frame or frame_idx > skip_end_frame):
+        skipped_frames += 1
+        continue
       results = model.track(
         frame,
         **self.model_args,
         stream=True
       )
       sightings += extract_sightings(video_path, self.input_path, next(results), frame_idx, ms_to_string(time), **{"tracking": True})
-    
+
+    if skipped_frames > 0:
+      print(f"\n  Skipped {skipped_frames} frames during deployment/retrieval")
+
     sightings_df = pd.DataFrame(sightings)
     self.save_results(video_path, sightings_df, **{"fps": self.fps, "input": self.input_path})
+
+    # Clean up temporary converted video if one was created
+    cleanup_converted_video(video_path, original_video_path)
 
   def live_track(self, video_path, output_folder='./output'):
     """
@@ -123,7 +177,7 @@ class Model():
     """
     print("Live tracking video...")
     if not valid_video(video_path):
-      print(f"⚠️ Live Tracking is heavy so it can be done on only one video at a time. Please provide the full path of a single video with the --input argument")
+      print("Live Tracking is heavy so it can be done on only one video at a time. Please provide the full path of a single video with the --input argument")
       shutil.rmtree(output_folder)
       return
     cap = cv2.VideoCapture(video_path)
@@ -195,6 +249,7 @@ class Model():
 @click.option("--resume",  is_flag=True, default=False, show_default=True, help="Resume BRUVS running SharkTrack")
 @click.option("--chapters",  is_flag=True, default=False, show_default=True, prompt="Are your videos split in GoPro chapters? [default: No]", help="Aggreagate chapter information into a single video")
 @click.option("--live",  is_flag=True, default=False, help="Show live tracking video for debugging purposes")
+@click.option("--auto-skip-deployment",  is_flag=True, default=False, help="Automatically detect and skip deployment/retrieval phases in BRUV videos")
 def main(**kwargs):
   input_path = os.path.normpath(kwargs["input"])
   input_path = convert_to_abs_path(input_path)
