@@ -1,7 +1,38 @@
+# Output directories
 output/
-venv
-__pycache__/
-test.ipynb
 outputs/*
+
+# Python environment
+venv/
+sharktrack-env/
+__pycache__/
+*.pyc
+
+# OS/IDE files
 .DS_Store
-models/species_classifiers
+.Rhistory
+.idea/
+.vscode/
+*.swp
+
+# Models - keep sharktrack.pt and stb_classifier, exclude other user-trained classifiers
+models/species_classifiers/*
+!models/species_classifiers/stb_classifier/
+
+# User data (not for repo)
+input_videos/*.mp4
+input_videos/*.MP4
+thumbnails/
+*.checkpoint.csv
+
+# Deprecated/archived code (keep locally, don't push)
+deprecated/
+
+# Claude Code config
+.claude/
+
+# Test files
+test.ipynb
+test_output/
+test_single/
+test_subprocess/thumbnails/
