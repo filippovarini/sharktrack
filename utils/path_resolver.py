@@ -10,10 +10,9 @@ def generate_output_path(user_output_path, input_path, annotation_folder="", res
     if os.path.exists(output_path):
       if resume:
         print("Resuming SharkTrack run...")
-        return os.path.join(user_output_path, annotation_folder)
       else:
-        print("Output path already exists. Provide a new path or remove the --output <path> argument to automatically output in the SharkTrack folder")
-        return None
+        print("Using existing output directory...")
+      return os.path.join(user_output_path, annotation_folder)
   else:
     # automatically create output
     output_name = os.path.basename(input_path).split(".")[0] + "_processed"

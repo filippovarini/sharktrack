@@ -1,5 +1,8 @@
 import cv2
 import numpy as np
+import subprocess
+import tempfile
+from pathlib import Path
 
 
 def construct_label_color_mapping(labels, colors):
@@ -62,8 +65,49 @@ def annotate_image(img, text1, text2, text3):
     return new_image
 
 def extract_frame_at_time(video_path: str, time_ms: int):
-    vidcap = cv2.VideoCapture(video_path)
-    vidcap.set(cv2.CAP_PROP_POS_MSEC, time_ms)
-    ret, frame = vidcap.read()
-    assert ret, f"Can't read {video_path} at time {time_ms} ms"
-    return frame
+    """
+    Extract a frame at a specific time using FFmpeg.
+
+    This uses FFmpeg instead of OpenCV because OpenCV fails on videos with multiple
+    data streams (GoPro metadata streams), which causes:
+    "packet read max attempts exceeded" errors.
+    """
+    # Convert milliseconds to seconds
+    time_sec = time_ms / 1000.0
+
+    # Create temporary file for the extracted frame
+    with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
+        tmp_path = tmp.name
+
+    try:
+        # Use FFmpeg to extract the frame at the specific timestamp
+        # -ss: seek to timestamp
+        # -i: input file
+        # -vframes 1: extract only 1 frame
+        # -q:v 2: high quality (scale 2-31, lower is better)
+        result = subprocess.run([
+            'ffmpeg',
+            '-ss', str(time_sec),
+            '-i', video_path,
+            '-vframes', '1',
+            '-q:v', '2',
+            '-y',  # Overwrite output file
+            tmp_path
+        ], capture_output=True, text=True, timeout=10)
+
+        if result.returncode != 0:
+            raise RuntimeError(f"FFmpeg failed to extract frame: {result.stderr}")
+
+        # Read the extracted frame
+        frame = cv2.imread(tmp_path)
+        if frame is None:
+            raise RuntimeError(f"Could not read extracted frame from {tmp_path}")
+
+        return frame
+
+    finally:
+        # Clean up temporary file
+        try:
+            Path(tmp_path).unlink()
+        except:
+            pass
