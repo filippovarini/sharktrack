@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SharkTrack Launcher</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2a5298;
+            text-align: center;
+        }
+        .logo {
+            text-align: center;
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        .instructions {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+        .step {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 6px;
+        }
+        .code {
+            background: #2d2d2d;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #4299e1;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 10px 5px;
+            text-align: center;
+        }
+        .button:hover {
+            background: #3182ce;
+        }
+        .warning {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🦈</div>
+        <h1>Welcome to SharkTrack!</h1>
+
+        <div class="instructions">
+            <h2>Quick Start Guide</h2>
+            <p><strong>SharkTrack requires a terminal to run.</strong> Follow these simple steps:</p>
+        </div>
+
+        <div class="step">
+            <h3>Step 1: Open Terminal</h3>
+            <p><strong>Linux:</strong> Press <code>Ctrl + Alt + T</code></p>
+            <p><strong>Mac:</strong> Press <code>Cmd + Space</code>, type "Terminal", press Enter</p>
+            <p><strong>Windows:</strong> Open Git Bash or WSL</p>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Navigate to SharkTrack Directory</h3>
+            <div class="code">cd /home/simon/Installers/sharktrack-1.5</div>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Launch SharkTrack Web GUI</h3>
+            <div class="code">./launch_gui.sh</div>
+            <p>Your web browser will automatically open to <strong>http://localhost:5000</strong></p>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ First Time Setup:</strong> The first launch may take a minute to install required packages. This only happens once.
+        </div>
+
+        <h2>Alternative Launch Methods</h2>
+
+        <div class="step">
+            <h3>Double-Click Launcher (Linux Desktop)</h3>
+            <p>If you're on Linux with a graphical desktop, you can double-click:</p>
+            <div class="code">SharkTrack.desktop</div>
+            <p>You may need to right-click → Properties → Permissions → "Allow executing file as program"</p>
+        </div>
+
+        <div class="step">
+            <h3>Manual Command Line Usage</h3>
+            <p>If you prefer command-line operation:</p>
+            <div class="code">python3 app.py --input "/path/to/videos" --auto_skip_deployment</div>
+        </div>
+
+        <h2>What's Next?</h2>
+        <ul>
+            <li>✅ <strong>Analysis Tab:</strong> Process your BRUV videos with automatic deployment detection</li>
+            <li>🎓 <strong>Training Tab:</strong> Train custom species classifiers from labeled images</li>
+            <li>📊 <strong>Results Tab:</strong> View detection statistics and species distribution</li>
+            <li>⚙️ <strong>System Tab:</strong> Monitor CPU/GPU usage and active processes</li>
+        </ul>
+
+        <h2>Need Help?</h2>
+        <p>📚 Check the documentation:</p>
+        <ul>
+            <li><code>WEB_GUI_README.md</code> - Complete GUI documentation</li>
+            <li><code>DEPLOYMENT_DETECTION_README.md</code> - Deployment detection details</li>
+            <li><code>RECENT_UPDATES.md</code> - Latest features and changes</li>
+        </ul>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <p><em>SharkTrack v1.5.2 - Automated Marine Video Analysis</em></p>
+        </div>
+    </div>
+</body>
+</html>

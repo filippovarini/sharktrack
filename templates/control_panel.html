@@ -1,0 +1,2933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SharkTrack Control Panel</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --primary-light: #34495e;
+            --accent: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --purple: #9b59b6;
+            --bg: #f5f7fa;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+            --text-muted: #7f8c8d;
+            --border: #e0e0e0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .header-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 70px);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background: var(--card-bg);
+            border-right: 1px solid var(--border);
+            padding: 20px 0;
+        }
+
+        .nav-section {
+            margin-bottom: 25px;
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            padding: 0 20px;
+            margin-bottom: 10px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--bg);
+        }
+
+        .nav-item.active {
+            background: #e8f4fc;
+            border-left-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .nav-item.completed .nav-icon {
+            background: var(--success);
+            color: white;
+        }
+
+        .nav-item.in-progress .nav-icon {
+            background: var(--warning);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .nav-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--bg);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .nav-label {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .nav-status {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: var(--bg);
+        }
+
+        .nav-status.ready { background: #d5f5e3; color: #1e8449; }
+        .nav-status.running { background: #fdebd0; color: #b9770e; }
+        .nav-status.needs-setup { background: #fadbd8; color: #922b21; }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .page {
+            display: none;
+            max-width: 900px;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .page-title {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .page-description {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card-badge {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: var(--bg);
+        }
+
+        /* Info Boxes */
+        .info-box {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .info-box.info {
+            background: #e8f4fc;
+            border-left: 4px solid var(--accent);
+        }
+
+        .info-box.success {
+            background: #d5f5e3;
+            border-left: 4px solid var(--success);
+        }
+
+        .info-box.warning {
+            background: #fef9e7;
+            border-left: 4px solid var(--warning);
+        }
+
+        .info-box.tip {
+            background: #f4ecf7;
+            border-left: 4px solid var(--purple);
+        }
+
+        .info-box-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .info-box-content h4 {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .info-box-content p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-input.with-button {
+            display: flex;
+            gap: 10px;
+        }
+
+        .form-input.with-button input {
+            flex: 1;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 14px;
+        }
+
+        .browse-btn {
+            padding: 10px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .browse-btn:hover {
+            background: var(--primary-light);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #219a52;
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: #e8e8e8;
+        }
+
+        .btn-lg {
+            padding: 16px 32px;
+            font-size: 16px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        /* Progress */
+        .progress-bar {
+            height: 8px;
+            background: var(--bg);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .progress-fill.success { background: var(--success); }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Log Output */
+        .log-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .log-output .log-info { color: #3498db; }
+        .log-output .log-success { color: #2ecc71; }
+        .log-output .log-warning { color: #f39c12; }
+        .log-output .log-error { color: #e74c3c; }
+
+        /* Collapsible Sections */
+        .collapsible {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .collapsible-header {
+            padding: 15px 20px;
+            background: var(--bg);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px;
+        }
+
+        .collapsible-header:hover {
+            background: #e8e8e8;
+        }
+
+        .collapsible-content {
+            padding: 20px;
+            display: none;
+        }
+
+        .collapsible.open .collapsible-content {
+            display: block;
+        }
+
+        .collapsible.open .collapsible-header {
+            border-radius: 8px 8px 0 0;
+        }
+
+        /* Steps List */
+        .steps-list {
+            list-style: none;
+            counter-reset: step;
+        }
+
+        .steps-list li {
+            position: relative;
+            padding-left: 50px;
+            padding-bottom: 25px;
+            border-left: 2px solid var(--border);
+            margin-left: 15px;
+        }
+
+        .steps-list li:last-child {
+            border-left-color: transparent;
+        }
+
+        .steps-list li::before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: -16px;
+            top: 0;
+            width: 30px;
+            height: 30px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .steps-list h4 {
+            margin-bottom: 8px;
+        }
+
+        .steps-list p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Path Display */
+        .path-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: var(--bg);
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .path-display .path-icon {
+            color: var(--text-muted);
+        }
+
+        .path-display.valid {
+            background: #d5f5e3;
+            border: 1px solid #27ae60;
+        }
+
+        .path-display.invalid {
+            background: #fadbd8;
+            border: 1px solid #e74c3c;
+        }
+
+        /* System Info */
+        .system-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .system-info-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg);
+            border-radius: 8px;
+        }
+
+        .system-info-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .system-info-icon.gpu { background: var(--success); }
+        .system-info-icon.no-gpu { background: var(--warning); }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .modal-footer {
+            padding: 15px 25px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Hidden utility */
+        .hidden { display: none !important; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <h1>
+            <span style="font-size: 32px;">🦈</span>
+            SharkTrack Control Panel
+        </h1>
+        <div class="header-actions">
+            <button class="header-btn" onclick="showModal('helpModal')">
+                ❓ Help
+            </button>
+            <button class="header-btn" onclick="showModal('settingsModal')">
+                ⚙️ Settings
+            </button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="nav-section">
+                <div class="nav-section-title">Setup</div>
+                <div class="nav-item active" data-page="setup" onclick="showPage('setup')">
+                    <span class="nav-icon">1</span>
+                    <span class="nav-label">Project Setup</span>
+                    <span class="nav-status needs-setup" id="status-setup">Needs Setup</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Analysis Pipeline</div>
+                <div class="nav-item" data-page="detection" onclick="showPage('detection')">
+                    <span class="nav-icon">2</span>
+                    <span class="nav-label">Detection</span>
+                    <span class="nav-status" id="status-detection">Waiting</span>
+                </div>
+                <div class="nav-item" data-page="validation-prep" onclick="showPage('validation-prep')">
+                    <span class="nav-icon">3</span>
+                    <span class="nav-label">Validation Prep</span>
+                    <span class="nav-status" id="status-validation-prep">Waiting</span>
+                </div>
+                <div class="nav-item" data-page="validation" onclick="showPage('validation')">
+                    <span class="nav-icon">4</span>
+                    <span class="nav-label">Human Validation</span>
+                    <span class="nav-status" id="status-validation">Waiting</span>
+                </div>
+                <div class="nav-item" data-page="maxn" onclick="showPage('maxn')">
+                    <span class="nav-icon">5</span>
+                    <span class="nav-label">MaxN Calculation</span>
+                    <span class="nav-status" id="status-maxn">Waiting</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Advanced</div>
+                <div class="nav-item" data-page="classifier" onclick="showPage('classifier')">
+                    <span class="nav-icon">🧠</span>
+                    <span class="nav-label">Classifier Training</span>
+                    <span class="nav-status">Optional</span>
+                </div>
+                <div class="nav-item" data-page="system" onclick="showPage('system')">
+                    <span class="nav-icon">💻</span>
+                    <span class="nav-label">System Info</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content Area -->
+        <main class="content">
+            <!-- Page 1: Setup -->
+            <div class="page active" id="page-setup">
+                <h2 class="page-title">Project Setup</h2>
+                <p class="page-description">Configure your project paths and settings. These are saved locally on your machine.</p>
+
+                <div class="info-box info">
+                    <span class="info-box-icon">💡</span>
+                    <div class="info-box-content">
+                        <h4>First Time Setup</h4>
+                        <p>Point SharkTrack to your video files and choose where to save results. This only needs to be done once per project.</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Project Information</h3>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Your Name / Initials</label>
+                        <input type="text" class="form-input" id="userName" placeholder="e.g., TG or Tristan"
+                               onchange="saveConfig()">
+                        <p class="form-hint">Used to identify your validation exports (e.g., validation_results_TG.csv)</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Project Name</label>
+                        <input type="text" class="form-input" id="projectName" placeholder="e.g., Turneffe Atoll Summer 2024"
+                               onchange="saveConfig()">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">File Locations</h3>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Input Videos Folder</label>
+                        <div class="form-input with-button">
+                            <input type="text" id="inputVideosPath" placeholder="/path/to/BRUV_videos"
+                                   onchange="validatePath(this, 'inputVideos'); saveConfig(); checkIncrementalStatus()">
+                            <button class="browse-btn" onclick="browsePath('inputVideosPath')">Browse...</button>
+                        </div>
+                        <p class="form-hint">Root folder containing your BRUV video files</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Output Results Folder</label>
+                        <div class="form-input with-button">
+                            <input type="text" id="outputResultsPath" placeholder="/path/to/SharkTrack_Results"
+                                   onchange="validatePath(this, 'outputResults'); saveConfig(); checkIncrementalStatus()">
+                            <button class="browse-btn" onclick="browsePath('outputResultsPath')">Browse...</button>
+                        </div>
+                        <p class="form-hint">Where SharkTrack will save detection results, thumbnails, and validation files</p>
+                    </div>
+
+                    <!-- Incremental Detection Status -->
+                    <div id="incrementalStatusBox" class="info-box" style="display: none;">
+                        <span class="info-box-icon">📊</span>
+                        <div class="info-box-content">
+                            <h4>Incremental Processing Status</h4>
+                            <div id="incrementalStatusContent"></div>
+                        </div>
+                    </div>
+
+                    <div class="info-box tip">
+                        <span class="info-box-icon">📁</span>
+                        <div class="info-box-content">
+                            <h4>Working with Shared Drives</h4>
+                            <p>If multiple people are validating, each person configures their own paths here. The same folder might be "D:\BRUV" on Windows or "/media/simon/BRUV" on Linux - that's OK!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Project Metadata</h3>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Metadata File (CSV)</label>
+                        <div class="form-input with-button">
+                            <input type="text" id="metadataFilePath" placeholder="/path/to/BRUV_metadata.csv"
+                                   onchange="validateMetadataFile(this); saveConfig()">
+                            <button class="browse-btn" onclick="browseFile('metadataFilePath', '.csv')">Browse...</button>
+                        </div>
+                        <p class="form-hint">CSV file with one row per video containing location, date, environmental data, etc.</p>
+                    </div>
+
+                    <div class="info-box info">
+                        <span class="info-box-icon">📋</span>
+                        <div class="info-box-content">
+                            <h4>Metadata File Format</h4>
+                            <p>Your CSV must have a <strong>video_filename</strong> column containing the exact video filenames (e.g., <code>GH010001.MP4</code>). Additional columns are preserved in exports.</p>
+
+                            <details style="margin-top: 10px;">
+                                <summary style="cursor: pointer; color: var(--accent); font-weight: 500;">View column specifications</summary>
+                                <table style="margin-top: 8px; font-size: 12px; width: 100%; border-collapse: collapse;">
+                                    <tr style="background: var(--surface-alt);">
+                                        <th style="padding: 6px; text-align: left; border-bottom: 1px solid var(--border);">Column</th>
+                                        <th style="padding: 6px; text-align: left; border-bottom: 1px solid var(--border);">Required</th>
+                                        <th style="padding: 6px; text-align: left; border-bottom: 1px solid var(--border);">Format</th>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);"><code>video_filename</code></td>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);"><strong>Yes</strong></td>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);">Exact filename with extension (e.g., <code>GH010001.MP4</code>)</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);"><code>latitude</code></td>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);">No</td>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);">Decimal degrees (e.g., <code>-23.4567</code>)</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);"><code>longitude</code></td>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);">No</td>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);">Decimal degrees (e.g., <code>151.1234</code>)</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);"><code>date</code></td>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);">No</td>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);">ISO format preferred (e.g., <code>2024-01-15</code>)</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);"><code>time</code></td>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);">No</td>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);">24-hour format (e.g., <code>09:30:00</code>)</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);"><code>depth_m</code></td>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);">No</td>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);">Numeric, meters (e.g., <code>12.5</code>)</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);"><code>site_name</code></td>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);">No</td>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);">Text, use underscores not spaces</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);"><code>habitat</code></td>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);">No</td>
+                                        <td style="padding: 6px; border-bottom: 1px solid var(--border);">Text (e.g., <code>coral_reef</code>, <code>seagrass</code>)</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px;"><em>Any other columns</em></td>
+                                        <td style="padding: 6px;">No</td>
+                                        <td style="padding: 6px;">Preserved in exports (e.g., <code>bait</code>, <code>tide</code>, <code>bruv_id</code>)</td>
+                                    </tr>
+                                </table>
+                            </details>
+
+                            <div style="margin-top: 12px; display: flex; gap: 12px; flex-wrap: wrap;">
+                                <a href="/api/metadata-template" download="metadata_template.csv" style="color: var(--accent);">
+                                    📥 Download example template
+                                </a>
+                                <a href="#" onclick="downloadProjectTemplate(); return false;" style="color: var(--accent);">
+                                    📥 Generate template from my videos
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="metadataPreview" style="display: none;">
+                        <h4 style="margin: 15px 0 10px; font-size: 14px;">Preview (first 5 rows):</h4>
+                        <div id="metadataPreviewTable" style="overflow-x: auto; font-size: 12px;"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Video Collections</h3>
+                        <button class="btn btn-secondary" onclick="addVideoCollection()">+ Add Collection</button>
+                    </div>
+
+                    <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 14px;">
+                        Map your collection names to their folder locations. This is needed to open videos from validation thumbnails.
+                    </p>
+
+                    <div id="videoCollections">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-lg" onclick="saveAndContinue()">
+                        Save & Continue →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Page 2: Detection -->
+            <div class="page" id="page-detection">
+                <h2 class="page-title">Video Detection</h2>
+                <p class="page-description">Run SharkTrack's AI detector on your BRUV videos to find sharks, rays, and other marine life.</p>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Detection Settings</h3>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Confidence Threshold</label>
+                        <input type="range" min="0.1" max="0.9" step="0.05" value="0.25" id="confThreshold"
+                               oninput="document.getElementById('confValue').textContent = this.value"
+                               onchange="saveConfig()">
+                        <span id="confValue" style="margin-left: 10px;">0.25</span>
+                        <p class="form-hint">Lower = more detections (but more false positives). Recommended: 0.25</p>
+                    </div>
+
+                    <div class="collapsible">
+                        <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                            <span>Advanced Options</span>
+                            <span>▼</span>
+                        </div>
+                        <div class="collapsible-content">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <input type="checkbox" id="autoSkipDeployment" checked onchange="saveConfig()">
+                                    Auto-skip deployment/retrieval phases
+                                </label>
+                                <p class="form-hint">Automatically detect and skip the first/last parts of video where BRUV is being deployed</p>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <input type="checkbox" id="resumeProcessing" onchange="saveConfig()">
+                                    Resume from previous run
+                                </label>
+                                <p class="form-hint">Skip videos that have already been processed</p>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Stereo Prefix (optional)</label>
+                                <input type="text" class="form-input" id="stereoPrefix" placeholder="e.g., L_ or R_"
+                                       onchange="saveConfig()">
+                                <p class="form-hint">If using stereo BRUVs, only process videos starting with this prefix</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Run Detection</h3>
+                    </div>
+
+                    <div class="stats-grid" id="detectionStats">
+                        <div class="stat-card">
+                            <div class="stat-value" id="videosTotal">0</div>
+                            <div class="stat-label">Videos Found</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="videosProcessed">0</div>
+                            <div class="stat-label">Processed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="tracksFound">0</div>
+                            <div class="stat-label">Tracks Found</div>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="detectionProgress" style="width: 0%"></div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-success btn-lg" id="startDetectionBtn" onclick="startDetection()">
+                            ▶️ Start Detection
+                        </button>
+                        <button class="btn btn-secondary" id="stopDetectionBtn" onclick="stopDetection()" disabled>
+                            ⏹️ Stop
+                        </button>
+                    </div>
+
+                    <div class="log-output" id="detectionLog" style="margin-top: 20px; display: none;">
+                        Waiting to start...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 3: Validation Prep -->
+            <div class="page" id="page-validation-prep">
+                <h2 class="page-title">Validation Preparation</h2>
+                <p class="page-description">Generate thumbnails and the validation interface from detection results.</p>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Generate Thumbnails</h3>
+                    </div>
+
+                    <p style="margin-bottom: 20px;">
+                        This extracts a thumbnail image for each detected track, creating a visual interface for human validation.
+                    </p>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalTracks">0</div>
+                            <div class="stat-label">Tracks to Review</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="thumbnailsGenerated">0</div>
+                            <div class="stat-label">Thumbnails Ready</div>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-success btn-lg" onclick="generateThumbnails()">
+                            🖼️ Generate Thumbnails & Validation Page
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 4: Human Validation -->
+            <div class="page" id="page-validation">
+                <h2 class="page-title">Human Validation</h2>
+                <p class="page-description">Review detection results and verify species identifications.</p>
+
+                <div class="info-box info">
+                    <span class="info-box-icon">🔄</span>
+                    <div class="info-box-content">
+                        <h4>The Iterative Validation Process</h4>
+                        <p>Validation works best as a cycle: Review some tracks → Export → Run Smart Suggestions → Regenerate HTML → Review with predictions. Each round gets faster!</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">How Validation Works</h3>
+                    </div>
+
+                    <ol class="steps-list">
+                        <li>
+                            <h4>Review Thumbnails</h4>
+                            <p>Look at each detection and mark whether it's a TRUE animal sighting or FALSE positive (debris, reflection, etc.)</p>
+                        </li>
+                        <li>
+                            <h4>Identify Species</h4>
+                            <p>For TRUE detections, select the taxonomic group (Shark, Ray, etc.) and species. Use the autocomplete to find species quickly.</p>
+                        </li>
+                        <li>
+                            <h4>Use Batch Tagging</h4>
+                            <p>Select multiple similar tracks (e.g., all clearly false positives) and apply labels to all at once. Huge time saver!</p>
+                        </li>
+                        <li>
+                            <h4>Export Your Progress</h4>
+                            <p>Click "Export CSV" regularly to save your work. Name it with your initials (e.g., validation_results_TG.csv)</p>
+                        </li>
+                        <li>
+                            <h4>Get Smart Suggestions</h4>
+                            <p>After validating some tracks, run "Update Smart Predictions". The AI learns from your labels and suggests species for similar unvalidated tracks.</p>
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Validation Progress</h3>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="validatedCount">0</div>
+                            <div class="stat-label">Validated</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="remainingCount">0</div>
+                            <div class="stat-label">Remaining</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="trueDetections">0</div>
+                            <div class="stat-label">True Detections</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="precisionRate">-</div>
+                            <div class="stat-label">Precision</div>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar">
+                        <div class="progress-fill success" id="validationProgress" style="width: 0%"></div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-lg" onclick="openValidation()">
+                            📋 Open Validation Interface
+                        </button>
+                        <button class="btn btn-secondary" onclick="updateSmartPredictions()">
+                            🧠 Update Smart Predictions
+                        </button>
+                        <button class="btn btn-secondary" onclick="regenerateValidationHTML()">
+                            🔄 Regenerate with Predictions
+                        </button>
+                    </div>
+                </div>
+
+                <div class="info-box tip">
+                    <span class="info-box-icon">⚡</span>
+                    <div class="info-box-content">
+                        <h4>Pro Tip: Batch Tagging</h4>
+                        <p>Filter to "High confidence" detections first - these are usually correct and can be batch-validated quickly. Then work through medium and low confidence detections where the AI is less certain.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 5: MaxN -->
+            <div class="page" id="page-maxn">
+                <h2 class="page-title">MaxN Calculation</h2>
+                <p class="page-description">Calculate MaxN (maximum number of individuals per species per video) from your validated results.</p>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Calculate MaxN</h3>
+                    </div>
+
+                    <p style="margin-bottom: 20px;">
+                        MaxN is the standard metric for BRUV analysis - the maximum number of individuals of each species visible in a single frame of video.
+                    </p>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="aggregateChapters" onchange="saveConfig()">
+                            Aggregate across video chapters
+                        </label>
+                        <p class="form-hint">If your videos are split into chapters (e.g., GoPro chapters), combine them for MaxN calculation</p>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-success btn-lg" onclick="calculateMaxN()">
+                            📊 Calculate MaxN
+                        </button>
+                        <button class="btn btn-secondary" onclick="viewMaxNResults()">
+                            📁 View Results
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Combined Metadata Export -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Export Combined Metadata</h3>
+                    </div>
+
+                    <p style="margin-bottom: 20px;">
+                        Export a single CSV combining your metadata, GoPro camera data, and MaxN results - one row per video.
+                    </p>
+
+                    <div class="info-box info">
+                        <span class="info-box-icon">📋</span>
+                        <div class="info-box-content">
+                            <h4>What's Included</h4>
+                            <ul style="margin: 10px 0; padding-left: 20px;">
+                                <li><strong>Your metadata</strong> - site names, dates, coordinates, depth, etc. (from metadata CSV)</li>
+                                <li><strong>GoPro metadata</strong> - camera model, GPS, creation time, video quality metrics</li>
+                                <li><strong>MaxN results</strong> - species counts pivoted to columns (one per species)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="extractGoProMetadata" checked onchange="saveConfig()">
+                            Extract GoPro metadata from videos
+                        </label>
+                        <p class="form-hint">Extracts camera info, GPS, timestamps, and video quality metrics. Disable if videos aren't available.</p>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-lg" onclick="exportCombinedMetadata()">
+                            📥 Export Combined CSV
+                        </button>
+                        <button class="btn btn-secondary" onclick="previewGoProMetadata()">
+                            🔍 Preview GoPro Data
+                        </button>
+                    </div>
+
+                    <div id="goProPreview" style="display: none; margin-top: 20px;">
+                        <h4>GoPro Metadata Preview</h4>
+                        <div id="goProPreviewContent"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 6: Classifier Training -->
+            <div class="page" id="page-classifier">
+                <h2 class="page-title">Species Classifier Training</h2>
+                <p class="page-description">Train a custom species classifier using your validated data to improve future predictions.</p>
+
+                <div class="info-box info">
+                    <span class="info-box-icon">💡</span>
+                    <div class="info-box-content">
+                        <h4>When to Train</h4>
+                        <p>Train a classifier after completing validation to improve Smart Suggestions for future projects. Training can run concurrently with MaxN calculation.</p>
+                    </div>
+                </div>
+
+                <!-- Optional: Import Checkpoint -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Import Checkpoint (Optional)</h3>
+                    </div>
+
+                    <p>Continue training from another project's checkpoint. This enables distributed training across multiple machines.</p>
+
+                    <div class="form-group">
+                        <label class="form-label">Checkpoint Folder</label>
+                        <div class="form-input with-button">
+                            <input type="text" id="importCheckpointPath" placeholder="/path/to/sharktrack_checkpoint_ProjectName_Date">
+                            <button class="browse-btn" onclick="browsePath('importCheckpointPath')">Browse...</button>
+                        </div>
+                        <p class="form-hint">Select a checkpoint folder from another project to continue training from their model</p>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-secondary" onclick="validateCheckpoint()">
+                            🔍 Validate Checkpoint
+                        </button>
+                        <button class="btn btn-secondary" onclick="listAvailableCheckpoints()">
+                            📋 Find Checkpoints
+                        </button>
+                    </div>
+
+                    <div id="checkpointInfo" style="display: none; margin-top: 15px;">
+                        <div class="info-box success" id="checkpointValid" style="display: none;">
+                            <span class="info-box-icon">✅</span>
+                            <div class="info-box-content">
+                                <h4>Checkpoint Valid</h4>
+                                <div id="checkpointSummary"></div>
+                            </div>
+                        </div>
+                        <div class="info-box error" id="checkpointInvalid" style="display: none;">
+                            <span class="info-box-icon">❌</span>
+                            <div class="info-box-content">
+                                <h4>Checkpoint Invalid</h4>
+                                <p id="checkpointErrors"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="checkpointList" style="display: none; margin-top: 15px;"></div>
+                </div>
+
+                <!-- Step 1: Prepare Data -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Step 1: Prepare Training Data</h3>
+                    </div>
+
+                    <p>Extract training frames from videos for validated tracks. This gives much better training data than single thumbnails.</p>
+
+                    <div class="form-group">
+                        <label class="form-label">Frames per Track</label>
+                        <select class="form-input" id="framesPerTrack">
+                            <option value="10">10 (fast, smaller dataset)</option>
+                            <option value="20" selected>20 (recommended)</option>
+                            <option value="30">30 (higher quality, larger dataset)</option>
+                            <option value="50">50 (maximum quality)</option>
+                        </select>
+                        <p class="form-hint">More frames = better training but larger dataset and longer extraction</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="useVideoFrames" checked>
+                            Extract frames from videos (recommended)
+                        </label>
+                        <p class="form-hint">Uncheck to use thumbnails only (faster but lower quality)</p>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="prepareTrainingData()" id="btnPrepareData">
+                            📦 Prepare Training Data
+                        </button>
+                    </div>
+
+                    <div id="prepareDataStatus" class="console-output" style="display: none; margin-top: 15px;"></div>
+                </div>
+
+                <!-- Step 2: Review Classes -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Step 2: Review Class Distribution</h3>
+                    </div>
+
+                    <p>Classes found in your validation data:</p>
+
+                    <div id="classDistribution" style="margin: 15px 0;">
+                        <p style="color: var(--text-secondary);">Run "Prepare Training Data" first to see class distribution.</p>
+                    </div>
+
+                    <div class="info-box warning" id="classWarning" style="display: none;">
+                        <span class="info-box-icon">⚠️</span>
+                        <div class="info-box-content">
+                            <h4>Low Sample Classes</h4>
+                            <p id="classWarningText">Some classes have fewer than 50 images. Consider validating more examples or merging similar classes.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Train -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Step 3: Train Classifier</h3>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Training Epochs</label>
+                        <input type="number" class="form-input" id="trainingEpochs" value="25" min="5" max="100">
+                        <div class="help-text">More epochs = better accuracy but longer training. 25 is usually enough.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Batch Size</label>
+                        <select class="form-input" id="trainingBatchSize">
+                            <option value="8">8 (low memory)</option>
+                            <option value="16" selected>16 (recommended)</option>
+                            <option value="32">32 (high memory/GPU)</option>
+                        </select>
+                    </div>
+
+                    <!-- Parallelization Options -->
+                    <div class="card" style="margin: 15px 0; padding: 15px; background: var(--bg-tertiary);">
+                        <h4 style="margin: 0 0 10px 0;">Performance Options</h4>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <input type="checkbox" id="trainingUseGpu" onchange="updateGpuOptions()">
+                                Use GPU (if available)
+                            </label>
+                            <span id="gpuStatus" style="font-size: 12px; color: var(--text-secondary); margin-left: 10px;"></span>
+                        </div>
+
+                        <div id="gpuOptions" style="display: none; margin-left: 20px;">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <input type="checkbox" id="trainingUseMixedPrecision" checked>
+                                    Mixed Precision (faster, less memory)
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Data Loading Workers</label>
+                            <select class="form-input" id="trainingNumWorkers">
+                                <option value="0">0 (single-threaded, most compatible)</option>
+                                <option value="2">2 workers</option>
+                                <option value="4" selected>4 workers (recommended)</option>
+                                <option value="8">8 workers (high-core CPUs)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Gradient Accumulation (for larger effective batch)</label>
+                            <select class="form-input" id="trainingGradAccum">
+                                <option value="1" selected>1 (no accumulation)</option>
+                                <option value="2">2 (effective batch 2x)</option>
+                                <option value="4">4 (effective batch 4x)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="trainClassifier()" id="btnTrain">
+                            🎓 Train Classifier
+                        </button>
+                    </div>
+
+                    <div id="trainingStatus" style="margin-top: 15px;">
+                        <div class="progress-container" id="trainingProgress" style="display: none;">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="trainingProgressFill" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-text" id="trainingProgressText">Starting...</div>
+                        </div>
+                        <div class="console-output" id="trainingConsole" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div class="card" id="trainingResults" style="display: none;">
+                    <div class="card-header">
+                        <h3 class="card-title">✅ Training Complete</h3>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat">
+                            <div class="stat-value" id="resultAccuracy">--</div>
+                            <div class="stat-label">Validation Accuracy</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="resultClasses">--</div>
+                            <div class="stat-label">Classes</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="resultImages">--</div>
+                            <div class="stat-label">Training Images</div>
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 15px;">Your classifier is saved and ready for use with Smart Suggestions.</p>
+
+                    <!-- Export Checkpoint -->
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+                        <h4>Export Checkpoint for Sharing</h4>
+                        <p style="margin: 10px 0;">Create a checkpoint that others can use to continue training from your model.</p>
+
+                        <div class="form-group">
+                            <label class="form-label">Project Name</label>
+                            <input type="text" class="form-input" id="checkpointProjectName" placeholder="e.g., BRUV_Summer_2022">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Your Initials</label>
+                            <input type="text" class="form-input" id="checkpointUserId" placeholder="e.g., SD" maxlength="5">
+                        </div>
+
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="exportCheckpoint()">
+                                📤 Export Checkpoint
+                            </button>
+                        </div>
+
+                        <div id="checkpointExportStatus" style="display: none; margin-top: 15px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 7: System Info -->
+            <div class="page" id="page-system">
+                <h2 class="page-title">System Information</h2>
+                <p class="page-description">Check your system capabilities and SharkTrack installation.</p>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Hardware</h3>
+                    </div>
+
+                    <div class="system-info" id="systemInfo">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Configuration</h3>
+                    </div>
+
+                    <p style="margin-bottom: 15px;">Current configuration (stored locally in your browser):</p>
+
+                    <pre id="configDisplay" style="background: var(--bg); padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 12px;"></pre>
+
+                    <div class="btn-group">
+                        <button class="btn btn-secondary" onclick="exportConfig()">
+                            📤 Export Config
+                        </button>
+                        <button class="btn btn-secondary" onclick="importConfig()">
+                            📥 Import Config
+                        </button>
+                        <button class="btn btn-secondary" onclick="resetConfig()">
+                            🔄 Reset to Defaults
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal" onclick="if(event.target===this) hideModal('helpModal')">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">SharkTrack Help</h3>
+                <button class="modal-close" onclick="hideModal('helpModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h4>Quick Start</h4>
+                <ol style="margin: 15px 0; padding-left: 20px;">
+                    <li>Set up your project paths in <strong>Project Setup</strong></li>
+                    <li>Run <strong>Detection</strong> on your videos</li>
+                    <li>Generate thumbnails in <strong>Validation Prep</strong></li>
+                    <li>Review detections in <strong>Human Validation</strong></li>
+                    <li>Calculate metrics in <strong>MaxN Calculation</strong></li>
+                </ol>
+
+                <h4>Getting Help</h4>
+                <p style="margin: 10px 0;">
+                    <a href="https://github.com/filippovarini/sharktrack" target="_blank">GitHub Repository</a> - Report issues and view documentation
+                </p>
+
+                <h4>Keyboard Shortcuts</h4>
+                <ul style="margin: 15px 0; padding-left: 20px;">
+                    <li><kbd>1-5</kbd> - Jump to workflow step</li>
+                    <li><kbd>?</kbd> - Show this help</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal" onclick="if(event.target===this) hideModal('settingsModal')">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Settings</h3>
+                <button class="modal-close" onclick="hideModal('settingsModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Server Port</label>
+                    <input type="number" class="form-input" id="serverPort" value="5000">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" id="autoOpenBrowser" checked>
+                        Auto-open browser on start
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideModal('settingsModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Browser Modal -->
+    <div class="modal-overlay" id="fileBrowserModal" onclick="if(event.target===this) hideModal('fileBrowserModal')">
+        <div class="modal" style="width: 600px; max-width: 90vw;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="fileBrowserTitle">Select File</h3>
+                <button class="modal-close" onclick="hideModal('fileBrowserModal')">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div style="padding: 10px 15px; background: var(--bg); border-bottom: 1px solid var(--border);">
+                    <input type="text" id="currentBrowserPath" style="width: 100%; padding: 8px; font-family: monospace; font-size: 12px;" readonly>
+                </div>
+                <div id="fileBrowserList" style="height: 300px; overflow-y: auto; padding: 10px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideModal('fileBrowserModal')">Cancel</button>
+                <button class="btn btn-primary" id="fileBrowserSelectBtn" onclick="selectBrowserPath()">Select</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ============================================================================
+    // State Management
+    // ============================================================================
+
+    const CONFIG_KEY = 'sharktrack_config';
+    const STATE_KEY = 'sharktrack_state';
+
+    let config = loadConfig();
+    let state = loadState();
+
+    function loadConfig() {
+        const saved = localStorage.getItem(CONFIG_KEY);
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch (e) {
+                console.error('Failed to parse config:', e);
+            }
+        }
+        return getDefaultConfig();
+    }
+
+    function getDefaultConfig() {
+        return {
+            project: {
+                name: '',
+                userId: ''
+            },
+            paths: {
+                inputVideos: '',
+                outputResults: '',
+                videoCollections: {}
+            },
+            detection: {
+                confidenceThreshold: 0.25,
+                autoSkipDeployment: true,
+                resumeProcessing: false,
+                stereoPrefix: ''
+            },
+            validation: {
+                smartSuggestions: true
+            },
+            maxn: {
+                aggregateChapters: false
+            },
+            metadata: {
+                userMetadataFile: ''
+            }
+        };
+    }
+
+    function saveConfig() {
+        // Gather values from form
+        config.project.userId = document.getElementById('userName')?.value || '';
+        config.project.name = document.getElementById('projectName')?.value || '';
+        config.paths.inputVideos = document.getElementById('inputVideosPath')?.value || '';
+        config.paths.outputResults = document.getElementById('outputResultsPath')?.value || '';
+        config.detection.confidenceThreshold = parseFloat(document.getElementById('confThreshold')?.value || 0.25);
+        config.detection.autoSkipDeployment = document.getElementById('autoSkipDeployment')?.checked ?? true;
+        config.detection.resumeProcessing = document.getElementById('resumeProcessing')?.checked ?? false;
+        config.detection.stereoPrefix = document.getElementById('stereoPrefix')?.value || '';
+        config.maxn.aggregateChapters = document.getElementById('aggregateChapters')?.checked ?? false;
+
+        // Save metadata
+        if (!config.metadata) config.metadata = {};
+        config.metadata.userMetadataFile = document.getElementById('metadataFilePath')?.value || '';
+
+        // Save video collections
+        config.paths.videoCollections = {};
+        document.querySelectorAll('.video-collection-row').forEach(row => {
+            const name = row.querySelector('.collection-name')?.value;
+            const path = row.querySelector('.collection-path')?.value;
+            if (name && path) {
+                config.paths.videoCollections[name] = path;
+            }
+        });
+
+        localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+        updateConfigDisplay();
+        updateSetupStatus();
+    }
+
+    function loadState() {
+        const saved = localStorage.getItem(STATE_KEY);
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch (e) {
+                console.error('Failed to parse state:', e);
+            }
+        }
+        return {
+            detectionComplete: false,
+            thumbnailsGenerated: false,
+            validationStarted: false,
+            maxnCalculated: false
+        };
+    }
+
+    function saveState() {
+        localStorage.setItem(STATE_KEY, JSON.stringify(state));
+    }
+
+    // ============================================================================
+    // UI Functions
+    // ============================================================================
+
+    function showPage(pageId) {
+        // Hide all pages
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+        // Show selected page
+        document.getElementById('page-' + pageId)?.classList.add('active');
+
+        // Update nav
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelector(`[data-page="${pageId}"]`)?.classList.add('active');
+    }
+
+    function showModal(modalId) {
+        document.getElementById(modalId)?.classList.add('visible');
+    }
+
+    function hideModal(modalId) {
+        document.getElementById(modalId)?.classList.remove('visible');
+    }
+
+    function toggleCollapsible(header) {
+        header.parentElement.classList.toggle('open');
+    }
+
+    function populateFormFromConfig() {
+        document.getElementById('userName').value = config.project.userId || '';
+        document.getElementById('projectName').value = config.project.name || '';
+        document.getElementById('inputVideosPath').value = config.paths.inputVideos || '';
+        document.getElementById('outputResultsPath').value = config.paths.outputResults || '';
+        document.getElementById('confThreshold').value = config.detection.confidenceThreshold || 0.25;
+        document.getElementById('confValue').textContent = config.detection.confidenceThreshold || 0.25;
+        document.getElementById('autoSkipDeployment').checked = config.detection.autoSkipDeployment !== false;
+        document.getElementById('resumeProcessing').checked = config.detection.resumeProcessing === true;
+        document.getElementById('stereoPrefix').value = config.detection.stereoPrefix || '';
+        document.getElementById('aggregateChapters').checked = config.maxn.aggregateChapters === true;
+
+        // Populate metadata
+        document.getElementById('metadataFilePath').value = config.metadata?.userMetadataFile || '';
+        if (config.metadata?.userMetadataFile) {
+            loadMetadataPreview(config.metadata.userMetadataFile);
+        }
+
+        // Populate video collections
+        const container = document.getElementById('videoCollections');
+        container.innerHTML = '';
+        for (const [name, path] of Object.entries(config.paths.videoCollections || {})) {
+            addVideoCollectionRow(name, path);
+        }
+
+        updateConfigDisplay();
+        updateSetupStatus();
+    }
+
+    function addVideoCollection() {
+        addVideoCollectionRow('', '');
+    }
+
+    function addVideoCollectionRow(name = '', path = '') {
+        const container = document.getElementById('videoCollections');
+        const row = document.createElement('div');
+        row.className = 'video-collection-row';
+        row.style.cssText = 'display: flex; gap: 10px; margin-bottom: 10px; align-items: center;';
+        row.innerHTML = `
+            <input type="text" class="form-input collection-name" placeholder="Collection name"
+                   value="${name}" style="flex: 1;" onchange="saveConfig()">
+            <input type="text" class="form-input collection-path" placeholder="/path/to/videos"
+                   value="${path}" style="flex: 2;" onchange="saveConfig()">
+            <button class="btn btn-secondary" onclick="this.parentElement.remove(); saveConfig()">✕</button>
+        `;
+        container.appendChild(row);
+    }
+
+    function updateSetupStatus() {
+        const hasUser = config.project.userId?.length > 0;
+        const hasInput = config.paths.inputVideos?.length > 0;
+        const hasOutput = config.paths.outputResults?.length > 0;
+
+        const statusEl = document.getElementById('status-setup');
+        if (hasUser && hasInput && hasOutput) {
+            statusEl.textContent = 'Ready';
+            statusEl.className = 'nav-status ready';
+        } else {
+            statusEl.textContent = 'Needs Setup';
+            statusEl.className = 'nav-status needs-setup';
+        }
+    }
+
+    function updateConfigDisplay() {
+        const display = document.getElementById('configDisplay');
+        if (display) {
+            display.textContent = JSON.stringify(config, null, 2);
+        }
+    }
+
+    function saveAndContinue() {
+        saveConfig();
+        showPage('detection');
+    }
+
+    // ============================================================================
+    // API Interactions
+    // ============================================================================
+
+    async function fetchSystemInfo() {
+        try {
+            const response = await fetch('/api/system/info');
+            const data = await response.json();
+
+            const container = document.getElementById('systemInfo');
+            container.innerHTML = `
+                <div class="system-info-item">
+                    <div class="system-info-icon ${data.gpu_available ? 'gpu' : 'no-gpu'}">
+                        ${data.gpu_available ? '🎮' : '💻'}
+                    </div>
+                    <div>
+                        <strong>${data.gpu_available ? data.gpu_name : 'CPU Only'}</strong>
+                        <div style="font-size: 12px; color: var(--text-muted);">
+                            ${data.gpu_available ? `CUDA ${data.cuda_version}` : 'No GPU detected'}
+                        </div>
+                    </div>
+                </div>
+                <div class="system-info-item">
+                    <div class="system-info-icon">🧠</div>
+                    <div>
+                        <strong>${data.memory_total_gb} GB RAM</strong>
+                        <div style="font-size: 12px; color: var(--text-muted);">
+                            ${data.memory_available_gb} GB available
+                        </div>
+                    </div>
+                </div>
+                <div class="system-info-item">
+                    <div class="system-info-icon">⚡</div>
+                    <div>
+                        <strong>${data.cpu_cores} CPU Cores</strong>
+                        <div style="font-size: 12px; color: var(--text-muted);">Available for processing</div>
+                    </div>
+                </div>
+            `;
+        } catch (e) {
+            console.error('Failed to fetch system info:', e);
+            document.getElementById('systemInfo').innerHTML = `
+                <div class="info-box warning">
+                    <span class="info-box-icon">⚠️</span>
+                    <div class="info-box-content">
+                        <h4>Could not fetch system info</h4>
+                        <p>Make sure the SharkTrack server is running.</p>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    async function startDetection() {
+        const btn = document.getElementById('startDetectionBtn');
+        const stopBtn = document.getElementById('stopDetectionBtn');
+        const log = document.getElementById('detectionLog');
+
+        btn.disabled = true;
+        stopBtn.disabled = false;
+        log.style.display = 'block';
+        log.textContent = 'Starting detection...\n';
+
+        try {
+            const response = await fetch('/api/analyze/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    input_path: config.paths.inputVideos,
+                    output_path: config.paths.outputResults,
+                    conf: config.detection.confidenceThreshold,
+                    auto_skip_deployment: config.detection.autoSkipDeployment,
+                    resume: config.detection.resumeProcessing,
+                    stereo_prefix: config.detection.stereoPrefix || null
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                pollDetectionStatus(data.process_id);
+            } else {
+                log.textContent += `Error: ${data.error}\n`;
+                btn.disabled = false;
+                stopBtn.disabled = true;
+            }
+        } catch (e) {
+            log.textContent += `Error: ${e.message}\n`;
+            btn.disabled = false;
+            stopBtn.disabled = true;
+        }
+    }
+
+    async function pollDetectionStatus(processId) {
+        const log = document.getElementById('detectionLog');
+        const progress = document.getElementById('detectionProgress');
+        const btn = document.getElementById('startDetectionBtn');
+        const stopBtn = document.getElementById('stopDetectionBtn');
+
+        try {
+            const response = await fetch(`/api/analyze/status/${processId}`);
+            const data = await response.json();
+
+            if (data.output) {
+                log.textContent += data.output;
+                log.scrollTop = log.scrollHeight;
+            }
+
+            document.getElementById('videosProcessed').textContent = data.progress || 0;
+
+            if (data.status === 'running') {
+                setTimeout(() => pollDetectionStatus(processId), 1000);
+            } else if (data.status === 'completed') {
+                log.textContent += '\n✅ Detection completed!\n';
+                progress.style.width = '100%';
+                progress.classList.add('success');
+                btn.disabled = false;
+                stopBtn.disabled = true;
+                state.detectionComplete = true;
+                saveState();
+                document.getElementById('status-detection').textContent = 'Complete';
+                document.getElementById('status-detection').className = 'nav-status ready';
+            } else {
+                log.textContent += `\n❌ Detection ${data.status}\n`;
+                btn.disabled = false;
+                stopBtn.disabled = true;
+            }
+        } catch (e) {
+            log.textContent += `\nError polling status: ${e.message}\n`;
+            setTimeout(() => pollDetectionStatus(processId), 2000);
+        }
+    }
+
+    async function stopDetection() {
+        // Implementation for stopping detection
+        alert('Stop requested - this may take a moment...');
+    }
+
+    async function generateThumbnails() {
+        alert('Generating thumbnails... This will open in a new process.');
+        // In production, this would call the API
+    }
+
+    function openValidation() {
+        const validationPath = config.paths.outputResults + '/validation/validation.html';
+        window.open('file://' + validationPath, '_blank');
+    }
+
+    async function updateSmartPredictions() {
+        alert('Running smart predictions update...');
+        // In production, this would call the API
+    }
+
+    async function regenerateValidationHTML() {
+        alert('Regenerating validation HTML with predictions...');
+        // In production, this would call the API
+    }
+
+    async function calculateMaxN() {
+        alert('Calculating MaxN...');
+        // In production, this would call the API
+    }
+
+    function viewMaxNResults() {
+        const resultsPath = config.paths.outputResults + '/analysed/maxn.csv';
+        alert('MaxN results at: ' + resultsPath);
+    }
+
+    async function exportCombinedMetadata() {
+        const extractGoPro = document.getElementById('extractGoProMetadata')?.checked ?? true;
+
+        // Get video directory from config
+        const videoCollections = config.paths.videoCollections || {};
+        const videoDir = Object.values(videoCollections)[0];
+
+        if (!videoDir) {
+            alert('Please configure a video collection in Project Setup first.');
+            return;
+        }
+
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '⏳ Exporting...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/api/export-combined-metadata', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    videoDir: videoDir,
+                    userMetadataPath: config.metadata?.userMetadataFile || null,
+                    outputDir: config.paths.outputResults,
+                    extractGoPro: extractGoPro
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Export failed');
+            }
+
+            // Trigger download
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = response.headers.get('Content-Disposition')?.split('filename=')[1] || 'combined_metadata.csv';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+
+            alert('Combined metadata exported successfully!');
+
+        } catch (error) {
+            console.error('Export error:', error);
+            alert('Export failed: ' + error.message);
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    async function previewGoProMetadata() {
+        const videoCollections = config.paths.videoCollections || {};
+        const videoDir = Object.values(videoCollections)[0];
+
+        if (!videoDir) {
+            alert('Please configure a video collection in Project Setup first.');
+            return;
+        }
+
+        const previewDiv = document.getElementById('goProPreview');
+        const contentDiv = document.getElementById('goProPreviewContent');
+
+        contentDiv.innerHTML = '<p>Loading preview from first 5 videos...</p>';
+        previewDiv.style.display = 'block';
+
+        try {
+            const response = await fetch('/api/extract-gopro-metadata', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    videoDir: videoDir,
+                    limit: 5
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Preview failed');
+            }
+
+            const data = await response.json();
+
+            // Build preview table
+            let html = `<p>Found ${data.total_videos} videos. Showing preview from ${data.preview_count}:</p>`;
+
+            if (data.preview && data.preview.length > 0) {
+                html += '<div style="overflow-x: auto;"><table class="preview-table" style="font-size: 12px; width: 100%; border-collapse: collapse;">';
+
+                // Header
+                html += '<tr>';
+                const cols = ['video_filename', 'gopro_duration_sec', 'gopro_resolution', 'gopro_camera_model', 'gopro_creation_time', 'gopro_latitude', 'gopro_longitude'];
+                for (const col of cols) {
+                    if (data.columns.includes(col)) {
+                        html += `<th style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">${col.replace('gopro_', '')}</th>`;
+                    }
+                }
+                html += '</tr>';
+
+                // Rows
+                for (const row of data.preview) {
+                    html += '<tr>';
+                    for (const col of cols) {
+                        if (data.columns.includes(col)) {
+                            let val = row[col];
+                            if (val === null || val === undefined) val = '-';
+                            if (typeof val === 'number') val = val.toFixed ? val.toFixed(2) : val;
+                            html += `<td style="padding: 8px; border: 1px solid #ddd;">${val}</td>`;
+                        }
+                    }
+                    html += '</tr>';
+                }
+
+                html += '</table></div>';
+
+                // Show all available columns
+                html += `<p style="margin-top: 10px; font-size: 11px; color: #666;"><strong>All columns available:</strong> ${data.columns.join(', ')}</p>`;
+            } else {
+                html += '<p>No metadata could be extracted.</p>';
+            }
+
+            contentDiv.innerHTML = html;
+
+        } catch (error) {
+            console.error('Preview error:', error);
+            contentDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+        }
+    }
+
+    async function prepareTrainingData() {
+        const btn = document.getElementById('btnPrepareData');
+        const statusDiv = document.getElementById('prepareDataStatus');
+        const classDiv = document.getElementById('classDistribution');
+        const useVideoFrames = document.getElementById('useVideoFrames')?.checked ?? true;
+        const framesPerTrack = parseInt(document.getElementById('framesPerTrack')?.value) || 20;
+
+        btn.disabled = true;
+        btn.textContent = '⏳ Preparing...';
+        statusDiv.style.display = 'block';
+
+        try {
+            let result;
+
+            if (useVideoFrames) {
+                // Extract frames from videos (higher quality)
+                statusDiv.innerHTML = '<div class="line">Extracting training frames from videos...</div>';
+                statusDiv.innerHTML += '<div class="line">This extracts multiple frames per track for better training quality.</div>';
+                statusDiv.innerHTML += '<div class="line">(This may take several minutes for large datasets)</div>';
+
+                // Get video directory from config
+                const videoCollections = config.paths.videoCollections || {};
+                const videoDir = Object.values(videoCollections)[0];
+
+                if (!videoDir) {
+                    throw new Error('No video directory configured. Please set up video collections in Project Setup.');
+                }
+
+                // Find validation CSV
+                const validationDir = config.paths.outputResults + '/validation';
+
+                const response = await fetch('/api/extract-training-frames', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        validationCsv: validationDir + '/validation_results.csv',
+                        outputCsv: config.paths.outputResults + '/internal_results/output.csv',
+                        videoDir: videoDir,
+                        outputDir: config.paths.outputResults + '/classifier_training_data',
+                        framesPerTrack: framesPerTrack
+                    })
+                });
+
+                result = await response.json();
+
+                if (result.error) {
+                    // Fallback to thumbnail-based approach
+                    statusDiv.innerHTML += '<div class="line warning">Video extraction failed, falling back to thumbnails...</div>';
+                    result = await prepareThumbnailBased();
+                } else {
+                    // Format result for display
+                    result.success = true;
+                    result.class_counts = result.species || {};
+                    result.total_images = result.total_frames || 0;
+                    result.output_dir = config.paths.outputResults + '/classifier_training_data';
+
+                    // Convert species format to class_counts format
+                    if (result.species) {
+                        result.class_counts = {};
+                        for (const [species, stats] of Object.entries(result.species)) {
+                            result.class_counts[species] = stats.frames || 0;
+                        }
+                    }
+                }
+            } else {
+                // Use thumbnail-based approach (faster but lower quality)
+                statusDiv.innerHTML = '<div class="line">Preparing training data from thumbnails...</div>';
+                result = await prepareThumbnailBased();
+            }
+
+            if (result.success) {
+                statusDiv.innerHTML = `<div class="line success">✅ Training data prepared successfully!</div>`;
+                if (useVideoFrames && result.total_frames) {
+                    statusDiv.innerHTML += `<div class="line">Extracted ${result.total_frames} frames from ${result.total_tracks || '?'} tracks</div>`;
+                }
+
+                // Display class distribution
+                if (result.class_counts) {
+                    let html = '<table style="width: 100%; border-collapse: collapse;">';
+                    html += '<tr style="border-bottom: 1px solid var(--border);"><th style="text-align: left; padding: 8px;">Class</th><th style="text-align: right; padding: 8px;">Images</th></tr>';
+
+                    const classes = Object.entries(result.class_counts).sort((a, b) => b[1] - a[1]);
+                    let lowSampleClasses = [];
+
+                    for (const [className, count] of classes) {
+                        const rowStyle = count < 50 ? 'color: var(--warning);' : '';
+                        html += `<tr style="${rowStyle}"><td style="padding: 8px;">${className}</td><td style="text-align: right; padding: 8px;">${count}</td></tr>`;
+                        if (count < 50) lowSampleClasses.push(className);
+                    }
+                    html += '</table>';
+                    html += `<p style="margin-top: 10px; color: var(--text-secondary);">Total: ${result.total_images || Object.values(result.class_counts).reduce((a,b)=>a+b,0)} images across ${classes.length} classes</p>`;
+                    classDiv.innerHTML = html;
+
+                    // Show warning if low sample classes
+                    if (lowSampleClasses.length > 0) {
+                        document.getElementById('classWarning').style.display = 'flex';
+                        document.getElementById('classWarningText').textContent =
+                            `Classes with <50 images: ${lowSampleClasses.join(', ')}. Training may be less accurate for these.`;
+                    }
+
+                    // Store for training
+                    window.trainingClasses = classes.map(c => c[0]);
+                    window.trainingDataDir = result.output_dir;
+
+                    // Show sharing info
+                    statusDiv.innerHTML += `
+                        <div class="info-box tip" style="margin-top: 15px;">
+                            <span class="info-box-icon">📤</span>
+                            <div class="info-box-content">
+                                <h4>Sharing Training Data</h4>
+                                <p>Training data saved to: <code style="font-size: 11px;">${result.output_dir}</code></p>
+                                <p style="margin-top: 8px;">To combine with a colleague's data:</p>
+                                <ol style="margin: 8px 0 0 20px; font-size: 13px;">
+                                    <li>Share this folder (or have them share theirs)</li>
+                                    <li>Copy their species subfolders into yours (or vice versa)</li>
+                                    <li>Train a single classifier on the combined data</li>
+                                </ol>
+                                <p style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">
+                                    This folder contains cropped frames (~224x224 JPEGs) organized by species - much smaller than raw videos.
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Check if we should merge with replay samples from checkpoint
+                const checkpointPath = document.getElementById('importCheckpointPath')?.value;
+                if (checkpointPath) {
+                    statusDiv.innerHTML += '<div class="line">Merging with replay samples from checkpoint...</div>';
+                    try {
+                        const mergeResponse = await fetch('/api/training/prepare-with-replay', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                trainingDataDir: window.trainingDataDir,
+                                checkpointPath: checkpointPath
+                            })
+                        });
+                        const mergeResult = await mergeResponse.json();
+                        if (mergeResult.success) {
+                            window.trainingDataDir = mergeResult.merged_training_dir;
+                            statusDiv.innerHTML += '<div class="line success">✅ Replay samples merged</div>';
+                        }
+                    } catch (e) {
+                        statusDiv.innerHTML += `<div class="line warning">Could not merge replay samples: ${e.message}</div>`;
+                    }
+                }
+            } else {
+                statusDiv.innerHTML = `<div class="line error">❌ Error: ${result.error}</div>`;
+            }
+        } catch (err) {
+            statusDiv.innerHTML = `<div class="line error">❌ Error: ${err.message}</div>`;
+        }
+
+        btn.disabled = false;
+        btn.textContent = '📦 Prepare Training Data';
+    }
+
+    async function prepareThumbnailBased() {
+        // Original thumbnail-based preparation
+        const response = await fetch('/api/classifier/prepare', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                validation_dir: config.paths.outputResults + '/validation',
+                output_dir: config.paths.outputResults + '/classifier_training_data'
+            })
+        });
+        return await response.json();
+    }
+
+    // GPU options toggle
+    function updateGpuOptions() {
+        const useGpu = document.getElementById('trainingUseGpu').checked;
+        document.getElementById('gpuOptions').style.display = useGpu ? 'block' : 'none';
+    }
+
+    // Check GPU availability on page load
+    async function checkGpuAvailability() {
+        try {
+            const response = await fetch('/api/system/info');
+            const info = await response.json();
+            const gpuStatus = document.getElementById('gpuStatus');
+            const gpuCheckbox = document.getElementById('trainingUseGpu');
+
+            if (info.gpu_available) {
+                gpuStatus.innerHTML = `✅ ${info.gpu_name}`;
+                gpuStatus.style.color = 'var(--success)';
+                gpuCheckbox.checked = true;
+                updateGpuOptions();
+            } else {
+                gpuStatus.innerHTML = '❌ No GPU detected (CPU training only)';
+                gpuStatus.style.color = 'var(--text-secondary)';
+                gpuCheckbox.disabled = true;
+            }
+        } catch (e) {
+            console.error('Could not check GPU:', e);
+        }
+    }
+
+    async function trainClassifier() {
+        if (!window.trainingClasses || window.trainingClasses.length === 0) {
+            alert('Please prepare training data first (Step 1).');
+            return;
+        }
+
+        const btn = document.getElementById('btnTrain');
+        const progressDiv = document.getElementById('trainingProgress');
+        const consoleDiv = document.getElementById('trainingConsole');
+        const epochs = document.getElementById('trainingEpochs').value;
+        const batchSize = document.getElementById('trainingBatchSize').value;
+
+        // Get parallelization options
+        const useGpu = document.getElementById('trainingUseGpu').checked;
+        const useAmp = document.getElementById('trainingUseMixedPrecision').checked;
+        const numWorkers = parseInt(document.getElementById('trainingNumWorkers').value);
+        const gradAccum = parseInt(document.getElementById('trainingGradAccum').value);
+
+        // Get checkpoint path if continuing from checkpoint
+        const checkpointPath = document.getElementById('importCheckpointPath')?.value || null;
+
+        btn.disabled = true;
+        btn.textContent = '⏳ Training...';
+        progressDiv.style.display = 'block';
+        consoleDiv.style.display = 'block';
+
+        let statusMsg = 'Starting classifier training';
+        if (useGpu) statusMsg += ' on GPU';
+        if (useAmp && useGpu) statusMsg += ' with mixed precision';
+        statusMsg += '...';
+        consoleDiv.innerHTML = `<div class="line">${statusMsg}</div>`;
+
+        try {
+            const response = await fetch('/api/classifier/train', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    training_images: window.trainingDataDir,
+                    class_mapping: window.trainingClasses.join(','),
+                    output_model: 'models/species_classifiers/project_classifier',
+                    epochs: parseInt(epochs),
+                    batch_size: parseInt(batchSize),
+                    use_gpu: useGpu,
+                    use_amp: useAmp,
+                    num_workers: numWorkers,
+                    gradient_accumulation: gradAccum,
+                    checkpoint_path: checkpointPath
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success && result.process_id) {
+                // Show config summary
+                consoleDiv.innerHTML += `<div class="line">Config: ${result.config.use_gpu ? 'GPU' : 'CPU'}, AMP: ${result.config.use_amp}, Workers: ${result.config.num_workers}</div>`;
+                // Poll for progress
+                pollTrainingProgress(result.process_id);
+            } else {
+                consoleDiv.innerHTML += `<div class="line error">❌ Error starting training: ${result.error || 'Unknown error'}</div>`;
+                btn.disabled = false;
+                btn.textContent = '🎓 Train Classifier';
+            }
+        } catch (err) {
+            consoleDiv.innerHTML += `<div class="line error">❌ Error: ${err.message}</div>`;
+            btn.disabled = false;
+            btn.textContent = '🎓 Train Classifier';
+        }
+    }
+
+    async function pollTrainingProgress(processId) {
+        const progressFill = document.getElementById('trainingProgressFill');
+        const progressText = document.getElementById('trainingProgressText');
+        const consoleDiv = document.getElementById('trainingConsole');
+
+        const poll = async () => {
+            try {
+                const response = await fetch(`/api/process/${processId}/status`);
+                const status = await response.json();
+
+                if (status.output) {
+                    // Parse output for epoch progress
+                    const epochMatch = status.output.match(/Epoch (\d+)\/(\d+)/g);
+                    if (epochMatch) {
+                        const lastEpoch = epochMatch[epochMatch.length - 1];
+                        const [current, total] = lastEpoch.match(/\d+/g).map(Number);
+                        const percent = (current / total * 100).toFixed(0);
+                        progressFill.style.width = percent + '%';
+                        progressText.textContent = `Epoch ${current}/${total}`;
+                    }
+
+                    // Show recent output
+                    const lines = status.output.split('\n').slice(-10);
+                    consoleDiv.innerHTML = lines.map(l => `<div class="line">${l}</div>`).join('');
+                }
+
+                if (status.status === 'running') {
+                    setTimeout(poll, 2000);
+                } else if (status.status === 'completed') {
+                    progressFill.style.width = '100%';
+                    progressText.textContent = 'Complete!';
+                    document.getElementById('btnTrain').disabled = false;
+                    document.getElementById('btnTrain').textContent = '🎓 Train Classifier';
+
+                    // Show results
+                    document.getElementById('trainingResults').style.display = 'block';
+                    if (status.metadata) {
+                        document.getElementById('resultAccuracy').textContent =
+                            (status.metadata.best_val_accuracy * 100).toFixed(1) + '%';
+                        document.getElementById('resultClasses').textContent = status.metadata.num_classes;
+                        document.getElementById('resultImages').textContent = status.metadata.num_training_images;
+                    }
+                } else if (status.status === 'failed') {
+                    consoleDiv.innerHTML += `<div class="line error">❌ Training failed</div>`;
+                    document.getElementById('btnTrain').disabled = false;
+                    document.getElementById('btnTrain').textContent = '🎓 Train Classifier';
+                }
+            } catch (err) {
+                console.error('Poll error:', err);
+                setTimeout(poll, 5000);
+            }
+        };
+
+        poll();
+    }
+
+    // ============================================================================
+    // Checkpoint Management
+    // ============================================================================
+
+    async function validateCheckpoint() {
+        const checkpointPath = document.getElementById('importCheckpointPath').value;
+        if (!checkpointPath) {
+            alert('Please enter a checkpoint path first');
+            return;
+        }
+
+        const infoDiv = document.getElementById('checkpointInfo');
+        const validDiv = document.getElementById('checkpointValid');
+        const invalidDiv = document.getElementById('checkpointInvalid');
+        const summaryDiv = document.getElementById('checkpointSummary');
+        const errorsDiv = document.getElementById('checkpointErrors');
+
+        infoDiv.style.display = 'block';
+        validDiv.style.display = 'none';
+        invalidDiv.style.display = 'none';
+
+        try {
+            const response = await fetch('/api/checkpoint/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ path: checkpointPath })
+            });
+
+            const result = await response.json();
+
+            if (result.valid) {
+                validDiv.style.display = 'block';
+                summaryDiv.innerHTML = `
+                    <p><strong>Project:</strong> ${result.summary.project_name || 'Unknown'}</p>
+                    <p><strong>Species:</strong> ${result.summary.species_count || 0}</p>
+                    <p><strong>Tracks:</strong> ${result.summary.total_tracks || 0}</p>
+                    <p><strong>Generation:</strong> ${result.summary.generation || 1}</p>
+                    ${result.warnings ? `<p style="color: var(--warning);">Warnings: ${result.warnings.join(', ')}</p>` : ''}
+                `;
+            } else {
+                invalidDiv.style.display = 'block';
+                errorsDiv.textContent = result.errors ? result.errors.join(', ') : 'Unknown error';
+            }
+        } catch (error) {
+            invalidDiv.style.display = 'block';
+            errorsDiv.textContent = error.message;
+        }
+    }
+
+    async function listAvailableCheckpoints() {
+        const listDiv = document.getElementById('checkpointList');
+        listDiv.style.display = 'block';
+        listDiv.innerHTML = '<p>Searching for checkpoints...</p>';
+
+        try {
+            const response = await fetch('/api/checkpoint/list', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ path: config.paths.outputResults || '' })
+            });
+
+            const result = await response.json();
+
+            if (result.checkpoints && result.checkpoints.length > 0) {
+                let html = '<h4>Available Checkpoints:</h4><ul style="list-style: none; padding: 0;">';
+                for (const cp of result.checkpoints) {
+                    html += `
+                        <li style="padding: 10px; margin: 5px 0; background: var(--bg); border-radius: 8px; cursor: pointer;"
+                            onclick="document.getElementById('importCheckpointPath').value='${cp.path}'; validateCheckpoint();">
+                            <strong>${cp.project_name || cp.name}</strong>
+                            <br><small>${cp.species_count || '?'} species, ${cp.total_tracks || '?'} tracks</small>
+                            <br><small style="color: var(--text-secondary);">${cp.path}</small>
+                        </li>
+                    `;
+                }
+                html += '</ul>';
+                listDiv.innerHTML = html;
+            } else {
+                listDiv.innerHTML = '<p>No checkpoints found in output directory. Check another location or import manually.</p>';
+            }
+        } catch (error) {
+            listDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+        }
+    }
+
+    async function exportCheckpoint() {
+        const projectName = document.getElementById('checkpointProjectName').value || 'SharkTrack_Project';
+        const userId = document.getElementById('checkpointUserId').value || 'USER';
+        const statusDiv = document.getElementById('checkpointExportStatus');
+
+        statusDiv.style.display = 'block';
+        statusDiv.innerHTML = '<p>Creating checkpoint...</p>';
+
+        try {
+            // Get the trained model path and training data directory
+            const trainingDataDir = config.paths.outputResults + '/classifier_training_data';
+            const modelPath = config.paths.outputResults + '/models/species_classifier.pt';
+            const parentCheckpoint = document.getElementById('importCheckpointPath').value || null;
+
+            const response = await fetch('/api/checkpoint/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    trainingDataDir: trainingDataDir,
+                    modelPath: modelPath,
+                    projectName: projectName,
+                    userId: userId,
+                    outputDir: config.paths.outputResults,
+                    parentCheckpoint: parentCheckpoint,
+                    epochsTrained: parseInt(document.getElementById('trainingEpochs').value) || 25,
+                    finalAccuracy: parseFloat(document.getElementById('resultAccuracy').textContent) / 100 || 0
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                statusDiv.innerHTML = `
+                    <div class="info-box success">
+                        <span class="info-box-icon">✅</span>
+                        <div class="info-box-content">
+                            <h4>Checkpoint Created!</h4>
+                            <p>Saved to: ${result.checkpoint_path}</p>
+                            <p>Share this folder with colleagues to let them continue training from your model.</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                statusDiv.innerHTML = `<p style="color: red;">Error: ${result.error}</p>`;
+            }
+        } catch (error) {
+            statusDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+        }
+    }
+
+    // ============================================================================
+    // Config Import/Export
+    // ============================================================================
+
+    function exportConfig() {
+        const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'sharktrack_config.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function importConfig() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                try {
+                    const text = await file.text();
+                    config = JSON.parse(text);
+                    saveConfig();
+                    populateFormFromConfig();
+                    alert('Configuration imported successfully!');
+                } catch (err) {
+                    alert('Failed to import config: ' + err.message);
+                }
+            }
+        };
+        input.click();
+    }
+
+    function resetConfig() {
+        if (confirm('Reset all settings to defaults? This cannot be undone.')) {
+            config = getDefaultConfig();
+            localStorage.removeItem(CONFIG_KEY);
+            populateFormFromConfig();
+            alert('Configuration reset to defaults.');
+        }
+    }
+
+    function saveSettings() {
+        // Save settings from modal
+        hideModal('settingsModal');
+    }
+
+    function validatePath(input, pathType) {
+        // Visual feedback - in production would verify with server
+        if (input.value) {
+            input.style.borderColor = 'var(--success)';
+        }
+    }
+
+    async function checkIncrementalStatus() {
+        const inputPath = document.getElementById('inputVideosPath').value;
+        const outputPath = document.getElementById('outputResultsPath').value;
+        const statusBox = document.getElementById('incrementalStatusBox');
+        const statusContent = document.getElementById('incrementalStatusContent');
+
+        // Only check if both paths are set
+        if (!inputPath || !outputPath) {
+            statusBox.style.display = 'none';
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/analyze/incremental-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    input_path: inputPath,
+                    output_path: outputPath
+                })
+            });
+            const status = await response.json();
+
+            if (status.error) {
+                statusBox.style.display = 'none';
+                return;
+            }
+
+            statusBox.style.display = 'block';
+
+            if (!status.has_existing_results) {
+                statusBox.className = 'info-box info';
+                statusContent.innerHTML = `
+                    <p><strong>${status.total_videos}</strong> videos found, ready for analysis.</p>
+                    <p style="font-size: 12px; color: var(--text-muted);">No previous results - all videos will be processed.</p>
+                `;
+            } else if (status.new_videos === 0) {
+                statusBox.className = 'info-box success';
+                statusContent.innerHTML = `
+                    <p>✅ All <strong>${status.total_videos}</strong> videos already processed!</p>
+                    <p><strong>${status.tracks_found_so_far}</strong> tracks found so far.</p>
+                    <p style="font-size: 12px; color: var(--text-muted);">Add new videos to the input folder to process more.</p>
+                `;
+            } else {
+                statusBox.className = 'info-box warning';
+                statusContent.innerHTML = `
+                    <p><strong>${status.new_videos}</strong> new videos to process (of ${status.total_videos} total)</p>
+                    <p><strong>${status.already_processed}</strong> videos already processed (${status.tracks_found_so_far} tracks found)</p>
+                    <p style="font-size: 12px; color: var(--text-muted);">
+                        Incremental mode: Only new videos will be analyzed when you run detection.
+                    </p>
+                `;
+            }
+        } catch (e) {
+            console.error('Could not check incremental status:', e);
+            statusBox.style.display = 'none';
+        }
+    }
+
+    // File browser state
+    let fileBrowserTargetInput = null;
+    let fileBrowserMode = 'directory';  // 'directory' or 'file'
+    let fileBrowserExtension = null;
+    let selectedBrowserItem = null;
+
+    function browsePath(inputId) {
+        fileBrowserTargetInput = inputId;
+        fileBrowserMode = 'directory';
+        fileBrowserExtension = null;
+        document.getElementById('fileBrowserTitle').textContent = 'Select Directory';
+        document.getElementById('fileBrowserSelectBtn').textContent = 'Select Directory';
+
+        // Start from current value or home
+        const currentValue = document.getElementById(inputId)?.value || '';
+        openFileBrowser(currentValue);
+    }
+
+    function browseFile(inputId, extension) {
+        fileBrowserTargetInput = inputId;
+        fileBrowserMode = 'file';
+        fileBrowserExtension = extension || null;
+        document.getElementById('fileBrowserTitle').textContent = 'Select File';
+        document.getElementById('fileBrowserSelectBtn').textContent = 'Select File';
+
+        // Start from current value's directory or home
+        let currentValue = document.getElementById(inputId)?.value || '';
+        if (currentValue) {
+            // Get parent directory
+            const lastSlash = Math.max(currentValue.lastIndexOf('/'), currentValue.lastIndexOf('\\'));
+            if (lastSlash > 0) {
+                currentValue = currentValue.substring(0, lastSlash);
+            }
+        }
+        openFileBrowser(currentValue);
+    }
+
+    async function openFileBrowser(startPath) {
+        selectedBrowserItem = null;
+        showModal('fileBrowserModal');
+        await loadBrowserDirectory(startPath || '');
+    }
+
+    async function loadBrowserDirectory(path) {
+        const listEl = document.getElementById('fileBrowserList');
+        listEl.innerHTML = '<div style="text-align: center; padding: 20px;">Loading...</div>';
+
+        try {
+            const response = await fetch(`/api/files/browse?path=${encodeURIComponent(path)}`);
+            const data = await response.json();
+
+            if (data.error) {
+                listEl.innerHTML = `<div style="color: var(--danger); padding: 20px;">${data.error}</div>`;
+                return;
+            }
+
+            document.getElementById('currentBrowserPath').value = data.current_path;
+            selectedBrowserItem = null;
+
+            let html = '';
+            data.items.forEach((item, index) => {
+                const isDir = item.type === 'directory';
+                const icon = isDir ? '📁' : '📄';
+                const canSelect = fileBrowserMode === 'directory' ? isDir :
+                    (isDir || !fileBrowserExtension || item.name.toLowerCase().endsWith(fileBrowserExtension.toLowerCase()));
+
+                const style = canSelect ? '' : 'opacity: 0.4;';
+                const clickable = isDir || (fileBrowserMode === 'file' && canSelect);
+                // Escape HTML entities in name for display
+                const safeName = item.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+                html += `<div class="browser-item" data-index="${index}"
+                    style="padding: 8px 12px; cursor: ${clickable ? 'pointer' : 'default'}; border-radius: 4px; display: flex; align-items: center; gap: 8px; ${style}">
+                    <span>${icon}</span>
+                    <span style="flex: 1;">${safeName}</span>
+                    ${item.size ? `<span style="color: var(--text-muted); font-size: 12px;">${formatBytes(item.size)}</span>` : ''}
+                </div>`;
+            });
+
+            listEl.innerHTML = html || '<div style="padding: 20px; color: var(--text-muted);">Empty directory</div>';
+
+            // Store items data and attach click handlers
+            listEl._items = data.items;
+            listEl.querySelectorAll('.browser-item').forEach(el => {
+                const index = parseInt(el.dataset.index);
+                const item = data.items[index];
+                const isDir = item.type === 'directory';
+
+                el.onclick = () => handleBrowserItemClick(el, item.path, isDir);
+                el.ondblclick = () => handleBrowserItemDblClick(item.path, isDir);
+            });
+
+        } catch (error) {
+            listEl.innerHTML = `<div style="color: var(--danger); padding: 20px;">Error: ${error.message}</div>`;
+        }
+    }
+
+    function handleBrowserItemClick(el, path, isDir) {
+        // Clear previous selection
+        document.querySelectorAll('.browser-item').forEach(item => {
+            item.style.background = '';
+        });
+
+        if (fileBrowserMode === 'directory' && isDir) {
+            el.style.background = 'var(--accent-light, #e3f2fd)';
+            selectedBrowserItem = path;
+        } else if (fileBrowserMode === 'file' && !isDir) {
+            el.style.background = 'var(--accent-light, #e3f2fd)';
+            selectedBrowserItem = path;
+        }
+    }
+
+    function handleBrowserItemDblClick(path, isDir) {
+        if (isDir) {
+            loadBrowserDirectory(path);
+        } else if (fileBrowserMode === 'file') {
+            selectedBrowserItem = path;
+            selectBrowserPath();
+        }
+    }
+
+    function selectBrowserPath() {
+        let pathToUse = selectedBrowserItem;
+
+        // For directory mode, use current path if nothing selected
+        if (fileBrowserMode === 'directory' && !pathToUse) {
+            pathToUse = document.getElementById('currentBrowserPath').value;
+        }
+
+        if (!pathToUse) {
+            alert('Please select a ' + (fileBrowserMode === 'directory' ? 'directory' : 'file'));
+            return;
+        }
+
+        if (fileBrowserTargetInput) {
+            document.getElementById(fileBrowserTargetInput).value = pathToUse;
+            // Trigger change event
+            document.getElementById(fileBrowserTargetInput).dispatchEvent(new Event('change'));
+        }
+
+        hideModal('fileBrowserModal');
+    }
+
+    function formatBytes(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+    }
+
+    function validateMetadataFile(input) {
+        if (!input.value) {
+            input.style.borderColor = '';
+            document.getElementById('metadataPreview').style.display = 'none';
+            return;
+        }
+        loadMetadataPreview(input.value);
+    }
+
+    async function downloadProjectTemplate() {
+        // Get video directory from config
+        const videoDir = document.getElementById('inputVideosPath').value;
+
+        if (!videoDir) {
+            alert('Please configure the Input Videos Folder first, then generate a template.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/metadata-template-from-videos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ videoDir: videoDir })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                alert(error.error || 'Failed to generate template');
+                return;
+            }
+
+            // Download the file
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'metadata_template_for_project.csv';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+
+        } catch (error) {
+            alert('Error generating template: ' + error.message);
+        }
+    }
+
+    async function loadMetadataPreview(filePath) {
+        try {
+            const response = await fetch('/api/validate-metadata', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ path: filePath })
+            });
+            const result = await response.json();
+
+            const input = document.getElementById('metadataFilePath');
+            const preview = document.getElementById('metadataPreview');
+            const table = document.getElementById('metadataPreviewTable');
+
+            if (result.valid) {
+                input.style.borderColor = 'var(--success)';
+                preview.style.display = 'block';
+
+                // Build preview table
+                let html = '<table style="width: 100%; border-collapse: collapse;">';
+                html += '<tr style="background: var(--bg);">';
+                result.columns.forEach(col => {
+                    html += `<th style="padding: 6px 10px; border: 1px solid var(--border); text-align: left;">${col}</th>`;
+                });
+                html += '</tr>';
+
+                result.preview.forEach(row => {
+                    html += '<tr>';
+                    result.columns.forEach(col => {
+                        html += `<td style="padding: 6px 10px; border: 1px solid var(--border);">${row[col] ?? ''}</td>`;
+                    });
+                    html += '</tr>';
+                });
+                html += '</table>';
+                html += `<p style="margin-top: 8px; color: var(--text-muted); font-size: 12px;">
+                    ${result.row_count} videos in metadata file</p>`;
+
+                if (result.warnings && result.warnings.length > 0) {
+                    html += '<div style="margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 4px;">';
+                    html += '<strong>Warnings:</strong><ul style="margin: 5px 0 0 20px;">';
+                    result.warnings.forEach(w => html += `<li>${w}</li>`);
+                    html += '</ul></div>';
+                }
+
+                table.innerHTML = html;
+            } else {
+                input.style.borderColor = 'var(--danger)';
+                preview.style.display = 'block';
+                table.innerHTML = `<div style="color: var(--danger); padding: 10px;">
+                    <strong>Error:</strong> ${result.error}</div>`;
+            }
+        } catch (error) {
+            console.error('Failed to validate metadata:', error);
+            document.getElementById('metadataFilePath').style.borderColor = 'var(--warning)';
+        }
+    }
+
+    // ============================================================================
+    // Keyboard Shortcuts
+    // ============================================================================
+
+    document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        switch (e.key) {
+            case '1': showPage('setup'); break;
+            case '2': showPage('detection'); break;
+            case '3': showPage('validation-prep'); break;
+            case '4': showPage('validation'); break;
+            case '5': showPage('maxn'); break;
+            case '?': showModal('helpModal'); break;
+        }
+    });
+
+    // ============================================================================
+    // Initialize
+    // ============================================================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+        populateFormFromConfig();
+        fetchSystemInfo();
+        checkGpuAvailability();
+        // Check incremental status after a short delay to allow form to populate
+        setTimeout(checkIncrementalStatus, 500);
+    });
+    </script>
+</body>
+</html>

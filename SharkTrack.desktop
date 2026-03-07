@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=SharkTrack Web GUI
+Comment=Marine Video Analysis with AI
+Exec=/home/simon/Installers/sharktrack-1.5/launch_gui.sh
+Icon=/home/simon/Installers/sharktrack-1.5/static/shark_icon.png
+Terminal=true
+Categories=Science;Education;

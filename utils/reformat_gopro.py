@@ -16,6 +16,9 @@ def main(videos_root, output_root, stereo_prefix):
     os.makedirs(output_root, exist_ok=True)
 
     for (root, _, files) in os.walk(videos_root):
+        # Skip processing the output directory to avoid infinite recursion
+        if root.startswith(output_root):
+            continue
         output_dir = root.replace(videos_root, output_root)
         for file in files:
             stereo_filter = stereo_prefix is None or file.startswith(stereo_prefix)
@@ -26,17 +29,7 @@ def main(videos_root, output_root, stereo_prefix):
                 if os.path.exists(output_path):
                     print(f"Skipping {input_path} as it already exists")
                     continue
-                if " " in input_path:
-                    try:
-                        print(f"WARNING: filename {input_path} has incompatible whitespace. Attempting to rename it...")
-                        new_input_path = input_path.replace(" ", "_")
-                        os.rename(input_path, new_input_path)
-                        input_path = new_input_path
-                        output_path = output_path.replace(" ", "_")
-                    except:
-                        print(f"ERROR: the filename cannot contain whitespaces. Please remove whitespaces from {input_path} and resume the command")
-                        return
-                os.system(f"ffmpeg -i {input_path} -y -map 0:v -c copy {output_path}")
+                os.system(f'ffmpeg -i "{input_path}" -y -map 0:v -c copy "{output_path}"')
                 processed_videos.append(input_path)
 
     if len(processed_videos) == 0:

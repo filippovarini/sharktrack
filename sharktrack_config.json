@@ -1,0 +1,73 @@
+{
+    "version": "1.5.0",
+    "description": "SharkTrack configuration - edit paths to match your system",
+
+    "project": {
+        "name": "SharkTrack Project",
+        "user_id": "USER",
+        "description": "Marine video analysis project"
+    },
+
+    "paths": {
+        "input_videos": "/media/simon/Extreme SSD/BRUVs_March 2023 and Dec 2025/",
+        "output_results": "/media/simon/Extreme SSD/SHARKTRACK_FINAL_RESULTS_20251111/",
+        "validation_dir": "/media/simon/Extreme SSD/SHARKTRACK_FINAL_RESULTS_20251111/validation/",
+        "thumbnails_dir": "/media/simon/Extreme SSD/SHARKTRACK_FINAL_RESULTS_20251111/detection_thumbnails/",
+        "classifier_training_dir": "",
+        "models_dir": "./models",
+        "tracks_file": "/media/simon/Extreme SSD/SHARKTRACK_FINAL_RESULTS_20251111/analysis_outputs/internal_results/tracks_for_validation.csv",
+        "video_dirs": {
+            "BRUVs_March_Dec_2025": "/media/simon/Extreme SSD/BRUVs_March 2023 and Dec 2025"
+        }
+    },
+
+    "detection": {
+        "model": "models/shark_detector.pt",
+        "confidence_threshold": 0.25,
+        "image_size": 1280,
+        "device": "auto",
+        "stereo_prefix": null,
+        "auto_skip_deployment": true,
+        "deployment_stability_threshold": 0.15
+    },
+
+    "validation": {
+        "generate_thumbnails": true,
+        "thumbnail_size": [640, 480],
+        "smart_suggestions_enabled": true,
+        "temporal_window_seconds": 120,
+        "min_propagation_confidence": 0.7
+    },
+
+    "classifier_training": {
+        "epochs": 50,
+        "batch_size": 32,
+        "learning_rate": 0.001,
+        "include_metadata": true,
+        "metadata_features": [
+            "region",
+            "depth_m",
+            "season",
+            "substrate",
+            "water_clarity",
+            "camera_model",
+            "resolution"
+        ]
+    },
+
+    "metadata": {
+        "auto_extract_gopro": true,
+        "auto_extract_gps": true,
+        "auto_analyze_environment": true,
+        "user_metadata_file": "/home/simon/Documents/Si Work/PostDoc Work/Saving The Blue/Data/BRUV/meta_data_reefsharks.csv",
+        "default_region": "",
+        "default_habitat": "",
+        "default_depth_m": null
+    },
+
+    "gui": {
+        "port": 5000,
+        "auto_open_browser": true,
+        "theme": "light"
+    }
+}

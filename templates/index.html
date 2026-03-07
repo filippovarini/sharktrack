@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SharkTrack - Marine Video Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f7fafc;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 1em;
+            font-weight: 600;
+            color: #4a5568;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            background: #edf2f7;
+        }
+
+        .tab.active {
+            background: white;
+            color: #2a5298;
+            border-bottom: 3px solid #2a5298;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .form-group .help-text {
+            font-size: 0.9em;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .input-with-browser {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-with-browser input {
+            flex: 1;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4299e1;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f7fafc;
+            border-radius: 6px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #4299e1;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.4);
+        }
+
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+
+        .system-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .info-card {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #4299e1;
+        }
+
+        .info-card .label {
+            font-size: 0.9em;
+            color: #718096;
+            margin-bottom: 5px;
+        }
+
+        .info-card .value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .output-console {
+            background: #1a202c;
+            color: #68d391;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .output-console .line {
+            margin-bottom: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e2e8f0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4299e1, #48bb78);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* File Browser Styles */
+        .file-browser-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .file-browser-content {
+            background: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .file-browser-header {
+            padding: 20px;
+            background: #f7fafc;
+            border-bottom: 2px solid #e2e8f0;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .file-browser-header h3 {
+            margin-bottom: 10px;
+        }
+
+        .file-browser-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .file-browser-footer {
+            padding: 20px;
+            background: #f7fafc;
+            border-top: 2px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .current-path {
+            padding: 10px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-family: monospace;
+        }
+
+        .file-list {
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-item:hover {
+            background: #f7fafc;
+        }
+
+        .file-item.selected {
+            background: #bee3f8;
+        }
+
+        .file-icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+            width: 25px;
+        }
+
+        .file-name {
+            flex: 1;
+        }
+
+        .file-size {
+            font-size: 0.9em;
+            color: #718096;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background: #bee3f8;
+            color: #2c5282;
+            border-left: 4px solid #4299e1;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border-left: 4px solid #48bb78;
+        }
+
+        .alert-warning {
+            background: #feebc8;
+            color: #744210;
+            border-left: 4px solid #ed8936;
+        }
+
+        .alert-danger {
+            background: #fed7d7;
+            color: #742a2a;
+            border-left: 4px solid #f56565;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .collapsible {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .collapsible-header {
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collapsible-content {
+            display: none;
+            margin-top: 15px;
+        }
+
+        .collapsible.open .collapsible-content {
+            display: block;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4299e1;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .status-running {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .status-completed {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-failed {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 300px;
+            background-color: #2d3748;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -150px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9em;
+            font-weight: normal;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🦈 SharkTrack</h1>
+            <p>Automated Marine Video Analysis with AI</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab(0)">Analysis</button>
+            <button class="tab" onclick="switchTab(1)">Classifier Training</button>
+            <button class="tab" onclick="switchTab(2)">Results</button>
+            <button class="tab" onclick="switchTab(3)">System</button>
+        </div>
+
+        <!-- Tab 1: Analysis -->
+        <div class="tab-content active" id="tab-0">
+            <h2>Run SharkTrack Analysis</h2>
+
+            <div class="form-group">
+                <label>Input Path *</label>
+                <div class="input-with-browser">
+                    <input type="text" id="input_path" class="form-control" placeholder="/path/to/videos">
+                    <button class="btn btn-secondary" onclick="openFileBrowser('input_path', 'directory')">Browse</button>
+                </div>
+                <div class="help-text">Path to video file or directory containing BRUV videos</div>
+            </div>
+
+            <div class="form-group">
+                <label>Output Path</label>
+                <div class="input-with-browser">
+                    <input type="text" id="output_path" class="form-control" placeholder="Auto-generated if empty">
+                    <button class="btn btn-secondary" onclick="openFileBrowser('output_path', 'directory')">Browse</button>
+                </div>
+                <div class="help-text">Directory for analysis results (optional)</div>
+            </div>
+
+            <div class="collapsible open">
+                <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                    <span>⚙️ Basic Settings</span>
+                    <span>▲</span>
+                </div>
+                <div class="collapsible-content">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Confidence Threshold</label>
+                            <input type="number" id="conf" class="form-control" value="0.25" step="0.05" min="0" max="1">
+                            <div class="help-text">Minimum detection confidence (0-1, default 0.25)</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Image Size
+                                <span class="tooltip">ℹ️
+                                    <span class="tooltiptext">Model input resolution. Larger = more accurate but slower. 640 is recommended for most cases.</span>
+                                </span>
+                            </label>
+                            <select id="imgsz" class="form-control">
+                                <option value="512">512 (Faster, lower accuracy)</option>
+                                <option value="640" selected>640 (Balanced - recommended)</option>
+                                <option value="800">800 (More accurate, slower)</option>
+                                <option value="1280">1280 (Best quality, slowest)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Max Videos</label>
+                            <input type="number" id="limit" class="form-control" value="1000" min="1">
+                            <div class="help-text">Maximum number of videos to process</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Stereo Prefix
+                                <span class="tooltip">ℹ️
+                                    <span class="tooltiptext">For stereo BRUV systems, process only videos starting with this prefix (e.g., "L" or "R")</span>
+                                </span>
+                            </label>
+                            <input type="text" id="stereo_prefix" class="form-control" placeholder="e.g., L or R">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="collapsible open">
+                <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                    <span>🎯 Advanced Features</span>
+                    <span>▲</span>
+                </div>
+                <div class="collapsible-content">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="auto_skip_deployment" checked>
+                        <label for="auto_skip_deployment">
+                            <strong>Auto-detect Deployment/Retrieval</strong>
+                            <div class="help-text">✅ Recommended: Automatically skip unstable periods to reduce false positives from surface humans, boat hulls, and chum boxes</div>
+                        </label>
+                    </div>
+
+                    <div class="form-group" id="deployment_threshold_group" style="margin-top: 15px;">
+                        <label>Deployment Stability Threshold
+                            <span class="tooltip">ℹ️
+                                <span class="tooltiptext">Motion threshold (0-1). Default 0.15 is balanced. Increase (0.20-0.25) if too many stable frames are skipped. Decrease (0.10-0.12) if deployment periods aren't detected.</span>
+                            </span>
+                        </label>
+                        <input type="number" id="deployment_stability_threshold" class="form-control" value="0.15" step="0.05" min="0" max="1">
+                        <details style="margin-top: 10px;">
+                            <summary style="cursor: pointer; color: #4299e1; font-weight: 500;">📖 What does this do?</summary>
+                            <div style="padding: 15px; background: #f7fafc; border-radius: 6px; margin-top: 10px; font-size: 0.9em;">
+                                <p><strong>Think of it as a "shakiness meter"</strong> that detects when the camera is being lowered/raised vs stable on the seafloor:</p>
+                                <pre style="background: white; padding: 10px; border-radius: 4px; margin: 10px 0; overflow-x: auto;">
+Camera Activity          Motion Score    Action
+────────────────────────────────────────────────
+Boat/humans visible      0.30-0.50       SKIP ✂️
+Descending               0.20-0.30       SKIP ✂️
+Landing                  0.15-0.20       SKIP ✂️ ← threshold
+Stable on seafloor       0.05-0.12       KEEP ✅
+Sharks swimming          0.08-0.15       KEEP ✅</pre>
+                                <p><strong>The number (0.15 default):</strong></p>
+                                <ul style="margin-left: 20px;">
+                                    <li>Below 0.15 motion = stable footage (KEEP)</li>
+                                    <li>Above 0.15 motion = deployment/retrieval (SKIP)</li>
+                                </ul>
+                                <p><strong>When to adjust:</strong></p>
+                                <ul style="margin-left: 20px;">
+                                    <li><strong>⬆️ Increase to 0.20:</strong> If skipping too many stable frames</li>
+                                    <li><strong>⬇️ Decrease to 0.12:</strong> If still seeing surface humans/boats</li>
+                                    <li><strong>👍 Keep at 0.15:</strong> First try (works for 90% of cases)</li>
+                                </ul>
+                                <p style="margin-top: 10px;"><em>Example: BRUV 52 detected 0-128s deployment, eliminated surface human false positive ✅</em></p>
+                            </div>
+                        </details>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="chapters" checked>
+                        <label for="chapters">
+                            <strong>Chapter Videos</strong>
+                            <div class="help-text">✅ Recommended: Aggregate results from videos split into chapters (no penalty if videos don't have chapters)</div>
+                        </label>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="peek">
+                        <label for="peek">
+                            <strong>Peek Mode</strong>
+                            <div class="help-text">5x faster, finds interesting frames without tracking (no MaxN calculation)</div>
+                        </label>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="resume">
+                        <label for="resume">
+                            <strong>Resume Previous Run</strong>
+                            <div class="help-text">Continue from where a previous analysis stopped</div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="collapsible">
+                <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                    <span>🔬 Species Classification</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <div class="form-group">
+                        <label>Species Classifier Path</label>
+                        <div class="input-with-browser">
+                            <input type="text" id="species_classifier" class="form-control" placeholder="models/my_classifier">
+                            <button class="btn btn-secondary" onclick="openFileBrowser('species_classifier', 'directory')">Browse</button>
+                        </div>
+                        <div class="help-text">Path to trained classifier (optional, see Classifier Training tab)</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-block" onclick="startAnalysis()">
+                🚀 Start Analysis
+            </button>
+
+            <div id="analysis-status" style="display: none;">
+                <h3 style="margin-top: 30px;">Analysis Progress</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%;">0%</div>
+                </div>
+                <div class="output-console" id="output-console"></div>
+                <button class="btn btn-danger btn-block" onclick="stopAnalysis()" style="margin-top: 15px;">
+                    ⏹️ Stop Analysis
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab 2: Classifier Training -->
+        <div class="tab-content" id="tab-1">
+            <h2>Train Species Classifier</h2>
+
+            <div class="alert alert-warning">
+                <strong>⚠️ Requirements:</strong> Directory of labeled images with species names in the filename (e.g., track_1-G.cirratum.jpg) OR organized in subdirectories by species name. Training typically takes 30-60 minutes.
+            </div>
+
+            <div class="form-group">
+                <label>Training Images Directory *</label>
+                <div class="input-with-browser">
+                    <input type="text" id="training_images" class="form-control" placeholder="/path/to/labeled/images">
+                    <button class="btn btn-secondary" onclick="openFileBrowser('training_images', 'directory')">Browse</button>
+                </div>
+                <div class="help-text">Directory containing labeled shark images</div>
+            </div>
+
+            <div class="form-group">
+                <label>Class Mapping *</label>
+                <input type="text" id="class_mapping" class="form-control" placeholder="G.cirratum,C.perezi,C.acronotus,non_elasmobranch">
+                <div class="help-text">Comma-separated list of species names (must match image labels). Example: G.cirratum,C.perezi,C.acronotus</div>
+            </div>
+
+            <div class="form-group">
+                <label>Output Model Path *</label>
+                <div class="input-with-browser">
+                    <input type="text" id="output_model" class="form-control" placeholder="models/my_classifier">
+                    <button class="btn btn-secondary" onclick="openFileBrowser('output_model', 'directory')">Browse</button>
+                </div>
+                <div class="help-text">Where to save the trained classifier</div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Training Epochs
+                        <span class="tooltip">ℹ️
+                            <span class="tooltiptext">Number of times the model sees the entire training dataset. More epochs = better learning but risk of overfitting. 25 epochs typically takes 30-60 minutes. Start with default.</span>
+                        </span>
+                    </label>
+                    <input type="number" id="epochs" class="form-control" value="25" min="1">
+                    <div class="help-text">Recommended: 25 (default)</div>
+                    <details style="margin-top: 10px;">
+                        <summary style="cursor: pointer; color: #4299e1; font-weight: 500;">📖 What is an epoch?</summary>
+                        <div style="padding: 15px; background: #f7fafc; border-radius: 6px; margin-top: 10px; font-size: 0.9em;">
+                            <p><strong>One epoch = one complete pass through all training images</strong></p>
+                            <p style="margin-top: 10px;"><strong>Analogy:</strong> Teaching a student to identify sharks from photos</p>
+                            <ul style="margin-left: 20px;">
+                                <li><strong>Epoch 1:</strong> Show all photos once → learns basic shapes</li>
+                                <li><strong>Epoch 10:</strong> Show all photos 10 times → learns species differences</li>
+                                <li><strong>Epoch 25:</strong> Show all photos 25 times → becomes expert ✅</li>
+                            </ul>
+                            <p style="margin-top: 10px;"><strong>Training progress:</strong></p>
+                            <pre style="background: white; padding: 10px; border-radius: 4px; margin: 10px 0;">
+Epoch  1: Accuracy 45%   "Hmm, these all look like fish..."
+Epoch  5: Accuracy 68%   "I see differences in the fins"
+Epoch 10: Accuracy 82%   "I can tell nurse shark from reef"
+Epoch 15: Accuracy 91%   "Getting good!"
+Epoch 25: Accuracy 97%   "Expert level!" ✅</pre>
+                            <p><strong>Time (with GPU):</strong> 25 epochs = 30-60 minutes (~1.5 min/epoch)</p>
+                            <p><strong>Time (CPU only):</strong> 25 epochs = 5+ hours (~12 min/epoch)</p>
+                            <p style="margin-top: 10px;"><strong>When to adjust:</strong></p>
+                            <ul style="margin-left: 20px;">
+                                <li><strong>⬆️ Increase to 30-35:</strong> Small dataset (<50 images)</li>
+                                <li><strong>⬇️ Decrease to 15-20:</strong> Large dataset (>500 images) or quick test</li>
+                                <li><strong>👍 Keep at 25:</strong> Works for 90% of cases</li>
+                                <li><strong>❌ Don't exceed 40:</strong> Risk of overfitting (memorizing vs learning)</li>
+                            </ul>
+                        </div>
+                    </details>
+                </div>
+
+                <div class="form-group">
+                    <label>Batch Size
+                        <span class="tooltip">ℹ️
+                            <span class="tooltiptext">Number of images processed together. Larger = faster training but more memory. Reduce to 8 if you get out-of-memory errors. Default 16 works for most GPUs.</span>
+                        </span>
+                    </label>
+                    <input type="number" id="batch_size" class="form-control" value="16" min="1">
+                    <div class="help-text">Recommended: 16 (reduce to 8 if out-of-memory)</div>
+
+                    <details style="margin-top: 10px;">
+                        <summary style="cursor: pointer; color: #4299e1; font-weight: 500;">📖 What is batch size?</summary>
+                        <div style="padding: 15px; background: #f7fafc; border-radius: 6px; margin-top: 10px; font-size: 0.9em;">
+                            <p><strong>Batch size = how many images the model processes together before updating what it learned</strong></p>
+
+                            <p style="margin-top: 10px;"><strong>Analogy:</strong> Grading homework</p>
+                            <ul style="margin-left: 20px;">
+                                <li><strong>Batch size 1:</strong> Grade 1 paper → update gradebook → get next paper (SLOW)</li>
+                                <li><strong>Batch size 16:</strong> Grade 16 papers → average scores → update gradebook once (GOOD ✅)</li>
+                                <li><strong>Batch size 32:</strong> Grade 32 papers → average scores → update gradebook once (FAST, needs big desk)</li>
+                            </ul>
+                            <p style="margin-top: 10px;">The "desk" is your GPU memory. Larger batches = faster but need more memory.</p>
+
+                            <p style="margin-top: 15px;"><strong>GPU Memory Requirements:</strong></p>
+                            <pre style="background: white; padding: 10px; border-radius: 4px; margin: 10px 0; overflow-x: auto;">
+Batch Size    GPU Memory    Time/Epoch    Works On
+─────────────────────────────────────────────────────
+    4           2 GB         2.5 min      Old GPUs, CPU
+    8           3 GB         1.8 min      GTX 1060, laptops
+   16           5 GB         1.4 min      GTX 1080, RTX 2060+ ✅
+   32          10 GB         1.2 min      RTX 3090, A100</pre>
+
+                            <p style="margin-top: 15px;"><strong>If you get "CUDA out of memory" error:</strong></p>
+                            <ol style="margin-left: 20px;">
+                                <li>Try batch size 16 first (default)</li>
+                                <li>If error, reduce to 8</li>
+                                <li>Still error? Try 4</li>
+                            </ol>
+
+                            <p style="margin-top: 15px;"><strong>When to adjust:</strong></p>
+                            <ul style="margin-left: 20px;">
+                                <li><strong>Decrease to 8:</strong> Laptop GPU (&lt;6GB), "CUDA out of memory" error</li>
+                                <li><strong>Decrease to 4:</strong> Very old GPU (&lt;4GB), training on CPU</li>
+                                <li><strong>Increase to 32:</strong> High-end GPU (RTX 3080+, &gt;10GB VRAM), want faster training</li>
+                                <li><strong>Keep at 16:</strong> Modern GPU (GTX 1080 or newer), no memory errors ✅</li>
+                            </ul>
+
+                            <p style="margin-top: 15px;"><strong>Example with 86 training images:</strong></p>
+                            <pre style="background: white; padding: 10px; border-radius: 4px; margin: 10px 0;">
+Batch 16: 86 ÷ 16 = 6 batches per epoch → 35 min (25 epochs)
+Batch  8: 86 ÷  8 = 11 batches per epoch → 50 min (25 epochs)
+Batch  4: 86 ÷  4 = 22 batches per epoch → 75 min (25 epochs)</pre>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-block" onclick="trainClassifier()">
+                🎓 Start Training
+            </button>
+
+            <div id="training-status" style="display: none;">
+                <h3 style="margin-top: 30px;">Training Progress</h3>
+                <div class="output-console" id="training-console"></div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Results -->
+        <div class="tab-content" id="tab-2">
+            <h2>View Analysis Results</h2>
+
+            <div class="form-group">
+                <label>Results Directory</label>
+                <div class="input-with-browser">
+                    <input type="text" id="results_path" class="form-control" placeholder="/path/to/results">
+                    <button class="btn btn-secondary" onclick="openFileBrowser('results_path', 'directory')">Browse</button>
+                    <button class="btn btn-primary" onclick="loadResults()">Load</button>
+                </div>
+            </div>
+
+            <div id="results-display" style="display: none;">
+                <div class="system-info">
+                    <div class="info-card">
+                        <div class="label">Total Detections</div>
+                        <div class="value" id="total-detections">-</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="label">Unique Tracks (MaxN)</div>
+                        <div class="value" id="total-tracks">-</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="label">Videos Processed</div>
+                        <div class="value" id="videos-processed">-</div>
+                    </div>
+                </div>
+
+                <h3>Species Distribution</h3>
+                <div id="species-chart" class="info-card"></div>
+
+                <h3>Sample Detections</h3>
+                <div id="sample-detections" class="output-console" style="height: auto; color: #2d3748;"></div>
+            </div>
+        </div>
+
+        <!-- Tab 4: System Info -->
+        <div class="tab-content" id="tab-3">
+            <h2>System Information</h2>
+
+            <div class="system-info" id="system-info-container">
+                <div class="info-card">
+                    <div class="label">CPU Cores</div>
+                    <div class="value" id="cpu-cores">-</div>
+                </div>
+                <div class="info-card">
+                    <div class="label">Total Memory</div>
+                    <div class="value" id="memory-total">-</div>
+                </div>
+                <div class="info-card">
+                    <div class="label">Available Memory</div>
+                    <div class="value" id="memory-available">-</div>
+                </div>
+                <div class="info-card">
+                    <div class="label">GPU Available</div>
+                    <div class="value" id="gpu-available">-</div>
+                </div>
+                <div class="info-card">
+                    <div class="label">GPU Device</div>
+                    <div class="value" id="gpu-name">-</div>
+                </div>
+                <div class="info-card">
+                    <div class="label">CUDA Version</div>
+                    <div class="value" id="cuda-version">-</div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 30px;">Active Processes</h3>
+            <div id="active-processes"></div>
+        </div>
+    </div>
+
+    <!-- File Browser Modal -->
+    <div id="fileBrowserModal" class="file-browser-modal">
+        <div class="file-browser-content">
+            <div class="file-browser-header">
+                <h3>Select <span id="browser-mode">Directory</span></h3>
+                <div class="current-path" id="current-path">/home</div>
+            </div>
+            <div class="file-browser-body">
+                <div class="file-list" id="file-list"></div>
+            </div>
+            <div class="file-browser-footer">
+                <button class="btn btn-secondary" onclick="closeFileBrowser()">Cancel</button>
+                <button class="btn btn-primary" onclick="selectCurrentPath()">Select Current Directory</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentProcessId = null;
+        let currentTrainingId = null;
+        let statusCheckInterval = null;
+        let fileBrowserTargetId = null;
+        let fileBrowserMode = 'directory';
+        let currentBrowserPath = '/home';
+        let selectedFilePath = null;
+
+        // Tab switching
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach((tab, i) => {
+                if (i === index) {
+                    tab.classList.add('active');
+                    contents[i].classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                    contents[i].classList.remove('active');
+                }
+            });
+
+            // Load system info when system tab is opened
+            if (index === 3) {
+                loadSystemInfo();
+                loadActiveProcesses();
+            }
+        }
+
+        // Collapsible sections
+        function toggleCollapsible(header) {
+            const collapsible = header.parentElement;
+            collapsible.classList.toggle('open');
+            const arrow = header.querySelector('span:last-child');
+            arrow.textContent = collapsible.classList.contains('open') ? '▲' : '▼';
+        }
+
+        // File Browser Functions
+        async function openFileBrowser(targetInputId, mode = 'directory') {
+            fileBrowserTargetId = targetInputId;
+            fileBrowserMode = mode;
+
+            // Get current value as starting path
+            const currentValue = document.getElementById(targetInputId).value;
+            if (currentValue && currentValue.trim()) {
+                currentBrowserPath = currentValue;
+            } else {
+                currentBrowserPath = '/home';  // Start at /home, browser will handle navigation
+            }
+
+            document.getElementById('browser-mode').textContent = mode === 'directory' ? 'Directory' : 'File';
+            document.getElementById('fileBrowserModal').style.display = 'block';
+
+            await loadFileBrowserContents(currentBrowserPath);
+        }
+
+        function closeFileBrowser() {
+            document.getElementById('fileBrowserModal').style.display = 'none';
+            selectedFilePath = null;
+        }
+
+        async function loadFileBrowserContents(path) {
+            try {
+                const response = await fetch(`/api/files/browse?path=${encodeURIComponent(path)}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    alert('Error browsing path: ' + data.error);
+                    return;
+                }
+
+                currentBrowserPath = data.current_path;
+                document.getElementById('current-path').textContent = currentBrowserPath;
+
+                const fileList = document.getElementById('file-list');
+                fileList.innerHTML = '';
+
+                data.items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'file-item';
+
+                    const icon = item.type === 'directory' ? '📁' :
+                                 item.is_video ? '🎬' : '📄';
+
+                    const sizeText = item.size ? formatFileSize(item.size) : '';
+
+                    div.innerHTML = `
+                        <span class="file-icon">${icon}</span>
+                        <span class="file-name">${item.name}</span>
+                        <span class="file-size">${sizeText}</span>
+                    `;
+
+                    div.onclick = async () => {
+                        if (item.type === 'directory') {
+                            await loadFileBrowserContents(item.path);
+                        } else if (fileBrowserMode === 'file') {
+                            // Select file
+                            document.querySelectorAll('.file-item').forEach(el => el.classList.remove('selected'));
+                            div.classList.add('selected');
+                            selectedFilePath = item.path;
+                        }
+                    };
+
+                    fileList.appendChild(div);
+                });
+
+            } catch (error) {
+                alert('Error loading directory: ' + error.message);
+            }
+        }
+
+        function selectCurrentPath() {
+            let pathToUse = fileBrowserMode === 'directory' ? currentBrowserPath : selectedFilePath;
+
+            if (!pathToUse) {
+                alert('Please select a ' + fileBrowserMode);
+                return;
+            }
+
+            document.getElementById(fileBrowserTargetId).value = pathToUse;
+            closeFileBrowser();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+            return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+        }
+
+        // Show/hide deployment threshold when auto-detect is enabled
+        document.getElementById('auto_skip_deployment').addEventListener('change', function() {
+            const thresholdGroup = document.getElementById('deployment_threshold_group');
+            thresholdGroup.style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Start analysis
+        async function startAnalysis() {
+            const data = {
+                input_path: document.getElementById('input_path').value,
+                output_path: document.getElementById('output_path').value,
+                conf: parseFloat(document.getElementById('conf').value),
+                imgsz: parseInt(document.getElementById('imgsz').value),
+                limit: parseInt(document.getElementById('limit').value),
+                stereo_prefix: document.getElementById('stereo_prefix').value,
+                species_classifier: document.getElementById('species_classifier').value,
+                peek: document.getElementById('peek').checked,
+                chapters: document.getElementById('chapters').checked,
+                resume: document.getElementById('resume').checked,
+                auto_skip_deployment: document.getElementById('auto_skip_deployment').checked,
+                deployment_stability_threshold: parseFloat(document.getElementById('deployment_stability_threshold').value)
+            };
+
+            if (!data.input_path) {
+                alert('Please specify an input path');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/analyze/start', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentProcessId = result.process_id;
+                    document.getElementById('analysis-status').style.display = 'block';
+                    document.getElementById('output-console').innerHTML = `<div class="line">Starting analysis...</div><div class="line">Command: ${result.command}</div>`;
+
+                    // Start status checking
+                    statusCheckInterval = setInterval(checkAnalysisStatus, 1000);
+                } else {
+                    alert('Failed to start analysis: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error starting analysis: ' + error.message);
+            }
+        }
+
+        // Check analysis status
+        async function checkAnalysisStatus() {
+            if (!currentProcessId) return;
+
+            try {
+                const response = await fetch(`/api/analyze/status/${currentProcessId}`);
+                const status = await response.json();
+
+                if (status.output) {
+                    const console = document.getElementById('output-console');
+                    const lines = status.output.split('\n');
+                    lines.forEach(line => {
+                        if (line.trim()) {
+                            const lineDiv = document.createElement('div');
+                            lineDiv.className = 'line';
+                            lineDiv.textContent = line;
+                            console.appendChild(lineDiv);
+                        }
+                    });
+                    console.scrollTop = console.scrollHeight;
+                }
+
+                // Update progress
+                const progressFill = document.getElementById('progress-fill');
+                if (status.status === 'completed') {
+                    progressFill.style.width = '100%';
+                    progressFill.textContent = '100% - Completed';
+                    clearInterval(statusCheckInterval);
+                } else if (status.status === 'failed') {
+                    progressFill.style.width = '100%';
+                    progressFill.textContent = 'Failed';
+                    progressFill.style.background = '#f56565';
+                    clearInterval(statusCheckInterval);
+                }
+
+            } catch (error) {
+                console.error('Error checking status:', error);
+            }
+        }
+
+        // Stop analysis
+        async function stopAnalysis() {
+            if (!currentProcessId) return;
+
+            try {
+                await fetch(`/api/analyze/stop/${currentProcessId}`, {method: 'POST'});
+                clearInterval(statusCheckInterval);
+                document.getElementById('output-console').innerHTML += '<div class="line">Analysis stopped by user</div>';
+            } catch (error) {
+                alert('Error stopping analysis: ' + error.message);
+            }
+        }
+
+        // Train classifier
+        async function trainClassifier() {
+            const data = {
+                training_images: document.getElementById('training_images').value,
+                class_mapping: document.getElementById('class_mapping').value,
+                output_model: document.getElementById('output_model').value,
+                epochs: parseInt(document.getElementById('epochs').value),
+                batch_size: parseInt(document.getElementById('batch_size').value)
+            };
+
+            if (!data.training_images || !data.class_mapping || !data.output_model) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/classifier/train', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentTrainingId = result.process_id;
+                    document.getElementById('training-status').style.display = 'block';
+                    document.getElementById('training-console').innerHTML = '<div class="line">Starting classifier training...</div>';
+                } else {
+                    alert('Failed to start training: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Load results
+        async function loadResults() {
+            const resultsPath = document.getElementById('results_path').value;
+
+            if (!resultsPath) {
+                alert('Please specify a results path');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/results/${encodeURIComponent(resultsPath)}`);
+                const results = await response.json();
+
+                if (results.error) {
+                    alert('Error loading results: ' + results.error);
+                    return;
+                }
+
+                document.getElementById('results-display').style.display = 'block';
+                document.getElementById('total-detections').textContent = results.total_detections || 0;
+                document.getElementById('total-tracks').textContent = results.total_tracks || 0;
+                document.getElementById('videos-processed').textContent = results.videos_processed || 0;
+
+                // Species chart
+                const speciesChart = document.getElementById('species-chart');
+                if (results.species && Object.keys(results.species).length > 0) {
+                    speciesChart.innerHTML = Object.entries(results.species).map(([species, count]) =>
+                        `<div style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                            <strong>${species}:</strong> ${count} detections
+                        </div>`
+                    ).join('');
+                } else {
+                    speciesChart.innerHTML = '<div style="padding: 10px;">No species data available</div>';
+                }
+
+                // Sample detections
+                const sampleDiv = document.getElementById('sample-detections');
+                if (results.sample_detections && results.sample_detections.length > 0) {
+                    sampleDiv.innerHTML = '<pre>' + JSON.stringify(results.sample_detections, null, 2) + '</pre>';
+                }
+
+            } catch (error) {
+                alert('Error loading results: ' + error.message);
+            }
+        }
+
+        // Load system info
+        async function loadSystemInfo() {
+            try {
+                const response = await fetch('/api/system/info');
+                const info = await response.json();
+
+                document.getElementById('cpu-cores').textContent = info.cpu_cores;
+                document.getElementById('memory-total').textContent = info.memory_total_gb + ' GB';
+                document.getElementById('memory-available').textContent = info.memory_available_gb + ' GB';
+                document.getElementById('gpu-available').textContent = info.gpu_available ? 'Yes' : 'No';
+                document.getElementById('gpu-name').textContent = info.gpu_name || 'N/A';
+                document.getElementById('cuda-version').textContent = info.cuda_version || 'N/A';
+
+            } catch (error) {
+                console.error('Error loading system info:', error);
+            }
+        }
+
+        // Load active processes
+        async function loadActiveProcesses() {
+            try {
+                const response = await fetch('/api/analyze/list');
+                const processes = await response.json();
+
+                const container = document.getElementById('active-processes');
+                if (Object.keys(processes).length === 0) {
+                    container.innerHTML = '<div class="alert alert-info">No active processes</div>';
+                } else {
+                    container.innerHTML = Object.entries(processes).map(([pid, proc]) =>
+                        `<div class="info-card" style="margin-bottom: 15px;">
+                            <div><strong>Process ID:</strong> ${pid}</div>
+                            <div><strong>Status:</strong> <span class="status-badge status-${proc.status}">${proc.status}</span></div>
+                            <div><strong>Progress:</strong> ${proc.progress} videos</div>
+                            <div><strong>Elapsed:</strong> ${Math.floor(proc.elapsed_time / 60)} min ${Math.floor(proc.elapsed_time % 60)} sec</div>
+                            <div><strong>Output:</strong> ${proc.output_path}</div>
+                        </div>`
+                    ).join('');
+                }
+            } catch (error) {
+                console.error('Error loading processes:', error);
+            }
+        }
+
+        // Load system info on page load
+        window.addEventListener('load', () => {
+            loadSystemInfo();
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('fileBrowserModal');
+            if (event.target == modal) {
+                closeFileBrowser();
+            }
+        }
+    </script>
+</body>
+</html>
