@@ -3,6 +3,8 @@ import sys
 import cv2
 import os
 from pathlib import Path
+import hashlib
+import numpy as np
 sys.path.append("utils")
 from time_processor import string_to_ms
 from config import configs
@@ -15,6 +17,89 @@ import time as t
 SHARKTRACK_COLUMNS = ["video_path", "video_name", "frame", "time", "xmin", "ymin", "xmax", "ymax", "w", "h", "confidence", "label", "track_metadata", "track_id"]
 
 classes_mapping = ["elasmobranch"]
+
+# Global deduplication cache
+_detection_cache = {}
+
+def compute_detection_hash(image, bbox):
+    """
+    Compute a hash for a detection to identify duplicates.
+    Uses perceptual hash of frame + bbox coordinates.
+
+    Args:
+        image: numpy array of the frame
+        bbox: tuple of (xmin, ymin, xmax, ymax)
+
+    Returns:
+        str: hash string for this detection
+    """
+    # Simple difference hash (dHash) for perceptual image hashing
+    # Resize to 8x8 for speed
+    small_image = cv2.resize(image, (9, 8), interpolation=cv2.INTER_AREA)
+    gray = cv2.cvtColor(small_image, cv2.COLOR_BGR2GRAY) if len(small_image.shape) == 3 else small_image
+
+    # Compute horizontal gradient
+    diff = gray[:, 1:] > gray[:, :-1]
+
+    # Convert boolean array to hash string
+    image_hash = ''.join(['1' if v else '0' for row in diff for v in row])
+
+    # Combine with bbox coordinates (rounded to avoid floating point differences)
+    xmin, ymin, xmax, ymax = bbox
+    bbox_str = f"{int(xmin)}_{int(ymin)}_{int(xmax)}_{int(ymax)}"
+
+    # Create combined hash
+    combined = f"{image_hash}_{bbox_str}"
+    return hashlib.md5(combined.encode()).hexdigest()
+
+def is_duplicate_detection(video_path, image, bbox, tolerance=2):
+    """
+    Check if this detection is a duplicate of a previously saved one.
+
+    Args:
+        video_path: path to video (used as cache key scope)
+        image: numpy array of the frame
+        bbox: tuple of (xmin, ymin, xmax, ymax)
+        tolerance: pixel tolerance for bbox matching (default 2px)
+
+    Returns:
+        bool: True if duplicate, False if unique
+    """
+    detection_hash = compute_detection_hash(image, bbox)
+    cache_key = f"{video_path}_{detection_hash}"
+
+    if cache_key in _detection_cache:
+        return True
+
+    # Also check for near-duplicate bboxes (within tolerance pixels)
+    xmin, ymin, xmax, ymax = bbox
+    video_detections = [k for k in _detection_cache.keys() if k.startswith(video_path)]
+
+    for existing_key in video_detections:
+        # Extract bbox from existing key
+        try:
+            parts = existing_key.split('_')
+            if len(parts) >= 5:
+                existing_bbox = tuple(map(int, parts[-4:]))
+                ex_xmin, ex_ymin, ex_xmax, ex_ymax = existing_bbox
+
+                # Check if bboxes are within tolerance
+                if (abs(xmin - ex_xmin) <= tolerance and
+                    abs(ymin - ex_ymin) <= tolerance and
+                    abs(xmax - ex_xmax) <= tolerance and
+                    abs(ymax - ex_ymax) <= tolerance):
+                    return True
+        except (ValueError, IndexError):
+            continue
+
+    # Not a duplicate, add to cache
+    _detection_cache[cache_key] = True
+    return False
+
+def clear_detection_cache():
+    """Clear the deduplication cache (call when starting a new batch)"""
+    global _detection_cache
+    _detection_cache = {}
    
 def extract_frame_results(frame_results, tracking):
     boxes = frame_results.boxes.xyxy.cpu().tolist()
@@ -24,6 +109,102 @@ def extract_frame_results(frame_results, tracking):
     classes = frame_results.boxes.cls.cpu().tolist()
 
     return zip(boxes, confidences, classes, track_ids) if tracking else zip(boxes, confidences, classes)
+
+
+# ============================================================================
+# RAW DETECTION LOGGING
+# ============================================================================
+# These functions log ALL detections before tracking/filtering for QC purposes
+
+RAW_DETECTION_COLUMNS = [
+    "video_path", "video_name", "frame", "time",
+    "xmin", "ymin", "xmax", "ymax", "w", "h",
+    "confidence", "label",
+    "has_track_id", "track_id"
+]
+
+def extract_raw_detections(video_path, input_path, frame_results, frame_id, time):
+    """
+    Extract ALL detections from a frame, regardless of tracking status.
+
+    This captures detections that may be filtered out by the tracker
+    (e.g., due to new_track_thresh) for later QC review.
+
+    Args:
+        video_path: Path to video file
+        input_path: Base input path for relative path computation
+        frame_results: YOLO results object
+        frame_id: Frame number
+        time: Timestamp string
+
+    Returns:
+        list: List of detection dicts
+    """
+    boxes = frame_results.boxes.xyxy.cpu().tolist()
+    tracks = frame_results.boxes.id
+    track_ids = tracks.int().cpu().tolist() if tracks is not None else [None] * len(boxes)
+    confidences = frame_results.boxes.conf.cpu().tolist()
+    classes = frame_results.boxes.cls.cpu().tolist()
+
+    # Pad track_ids if shorter than boxes (happens when some detections don't get tracked)
+    while len(track_ids) < len(boxes):
+        track_ids.append(None)
+
+    raw_rows = []
+    relative_video_path = remove_input_prefix_from_video_path(video_path, input_path)
+
+    for box, confidence, cls, track_id in zip(boxes, confidences, classes, track_ids):
+        row = {
+            "video_path": relative_video_path,
+            "video_name": os.path.basename(video_path),
+            "frame": frame_id,
+            "time": time,
+            "xmin": box[0],
+            "ymin": box[1],
+            "xmax": box[2],
+            "ymax": box[3],
+            "w": frame_results.orig_shape[1],
+            "h": frame_results.orig_shape[0],
+            "confidence": confidence,
+            "label": classes_mapping[int(cls)],
+            "has_track_id": track_id is not None,
+            "track_id": track_id if track_id is not None else -1,
+        }
+        raw_rows.append(row)
+
+    return raw_rows
+
+
+def save_raw_detections(raw_detections, output_folder):
+    """
+    Save raw detections to a separate CSV for QC purposes.
+
+    This file contains ALL detections, including those that:
+    - Didn't meet new_track_thresh to start a track
+    - Were in gaps between tracked frames
+    - Were filtered out by postprocessing
+
+    Args:
+        raw_detections: List of detection dicts from extract_raw_detections
+        output_folder: Output folder path
+    """
+    if not raw_detections:
+        return
+
+    df = pd.DataFrame(raw_detections)
+    output_path = os.path.join(output_folder, "raw_detections.csv")
+
+    if os.path.exists(output_path):
+        existing_df = pd.read_csv(output_path)
+        df = pd.concat([existing_df, df], ignore_index=True)
+
+    df.to_csv(output_path, index=False)
+
+    # Log summary
+    n_total = len(df)
+    n_tracked = df['has_track_id'].sum()
+    n_untracked = n_total - n_tracked
+    print(f"  📝 Raw detections logged: {len(raw_detections)} new ({n_untracked} untracked)")
 
 def extract_sightings(video_path, input_path, frame_results, frame_id, time, **kwargs):
     is_tracking = kwargs.get("tracking", False)
@@ -83,7 +264,7 @@ def save_analyst_output(video_path, model_results, out_folder, next_track_index,
       tracks_found = new_next_track_index - next_track_index
       next_track_index = new_next_track_index
   
-  print(f"✅ Found {tracks_found} tracks!")
+  print(f"Found {tracks_found} tracks!")
 
   overview_row = {"video_path": video_path, "tracks_found": tracks_found}
   concat_df(pd.DataFrame([overview_row]), os.path.join(out_folder, configs["overview_filename"]))
@@ -151,10 +332,31 @@ def postprocess(results, fps, next_track_index):
 def write_max_conf(postprocessed_results: pd.DataFrame, out_folder: Path, video_path_prefix: str, species_classifier: SpeciesClassifier = None):
   """
   Saves annotated images with the maximum confidence detection for each track
+  Uses parallel classification when species_classifier is provided
   """
   start_time = t.time()
+
+  # Clear deduplication cache for this video
+  # Note: This ensures each video starts fresh, preventing false positives across videos
+  clear_detection_cache()
+
   max_conf_detections_idx = postprocessed_results.groupby("track_metadata")["confidence"].idxmax()
   max_conf_detections_df = postprocessed_results.loc[max_conf_detections_idx]
+
+  if species_classifier:
+    # Use parallel classification
+    write_max_conf_parallel(postprocessed_results, max_conf_detections_df, out_folder, video_path_prefix, species_classifier)
+  else:
+    # Original sequential processing without classification
+    write_max_conf_sequential(max_conf_detections_df, out_folder, video_path_prefix)
+
+  elapsed_time = t.time() - start_time
+  print(f"✅ annotated images in {elapsed_time:.2f} seconds")
+
+
+def write_max_conf_sequential(max_conf_detections_df: pd.DataFrame, out_folder: Path, video_path_prefix: str):
+  """Sequential processing without species classification"""
+  duplicates_skipped = 0
 
   for _, row in max_conf_detections_df.iterrows():
     video_short_path = row["video_path"]
@@ -164,21 +366,130 @@ def write_max_conf(postprocessed_results: pd.DataFrame, out_folder: Path, video_
     label = row["label"]
     confidence = row["confidence"]
 
-    if species_classifier:
-      confidence, species = species_classifier(row, image)
-      label = species or configs["unclassifiable"]
-      postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "label"] = label
-      postprocessed_results.loc[postprocessed_results.track_metadata == row["track_metadata"], "classification_confidence"] = confidence
-      print(f" species classification time: {elapsed_time:.2f} seconds")
+    # Check for duplicates
+    bbox = row[["xmin", "ymin", "xmax", "ymax"]].values
+    if is_duplicate_detection(str(video_path), image, tuple(bbox)):
+      duplicates_skipped += 1
+      print(f"  Skipped duplicate: track {row['track_id']} in {video_short_path}")
+      continue
 
-    img = draw_bboxes(image, [row[["xmin", "ymin", "xmax", "ymax"]].values], [f"{row['track_id']}: {(confidence or row['confidence'])*100:.0f}%"])
+    img = draw_bboxes(image, [bbox], [f"{row['track_id']}: {confidence*100:.0f}%"])
     img = annotate_image(img,  f"Video: {video_short_path or row['video_name']}", f"Track ID: {row['track_id']}", f"Time: {time}")
 
     output_image_id = f"{row['track_id']}-{label}.jpg"
     output_path = str(out_folder / output_image_id)
     cv2.imwrite(output_path, img)
-  elapsed_time = t.time() - start_time
-  
+
+  if duplicates_skipped > 0:
+    print(f"  ⚠️  Skipped {duplicates_skipped} duplicate detections")
+
+
+def write_max_conf_parallel(postprocessed_results: pd.DataFrame, max_conf_detections_df: pd.DataFrame,
+                           out_folder: Path, video_path_prefix: str, species_classifier: SpeciesClassifier):
+  """Parallel processing with species classification"""
+
+  # Import here to avoid circular import
+  from .parallel_classifier import ParallelSpeciesClassifier, ClassificationTask
+
+  # Initialize parallel classifier
+  parallel_classifier = ParallelSpeciesClassifier(species_classifier, batch_size=16)
+  parallel_classifier.start(video_path_prefix)
+
+  classification_start = t.time()
+
+  try:
+    # Submit all classification tasks
+    for idx, row in max_conf_detections_df.iterrows():
+      task = ClassificationTask(
+        track_id=row["track_id"],
+        track_metadata=row["track_metadata"],
+        video_path=row["video_path"],
+        time=row["time"],
+        xmin=int(row["xmin"]),
+        ymin=int(row["ymin"]),
+        xmax=int(row["xmax"]),
+        ymax=int(row["ymax"]),
+        confidence=row["confidence"],
+        row_index=idx
+      )
+      parallel_classifier.submit_task(task)
+
+    # Process results as they come in while also handling image generation
+    processed_tracks = set()
+    total_tracks = len(max_conf_detections_df)
+
+    # Copy dataframe for safe modification
+    results_df = postprocessed_results.copy()
+
+    while len(processed_tracks) < total_tracks:
+      # Get classification results
+      batch_results = parallel_classifier.get_results()
+
+      for result in batch_results:
+        if result.row_index in processed_tracks:
+          continue
+
+        row = max_conf_detections_df.loc[result.row_index]
+
+        # Update classification results
+        if result.species:
+          label = result.species
+          classification_confidence = result.classification_confidence
+        else:
+          label = configs["unclassifiable"]
+          classification_confidence = result.classification_confidence
+
+        # Update all detections for this track
+        track_mask = results_df["track_metadata"] == row["track_metadata"]
+        results_df.loc[track_mask, "label"] = label
+        results_df.loc[track_mask, "classification_confidence"] = classification_confidence
+
+        # Generate annotated image
+        generate_annotated_image(row, out_folder, video_path_prefix, label, classification_confidence)
+
+        processed_tracks.add(result.row_index)
+
+        if len(processed_tracks) % 10 == 0:
+          print(f"Processed {len(processed_tracks)}/{total_tracks} classifications")
+
+      # Small delay to prevent busy waiting
+      t.sleep(0.01)
+
+    # Update original dataframe
+    postprocessed_results.update(results_df)
+
+  finally:
+    # Clean shutdown
+    remaining_results = parallel_classifier.stop()
+    print(f"Parallel classification completed. {len(remaining_results)} results remaining in queue.")
+
+  classification_time = t.time() - classification_start
+  print(f"⚡ Species classification completed in {classification_time:.2f} seconds")
+
+
+def generate_annotated_image(row: pd.Series, out_folder: Path, video_path_prefix: str, label: str, confidence: float):
+  """Generate a single annotated image"""
+  video_short_path = row["video_path"]
+  video_path = Path(video_path_prefix) / video_short_path
+  time = row["time"]
+  image = extract_frame_at_time(str(video_path), string_to_ms(time))
+
+  # Check for duplicates
+  bbox = row[["xmin", "ymin", "xmax", "ymax"]].values
+  if is_duplicate_detection(str(video_path), image, tuple(bbox)):
+    print(f"  Skipped duplicate: track {row['track_id']} in {video_short_path}")
+    return False  # Indicate skipped
+
+  display_confidence = confidence if confidence > 0 else row["confidence"]
+  img = draw_bboxes(image, [bbox],
+                   [f"{row['track_id']}: {display_confidence*100:.0f}%"])
+  img = annotate_image(img, f"Video: {video_short_path or row['video_name']}",
+                      f"Track ID: {row['track_id']}", f"Time: {time}")
+
+  output_image_id = f"{row['track_id']}-{label}.jpg"
+  output_path = str(out_folder / output_image_id)
+  cv2.imwrite(output_path, img)
+  return True  # Indicate saved
 
 
 def resume_previous_run(output_path: Path):
